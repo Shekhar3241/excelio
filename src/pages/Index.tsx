@@ -11,7 +11,9 @@ const Index = () => {
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
-    if (query.trim()) {
+    
+    // Only navigate if there's actually a search query (at least 2 characters)
+    if (query.trim().length >= 2) {
       // Find matching formulas
       const matchingFormulas = formulas.filter(f =>
         f.name.toLowerCase().includes(query.toLowerCase()) ||
