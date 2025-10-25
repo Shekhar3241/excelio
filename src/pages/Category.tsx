@@ -1,23 +1,48 @@
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { Header } from "@/components/Header";
 import { FormulaCard } from "@/components/FormulaCard";
 import { SearchBar } from "@/components/SearchBar";
 import { categories, formulas } from "@/data/formulas";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export default function Category() {
   const { categoryId } = useParams<{ categoryId: string }>();
   const [searchQuery, setSearchQuery] = useState("");
+  const navigate = useNavigate();
 
   const category = categories.find(c => c.id === categoryId);
   const categoryFormulas = formulas.filter(f => f.category === categoryId);
 
+  // Search across ALL formulas, not just current category
+  const handleSearch = (query: string) => {
+    setSearchQuery(query);
+    
+    if (query.trim()) {
+      // Find matching formulas across all categories
+      const matchingFormulas = formulas.filter(f =>
+        f.name.toLowerCase().includes(query.toLowerCase()) ||
+        f.description.toLowerCase().includes(query.toLowerCase())
+      );
+      
+      // If we have results and the first result is NOT in the current category, navigate to it
+      if (matchingFormulas.length > 0 && matchingFormulas[0].category !== categoryId) {
+        navigate(`/category/${matchingFormulas[0].category}`);
+      }
+    }
+  };
+
+  // Filter formulas in current category based on search
   const filteredFormulas = categoryFormulas.filter(formula =>
     formula.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     formula.description.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  // Reset search when category changes
+  useEffect(() => {
+    setSearchQuery("");
+  }, [categoryId]);
 
   if (!category) {
     return (
@@ -56,8 +81,8 @@ export default function Category() {
         <div className="mb-8">
           <SearchBar
             value={searchQuery}
-            onChange={setSearchQuery}
-            placeholder={`Search in ${category.name}...`}
+            onChange={handleSearch}
+            placeholder="Search all formulas..."
           />
         </div>
 
