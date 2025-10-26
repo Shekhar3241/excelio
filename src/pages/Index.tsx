@@ -39,7 +39,7 @@ const Index = () => {
       <section className="py-16 px-4" style={{ background: 'var(--gradient-hero)' }}>
         <div className="container mx-auto max-w-4xl text-center">
           <h1 className="text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-primary to-primary-light bg-clip-text text-transparent">
-            Excel Formula Reference
+            Excelio's Hub
           </h1>
           <p className="text-xl text-muted-foreground mb-8">
             Your comprehensive guide to Excel formulas. Search, browse, and master the most essential functions.
