@@ -1,20 +1,36 @@
 import { useParams, Link } from "react-router-dom";
 import { Header } from "@/components/Header";
 import { formulas, categories } from "@/data/formulas";
-import { ArrowLeft, Copy, Check } from "lucide-react";
+import { ArrowLeft, Copy, Check, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
+import { useFavorites } from "@/hooks/use-favorites";
+import { useRecent } from "@/hooks/use-recent";
+import { FormulaCard } from "@/components/FormulaCard";
 
 export default function FormulaDetail() {
   const { formulaId } = useParams<{ formulaId: string }>();
   const [copiedSyntax, setCopiedSyntax] = useState(false);
   const [copiedExample, setCopiedExample] = useState(false);
+  const { toggleFavorite, isFavorite } = useFavorites();
+  const { addRecent } = useRecent();
 
   const formula = formulas.find(f => f.id === formulaId);
   const category = formula ? categories.find(c => c.id === formula.category) : null;
+
+  // Get related formulas (same category, excluding current formula)
+  const relatedFormulas = formula
+    ? formulas.filter(f => f.category === formula.category && f.id !== formula.id).slice(0, 3)
+    : [];
+
+  useEffect(() => {
+    if (formulaId) {
+      addRecent(formulaId);
+    }
+  }, [formulaId, addRecent]);
 
   const copyToClipboard = async (text: string, type: 'syntax' | 'example') => {
     try {
@@ -61,12 +77,30 @@ export default function FormulaDetail() {
               {category.icon} {category.name}
             </Badge>
           </div>
-          <h1 className="text-5xl font-bold font-mono text-primary mb-4">
-            {formula.name}
-          </h1>
-          <p className="text-xl text-foreground">
-            {formula.description}
-          </p>
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex-1">
+              <h1 className="text-5xl font-bold font-mono text-primary mb-4">
+                {formula.name}
+              </h1>
+              <p className="text-xl text-foreground">
+                {formula.description}
+              </p>
+            </div>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => toggleFavorite(formula.id)}
+              className="h-12 w-12 shrink-0"
+            >
+              <Star
+                className={`h-6 w-6 ${
+                  isFavorite(formula.id)
+                    ? "fill-primary text-primary"
+                    : "text-muted-foreground"
+                }`}
+              />
+            </Button>
+          </div>
         </div>
 
         <div className="space-y-6">
@@ -149,6 +183,17 @@ export default function FormulaDetail() {
             for more detailed information about this formula.
           </p>
         </div>
+
+        {relatedFormulas.length > 0 && (
+          <div className="mt-12">
+            <h2 className="text-2xl font-bold mb-6">Related Formulas</h2>
+            <div className="grid gap-4 md:grid-cols-3">
+              {relatedFormulas.map(related => (
+                <FormulaCard key={related.id} formula={related} />
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

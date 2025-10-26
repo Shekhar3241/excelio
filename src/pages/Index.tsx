@@ -1,6 +1,6 @@
 import { Header } from "@/components/Header";
 import { CategoryCard } from "@/components/CategoryCard";
-import { SearchBar } from "@/components/SearchBar";
+import { SearchBarEnhanced } from "@/components/SearchBarEnhanced";
 import { categories, formulas } from "@/data/formulas";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -45,7 +45,7 @@ const Index = () => {
             Your comprehensive guide to Excel formulas. Search, browse, and master the most essential functions.
           </p>
           <div className="flex justify-center">
-            <SearchBar
+            <SearchBarEnhanced
               value={searchQuery}
               onChange={handleSearch}
               placeholder="Search for any Excel formula..."
