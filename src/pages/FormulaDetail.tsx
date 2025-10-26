@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { useFavorites } from "@/hooks/use-favorites";
 import { useRecent } from "@/hooks/use-recent";
 import { FormulaCard } from "@/components/FormulaCard";
+import { FormulaTable } from "@/components/FormulaTable";
 
 export default function FormulaDetail() {
   const { formulaId } = useParams<{ formulaId: string }>();
@@ -148,9 +149,14 @@ export default function FormulaDetail() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <code className="block p-4 bg-accent rounded-lg text-accent-foreground font-mono text-sm overflow-x-auto">
+              <code className="block p-4 bg-accent rounded-lg text-accent-foreground font-mono text-sm overflow-x-auto mb-6">
                 {formula.example}
               </code>
+              
+              <div className="pt-4 border-t border-border">
+                <h3 className="text-base font-semibold mb-4 text-foreground">Visual Example:</h3>
+                <FormulaTable example={formula.example} />
+              </div>
             </CardContent>
           </Card>
 
