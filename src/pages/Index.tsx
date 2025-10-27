@@ -1,12 +1,17 @@
 import { Header } from "@/components/Header";
 import { CategoryCard } from "@/components/CategoryCard";
 import { SearchBarEnhanced } from "@/components/SearchBarEnhanced";
+import { AISearchBar } from "@/components/AISearchBar";
 import { categories, formulas } from "@/data/formulas";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Sparkles } from "lucide-react";
 
 const Index = () => {
   const [searchQuery, setSearchQuery] = useState("");
+  const [aiSearchQuery, setAiSearchQuery] = useState("");
+  const [useAI, setUseAI] = useState(false);
   const navigate = useNavigate();
 
   const handleSearch = (query: string) => {
@@ -39,17 +44,37 @@ const Index = () => {
       <section className="py-16 px-4" style={{ background: 'var(--gradient-hero)' }}>
         <div className="container mx-auto max-w-4xl text-center">
           <h1 className="text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-primary to-primary-light bg-clip-text text-transparent">
-            SkillBi's Hub
+            SkillBI's Hub
           </h1>
           <p className="text-xl text-muted-foreground mb-8">
             Your comprehensive guide to Excel formulas. Search, browse, and master the most essential functions.
           </p>
+          
+          <div className="flex justify-center mb-4">
+            <Button
+              variant={useAI ? "default" : "outline"}
+              onClick={() => setUseAI(!useAI)}
+              className="mb-4"
+            >
+              <Sparkles className="h-4 w-4 mr-2" />
+              {useAI ? "Using AI Search" : "Try AI Search"}
+            </Button>
+          </div>
+
           <div className="flex justify-center">
-            <SearchBarEnhanced
-              value={searchQuery}
-              onChange={handleSearch}
-              placeholder="Search for any Excel formula..."
-            />
+            {useAI ? (
+              <AISearchBar
+                value={aiSearchQuery}
+                onChange={setAiSearchQuery}
+                placeholder="Ask in plain English (e.g., 'add numbers together')"
+              />
+            ) : (
+              <SearchBarEnhanced
+                value={searchQuery}
+                onChange={handleSearch}
+                placeholder="Search for any Excel formula..."
+              />
+            )}
           </div>
         </div>
       </section>

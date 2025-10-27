@@ -116,9 +116,15 @@ export default function FormulaDetail() {
                   className="h-8"
                 >
                   {copiedSyntax ? (
-                    <Check className="h-4 w-4 text-primary" />
+                    <>
+                      <Check className="h-4 w-4 text-primary mr-2" />
+                      Copied!
+                    </>
                   ) : (
-                    <Copy className="h-4 w-4" />
+                    <>
+                      <Copy className="h-4 w-4 mr-2" />
+                      Copy
+                    </>
                   )}
                 </Button>
               </CardTitle>
@@ -141,9 +147,15 @@ export default function FormulaDetail() {
                   className="h-8"
                 >
                   {copiedExample ? (
-                    <Check className="h-4 w-4 text-primary" />
+                    <>
+                      <Check className="h-4 w-4 text-primary mr-2" />
+                      Copied!
+                    </>
                   ) : (
-                    <Copy className="h-4 w-4" />
+                    <>
+                      <Copy className="h-4 w-4 mr-2" />
+                      Copy
+                    </>
                   )}
                 </Button>
               </CardTitle>

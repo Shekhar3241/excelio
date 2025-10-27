@@ -10,6 +10,7 @@ import FormulaDetail from "./pages/FormulaDetail";
 import Functions from "./pages/Functions";
 import Favorites from "./pages/Favorites";
 import Recent from "./pages/Recent";
+import Simulator from "./pages/Simulator";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -24,6 +25,7 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/functions" element={<Functions />} />
+            <Route path="/simulator" element={<Simulator />} />
             <Route path="/favorites" element={<Favorites />} />
             <Route path="/recent" element={<Recent />} />
             <Route path="/category/:categoryId" element={<Category />} />
