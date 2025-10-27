@@ -8,7 +8,7 @@ export function Header() {
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
         <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
           <FileSpreadsheet className="h-6 w-6 text-primary" />
-          <span className="font-semibold text-xl">Excelio's Hub</span>
+          <span className="font-semibold text-xl">SkillBi's Hub</span>
         </Link>
         <nav className="flex items-center gap-4">
           <Link to="/" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
