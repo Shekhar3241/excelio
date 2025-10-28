@@ -10,6 +10,7 @@ import FormulaDetail from "./pages/FormulaDetail";
 import Functions from "./pages/Functions";
 import Favorites from "./pages/Favorites";
 import Recent from "./pages/Recent";
+import AIFormulaGenerator from "./pages/AIFormulaGenerator";
 import Simulator from "./pages/Simulator";
 import NotFound from "./pages/NotFound";
 
@@ -25,6 +26,7 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/functions" element={<Functions />} />
+            <Route path="/ai-generator" element={<AIFormulaGenerator />} />
             <Route path="/simulator" element={<Simulator />} />
             <Route path="/favorites" element={<Favorites />} />
             <Route path="/recent" element={<Recent />} />

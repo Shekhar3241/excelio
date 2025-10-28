@@ -1,7 +1,6 @@
 import { Header } from "@/components/Header";
 import { CategoryCard } from "@/components/CategoryCard";
 import { SearchBarEnhanced } from "@/components/SearchBarEnhanced";
-import { AISearchBar } from "@/components/AISearchBar";
 import { categories, formulas } from "@/data/formulas";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -10,8 +9,6 @@ import { Sparkles } from "lucide-react";
 
 const Index = () => {
   const [searchQuery, setSearchQuery] = useState("");
-  const [aiSearchQuery, setAiSearchQuery] = useState("");
-  const [useAI, setUseAI] = useState(false);
   const navigate = useNavigate();
 
   const handleSearch = (query: string) => {
@@ -50,31 +47,21 @@ const Index = () => {
             Your comprehensive guide to Excel formulas. Search, browse, and master the most essential functions.
           </p>
           
-          <div className="flex justify-center mb-4">
-            <Button
-              variant={useAI ? "default" : "outline"}
-              onClick={() => setUseAI(!useAI)}
-              className="mb-4"
-            >
-              <Sparkles className="h-4 w-4 mr-2" />
-              {useAI ? "Using AI Formula Generator" : "Try AI Formula Generator"}
-            </Button>
-          </div>
+          <SearchBarEnhanced
+            value={searchQuery}
+            onChange={handleSearch}
+            placeholder="Search for any Excel formula..."
+          />
 
-          <div className="flex justify-center">
-            {useAI ? (
-              <AISearchBar
-                value={aiSearchQuery}
-                onChange={setAiSearchQuery}
-                placeholder="Describe what you want to calculate (e.g., 'add numbers in column A')"
-              />
-            ) : (
-              <SearchBarEnhanced
-                value={searchQuery}
-                onChange={handleSearch}
-                placeholder="Search for any Excel formula..."
-              />
-            )}
+          <div className="mt-6">
+            <Button
+              onClick={() => navigate("/ai-generator")}
+              size="lg"
+              className="gap-2"
+            >
+              <Sparkles className="h-5 w-5" />
+              Try AI Formula Generator
+            </Button>
           </div>
         </div>
       </section>

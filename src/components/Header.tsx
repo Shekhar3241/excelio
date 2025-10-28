@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
-import { FileSpreadsheet, Star, Clock, Calculator } from "lucide-react";
+import { FileSpreadsheet, Star, Clock, Calculator, Sparkles } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { Button } from "@/components/ui/button";
 
 export function Header() {
   return (
@@ -16,6 +17,12 @@ export function Header() {
           </Link>
           <Link to="/functions" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
             Functions
+          </Link>
+          <Link to="/ai-generator">
+            <Button variant="default" size="sm" className="gap-1.5 h-8">
+              <Sparkles className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">AI Generator</span>
+            </Button>
           </Link>
           <Link to="/simulator" className="flex items-center gap-1 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
             <Calculator className="h-4 w-4" />
