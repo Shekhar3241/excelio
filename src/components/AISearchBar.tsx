@@ -29,7 +29,14 @@ export function AISearchBar({ value, onChange, placeholder = "Describe what you 
 
       if (error) throw error;
 
-      const formulas = data.formulas || [];
+      const formulas: string[] =
+        (Array.isArray(data.formulas) ? data.formulas : undefined) ||
+        (Array.isArray(data.suggestions)
+          ? data.suggestions
+              .map((s: string) => (s && s.trim().startsWith("=") ? s.trim() : `=${String(s).replace(/[^A-Za-z0-9_]/g, "").toUpperCase()}()`))
+              .filter(Boolean)
+          : []);
+
       setGeneratedFormulas(formulas);
       setShowFormulas(true);
     } catch (error) {
