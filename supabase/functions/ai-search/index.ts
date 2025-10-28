@@ -69,9 +69,19 @@ Respond with ONLY the Excel formula(s), one per line. Maximum 3 formulas. Includ
 
     const data = await response.json();
     const suggestions = data.choices?.[0]?.message?.content || "";
+    
+    console.log("AI Response:", suggestions);
+    
+    // Split by newlines and clean up
+    const formulas = suggestions
+      .split("\n")
+      .map((s: string) => s.trim())
+      .filter((s: string) => s && s.startsWith("="));
+    
+    console.log("Parsed formulas:", formulas);
 
     return new Response(
-      JSON.stringify({ formulas: suggestions.split("\n").map((s: string) => s.trim()).filter((s: string) => s) }),
+      JSON.stringify({ formulas }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {
