@@ -1,9 +1,7 @@
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, Sparkles, Loader2 } from "lucide-react";
-import { formulas } from "@/data/formulas";
-import { Link } from "react-router-dom";
+import { Search, Sparkles, Loader2, Copy, Check } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -14,10 +12,11 @@ interface AISearchBarProps {
   placeholder?: string;
 }
 
-export function AISearchBar({ value, onChange, placeholder = "Ask in plain English..." }: AISearchBarProps) {
+export function AISearchBar({ value, onChange, placeholder = "Describe what you want to calculate..." }: AISearchBarProps) {
   const [isLoading, setIsLoading] = useState(false);
-  const [aiSuggestions, setAiSuggestions] = useState<string[]>([]);
-  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [generatedFormulas, setGeneratedFormulas] = useState<string[]>([]);
+  const [showFormulas, setShowFormulas] = useState(false);
+  const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
 
   const handleAISearch = async () => {
     if (!value.trim()) return;
@@ -30,20 +29,27 @@ export function AISearchBar({ value, onChange, placeholder = "Ask in plain Engli
 
       if (error) throw error;
 
-      const suggestedFormulas = data.suggestions || [];
-      setAiSuggestions(suggestedFormulas);
-      setShowSuggestions(true);
+      const formulas = data.formulas || [];
+      setGeneratedFormulas(formulas);
+      setShowFormulas(true);
     } catch (error) {
-      console.error("AI search error:", error);
-      toast.error("AI search failed. Please try again.");
+      console.error("AI formula generation error:", error);
+      toast.error("AI formula generation failed. Please try again.");
     } finally {
       setIsLoading(false);
     }
   };
 
-  const matchedFormulas = aiSuggestions
-    .map(name => formulas.find(f => f.name.toLowerCase() === name.toLowerCase()))
-    .filter(Boolean);
+  const copyFormula = async (formula: string, index: number) => {
+    try {
+      await navigator.clipboard.writeText(formula);
+      setCopiedIndex(index);
+      toast.success("Formula copied to clipboard!");
+      setTimeout(() => setCopiedIndex(null), 2000);
+    } catch (error) {
+      toast.error("Failed to copy formula");
+    }
+  };
 
   return (
     <div className="relative w-full max-w-2xl">
@@ -55,7 +61,7 @@ export function AISearchBar({ value, onChange, placeholder = "Ask in plain Engli
             value={value}
             onChange={(e) => {
               onChange(e.target.value);
-              setShowSuggestions(false);
+              setShowFormulas(false);
             }}
             onKeyDown={(e) => {
               if (e.key === "Enter") {
@@ -77,32 +83,42 @@ export function AISearchBar({ value, onChange, placeholder = "Ask in plain Engli
           ) : (
             <>
               <Sparkles className="h-5 w-5 mr-2" />
-              AI Search
+              Generate Formula
             </>
           )}
         </Button>
       </div>
 
-      {showSuggestions && matchedFormulas.length > 0 && (
-        <Card className="absolute top-full left-0 right-0 mt-2 p-2 z-50 max-h-96 overflow-auto border-2 border-primary/20 shadow-lg">
-          <div className="mb-2 px-2 py-1 text-sm font-semibold text-primary flex items-center gap-2">
+      {showFormulas && generatedFormulas.length > 0 && (
+        <Card className="absolute top-full left-0 right-0 mt-2 p-4 z-50 max-h-96 overflow-auto border-2 border-primary/20 shadow-lg">
+          <div className="mb-3 px-2 py-1 text-sm font-semibold text-primary flex items-center gap-2">
             <Sparkles className="h-4 w-4" />
-            AI Suggestions
+            Generated Formulas
           </div>
-          {matchedFormulas.map((formula) => (
-            <Link
-              key={formula.id}
-              to={`/formula/${formula.id}`}
-              className="block p-3 hover:bg-accent rounded-md transition-colors"
-              onClick={() => {
-                setShowSuggestions(false);
-                onChange("");
-              }}
-            >
-              <div className="font-semibold text-primary">{formula.name}</div>
-              <div className="text-sm text-muted-foreground line-clamp-1">{formula.description}</div>
-            </Link>
-          ))}
+          <div className="space-y-2">
+            {generatedFormulas.map((formula, index) => (
+              <div
+                key={index}
+                className="flex items-center gap-2 p-3 bg-accent/50 rounded-md hover:bg-accent transition-colors"
+              >
+                <code className="flex-1 text-sm font-mono bg-background px-3 py-2 rounded border">
+                  {formula}
+                </code>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => copyFormula(formula, index)}
+                  className="shrink-0"
+                >
+                  {copiedIndex === index ? (
+                    <Check className="h-4 w-4 text-green-500" />
+                  ) : (
+                    <Copy className="h-4 w-4" />
+                  )}
+                </Button>
+              </div>
+            ))}
+          </div>
         </Card>
       )}
     </div>

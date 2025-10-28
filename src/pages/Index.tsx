@@ -57,7 +57,7 @@ const Index = () => {
               className="mb-4"
             >
               <Sparkles className="h-4 w-4 mr-2" />
-              {useAI ? "Using AI Search" : "Try AI Search"}
+              {useAI ? "Using AI Formula Generator" : "Try AI Formula Generator"}
             </Button>
           </div>
 
@@ -66,7 +66,7 @@ const Index = () => {
               <AISearchBar
                 value={aiSearchQuery}
                 onChange={setAiSearchQuery}
-                placeholder="Ask in plain English (e.g., 'add numbers together')"
+                placeholder="Describe what you want to calculate (e.g., 'add numbers in column A')"
               />
             ) : (
               <SearchBarEnhanced

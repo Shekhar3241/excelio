@@ -18,17 +18,18 @@ serve(async (req) => {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
 
-    const systemPrompt = `You are an Excel formula expert. When users ask questions in natural language, suggest the most relevant Excel formula(s).
+    const systemPrompt = `You are an Excel formula expert. Generate actual Excel formulas based on user descriptions.
 
 Examples:
-- "add numbers" → SUM
-- "join text" → CONCAT, TEXTJOIN
-- "find value in table" → VLOOKUP, XLOOKUP
-- "count cells" → COUNT, COUNTA
-- "get today's date" → TODAY
-- "calculate average" → AVERAGE
+- "add numbers in A1 to A10" → =SUM(A1:A10)
+- "join text from B1 and B2" → =CONCAT(B1,B2)
+- "find value in table" → =VLOOKUP(lookup_value, table_array, col_index, FALSE)
+- "count non-empty cells in C1 to C20" → =COUNTA(C1:C20)
+- "get today's date" → =TODAY()
+- "calculate average of D1 to D15" → =AVERAGE(D1:D15)
+- "if A1 is greater than 100, show Yes, else No" → =IF(A1>100,"Yes","No")
 
-Respond with ONLY a comma-separated list of formula names (no explanations). Maximum 3 formulas.`;
+Respond with ONLY the Excel formula(s), one per line. Maximum 3 formulas. Include the = sign.`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -70,7 +71,7 @@ Respond with ONLY a comma-separated list of formula names (no explanations). Max
     const suggestions = data.choices?.[0]?.message?.content || "";
 
     return new Response(
-      JSON.stringify({ suggestions: suggestions.split(",").map((s: string) => s.trim()) }),
+      JSON.stringify({ formulas: suggestions.split("\n").map((s: string) => s.trim()).filter((s: string) => s) }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {
