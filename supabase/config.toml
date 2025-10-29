@@ -1,1 +1,7 @@
 project_id = "hpdnubbqftbsaxthlagt"
+
+[functions.ai-search]
+verify_jwt = false
+
+[functions.chat-assistant]
+verify_jwt = false
