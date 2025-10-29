@@ -18,36 +18,41 @@ serve(async (req) => {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
 
-    const systemPrompt = `You are an Excel formula expert. Your job is to generate COMPLETE, READY-TO-USE Excel formulas based on user descriptions.
+    const systemPrompt = `You are an Excel formula expert. Generate COMPLETE Excel formulas with full syntax.
 
-CRITICAL RULES:
-1. ALWAYS start formulas with the = sign
-2. Generate COMPLETE formulas with proper syntax, cell references, and arguments
-3. Use realistic cell references (like A1, B2, C1:C10, etc.)
-4. Include all necessary arguments and parameters
-5. Return 3-5 different formula variations when possible
-6. Format: One formula per line, nothing else
+CRITICAL REQUIREMENTS:
+1. Start EVERY formula with =
+2. Include actual cell references (A1, B2, C1:C10, etc.)
+3. Include all arguments inside parentheses
+4. NO explanations, NO text, ONLY formulas
+5. Return 2-3 formula variations
 
-EXAMPLES OF CORRECT OUTPUT:
-User: "Sum values in column A"
-Response:
+CORRECT EXAMPLES:
+User: "add numbers from column A row 1 to 10"
+Your response (ONLY these lines):
 =SUM(A1:A10)
-=SUM(A:A)
 =SUMIF(A1:A10,">0")
 
-User: "If value is greater than 100, show High, else Low"
-Response:
+User: "if A1 greater than 100 show High else Low"
+Your response (ONLY these lines):
 =IF(A1>100,"High","Low")
-=IF(A2>100,"High","Low")
-=IFS(A1>100,"High",A1>50,"Medium",TRUE,"Low")
+=IF(A1>100,"High","Low")
 
-User: "Calculate average excluding zeros"
-Response:
-=AVERAGEIF(A1:A10,">0")
-=AVERAGE(IF(A1:A10<>0,A1:A10))
-=AVERAGEIFS(A1:A10,A1:A10,">0")
+User: "count cells in range B1 to B20"
+Your response (ONLY these lines):
+=COUNTA(B1:B20)
+=COUNT(B1:B20)
 
-Now generate formulas for the user's request below.`;
+WRONG - DO NOT do this:
+SUM
+Use SUM function
+=SUM
+
+RIGHT - Always do this:
+=SUM(A1:A10)
+=SUM(B:B)
+
+Generate formulas now:`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -86,17 +91,39 @@ Now generate formulas for the user's request below.`;
     }
 
     const data = await response.json();
-    const suggestions = data.choices?.[0]?.message?.content || "";
+    const rawContent = data.choices?.[0]?.message?.content || "";
     
-    console.log("AI Response:", suggestions);
+    console.log("=== AI RAW RESPONSE ===");
+    console.log(rawContent);
+    console.log("=== END RAW RESPONSE ===");
     
-    // Split by newlines and clean up
-    const formulas = suggestions
+    // Split by newlines and clean up - keep only lines starting with =
+    const formulas = rawContent
       .split("\n")
-      .map((s: string) => s.trim())
-      .filter((s: string) => s && s.startsWith("="));
+      .map((line: string) => line.trim())
+      .filter((line: string) => {
+        // Only keep lines that start with = and have more content
+        const isValid = line.startsWith("=") && line.length > 2;
+        if (!isValid && line) {
+          console.log("Filtered out:", line);
+        }
+        return isValid;
+      });
     
-    console.log("Parsed formulas:", formulas);
+    console.log("=== PARSED FORMULAS ===");
+    console.log(JSON.stringify(formulas, null, 2));
+    console.log("=== END PARSED ===");
+
+    if (formulas.length === 0) {
+      console.error("No valid formulas found in AI response!");
+      return new Response(
+        JSON.stringify({ 
+          formulas: [],
+          error: "AI did not return valid formulas. Please try rephrasing your request." 
+        }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
     return new Response(
       JSON.stringify({ formulas }),

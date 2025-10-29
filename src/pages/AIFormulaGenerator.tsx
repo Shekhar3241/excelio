@@ -27,13 +27,10 @@ export default function AIFormulaGenerator() {
 
       if (error) throw error;
 
-      const formulas: string[] =
-        (Array.isArray(data.formulas) ? data.formulas : undefined) ||
-        (Array.isArray(data.suggestions)
-          ? data.suggestions
-              .map((s: string) => (s && s.trim().startsWith("=") ? s.trim() : `=${String(s).replace(/[^A-Za-z0-9_]/g, "").toUpperCase()}()`))
-              .filter(Boolean)
-          : []);
+      console.log("AI Response data:", data);
+
+      // Use the formulas array directly - no fallback conversion
+      const formulas = Array.isArray(data?.formulas) ? data.formulas : [];
 
       setGeneratedFormulas(formulas);
       
