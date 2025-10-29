@@ -41,7 +41,7 @@ export function SearchBarEnhanced({ value, onChange, placeholder = "Search formu
 
   return (
     <div className="relative w-full max-w-2xl" ref={wrapperRef}>
-      <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground z-10" />
+      <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground z-10 transition-transform duration-300 hover:scale-110" />
       <Input
         type="search"
         placeholder={placeholder}
@@ -51,21 +51,21 @@ export function SearchBarEnhanced({ value, onChange, placeholder = "Search formu
           setShowSuggestions(true);
         }}
         onFocus={() => value && setShowSuggestions(true)}
-        className="pl-10 pr-10 h-12 text-base bg-card border-border"
+        className="pl-10 pr-10 h-12 text-base bg-card border-border transition-all duration-300 focus:shadow-lg focus:scale-[1.02]"
       />
       {value && (
         <button
           onClick={clearSearch}
-          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground z-10"
+          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground z-10 transition-all duration-200 hover:scale-110 hover:rotate-90"
         >
           <X className="h-4 w-4" />
         </button>
       )}
 
       {showSuggestions && suggestions.length > 0 && (
-        <Card className="absolute top-full mt-2 w-full bg-card border-border z-50 max-h-96 overflow-y-auto shadow-lg">
+        <Card className="absolute top-full mt-2 w-full bg-card border-border z-50 max-h-96 overflow-y-auto shadow-lg animate-fade-in">
           <div className="p-2">
-            {suggestions.map(formula => (
+            {suggestions.map((formula, index) => (
               <Link
                 key={formula.id}
                 to={`/formula/${formula.id}`}
@@ -73,9 +73,10 @@ export function SearchBarEnhanced({ value, onChange, placeholder = "Search formu
                   setShowSuggestions(false);
                   onChange("");
                 }}
-                className="block p-3 hover:bg-accent rounded-md transition-colors"
+                className="block p-3 hover:bg-accent rounded-md transition-all duration-200 hover:translate-x-1 animate-fade-in"
+                style={{ animationDelay: `${index * 30}ms` }}
               >
-                <div className="font-mono text-sm font-semibold text-primary">
+                <div className="font-mono text-sm font-semibold text-primary transition-colors">
                   {formula.name}
                 </div>
                 <div className="text-xs text-muted-foreground mt-1 line-clamp-1">

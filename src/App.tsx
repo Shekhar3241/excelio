@@ -7,7 +7,6 @@ import { ThemeProvider } from "@/hooks/use-theme";
 import Index from "./pages/Index";
 import Category from "./pages/Category";
 import FormulaDetail from "./pages/FormulaDetail";
-import Functions from "./pages/Functions";
 import Favorites from "./pages/Favorites";
 import Recent from "./pages/Recent";
 import AIFormulaGenerator from "./pages/AIFormulaGenerator";
@@ -25,7 +24,6 @@ const App = () => (
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Index />} />
-            <Route path="/functions" element={<Functions />} />
             <Route path="/ai-generator" element={<AIFormulaGenerator />} />
             <Route path="/simulator" element={<Simulator />} />
             <Route path="/favorites" element={<Favorites />} />

@@ -38,12 +38,12 @@ const Index = () => {
       <Header />
       
       {/* Hero Section */}
-      <section className="py-16 px-4" style={{ background: 'var(--gradient-hero)' }}>
+      <section className="py-16 px-4 md:py-20" style={{ background: 'var(--gradient-hero)' }}>
         <div className="container mx-auto max-w-4xl text-center">
-          <h1 className="text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-primary to-primary-light bg-clip-text text-transparent">
+          <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-primary to-primary-light bg-clip-text text-transparent animate-fade-in">
             SkillBI's Hub
           </h1>
-          <p className="text-xl text-muted-foreground mb-8">
+          <p className="text-lg sm:text-xl text-muted-foreground mb-8 px-4 animate-fade-in" style={{ animationDelay: '100ms' }}>
             Your comprehensive guide to Excel formulas. Search, browse, and master the most essential functions.
           </p>
           
@@ -53,13 +53,13 @@ const Index = () => {
             placeholder="Search for any Excel formula..."
           />
 
-          <div className="mt-6">
+          <div className="mt-6 animate-fade-in" style={{ animationDelay: '200ms' }}>
             <Button
               onClick={() => navigate("/ai-generator")}
               size="lg"
-              className="gap-2"
+              className="gap-2 hover:scale-105 transition-transform duration-200"
             >
-              <Sparkles className="h-5 w-5" />
+              <Sparkles className="h-5 w-5 animate-pulse" />
               Try AI Formula Generator
             </Button>
           </div>
@@ -69,14 +69,15 @@ const Index = () => {
       {/* Categories Grid */}
       <section className="py-12 px-4">
         <div className="container mx-auto">
-          <h2 className="text-3xl font-bold mb-8 text-center">Browse by Category</h2>
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 max-w-6xl mx-auto">
-            {categories.map(category => (
-              <CategoryCard
-                key={category.id}
-                category={category}
-                formulaCount={getCategoryFormulaCount(category.id)}
-              />
+          <h2 className="text-2xl sm:text-3xl font-bold mb-8 text-center animate-fade-in">Browse by Category</h2>
+          <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 max-w-6xl mx-auto">
+            {categories.map((category, index) => (
+              <div key={category.id} className="animate-fade-in" style={{ animationDelay: `${index * 50}ms` }}>
+                <CategoryCard
+                  category={category}
+                  formulaCount={getCategoryFormulaCount(category.id)}
+                />
+              </div>
             ))}
           </div>
         </div>
@@ -85,18 +86,18 @@ const Index = () => {
       {/* Quick Stats */}
       <section className="py-12 px-4 bg-accent">
         <div className="container mx-auto max-w-4xl">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
-            <div>
-              <div className="text-4xl font-bold text-primary mb-2">{formulas.length}</div>
-              <div className="text-muted-foreground">Total Formulas</div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-8 text-center">
+            <div className="animate-fade-in hover:scale-105 transition-transform duration-300" style={{ animationDelay: '100ms' }}>
+              <div className="text-3xl sm:text-4xl font-bold text-primary mb-2">{formulas.length}</div>
+              <div className="text-sm sm:text-base text-muted-foreground">Total Formulas</div>
             </div>
-            <div>
-              <div className="text-4xl font-bold text-primary mb-2">{categories.length}</div>
-              <div className="text-muted-foreground">Categories</div>
+            <div className="animate-fade-in hover:scale-105 transition-transform duration-300" style={{ animationDelay: '200ms' }}>
+              <div className="text-3xl sm:text-4xl font-bold text-primary mb-2">{categories.length}</div>
+              <div className="text-sm sm:text-base text-muted-foreground">Categories</div>
             </div>
-            <div>
-              <div className="text-4xl font-bold text-primary mb-2">100%</div>
-              <div className="text-muted-foreground">Free & Open</div>
+            <div className="animate-fade-in hover:scale-105 transition-transform duration-300" style={{ animationDelay: '300ms' }}>
+              <div className="text-3xl sm:text-4xl font-bold text-primary mb-2">100%</div>
+              <div className="text-sm sm:text-base text-muted-foreground">Free & Open</div>
             </div>
           </div>
         </div>

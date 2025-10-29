@@ -18,18 +18,36 @@ serve(async (req) => {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
 
-    const systemPrompt = `You are an Excel formula expert. Generate actual Excel formulas based on user descriptions.
+    const systemPrompt = `You are an Excel formula expert. Your job is to generate COMPLETE, READY-TO-USE Excel formulas based on user descriptions.
 
-Examples:
-- "add numbers in A1 to A10" → =SUM(A1:A10)
-- "join text from B1 and B2" → =CONCAT(B1,B2)
-- "find value in table" → =VLOOKUP(lookup_value, table_array, col_index, FALSE)
-- "count non-empty cells in C1 to C20" → =COUNTA(C1:C20)
-- "get today's date" → =TODAY()
-- "calculate average of D1 to D15" → =AVERAGE(D1:D15)
-- "if A1 is greater than 100, show Yes, else No" → =IF(A1>100,"Yes","No")
+CRITICAL RULES:
+1. ALWAYS start formulas with the = sign
+2. Generate COMPLETE formulas with proper syntax, cell references, and arguments
+3. Use realistic cell references (like A1, B2, C1:C10, etc.)
+4. Include all necessary arguments and parameters
+5. Return 3-5 different formula variations when possible
+6. Format: One formula per line, nothing else
 
-Respond with ONLY the Excel formula(s), one per line. Maximum 3 formulas. Include the = sign.`;
+EXAMPLES OF CORRECT OUTPUT:
+User: "Sum values in column A"
+Response:
+=SUM(A1:A10)
+=SUM(A:A)
+=SUMIF(A1:A10,">0")
+
+User: "If value is greater than 100, show High, else Low"
+Response:
+=IF(A1>100,"High","Low")
+=IF(A2>100,"High","Low")
+=IFS(A1>100,"High",A1>50,"Medium",TRUE,"Low")
+
+User: "Calculate average excluding zeros"
+Response:
+=AVERAGEIF(A1:A10,">0")
+=AVERAGE(IF(A1:A10<>0,A1:A10))
+=AVERAGEIFS(A1:A10,A1:A10,">0")
+
+Now generate formulas for the user's request below.`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
