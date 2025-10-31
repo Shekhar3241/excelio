@@ -25,6 +25,7 @@ export function ChatBot() {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const formatMessage = (content: string) => {
     // Split by code blocks and format formulas
@@ -33,7 +34,7 @@ export function ChatBot() {
       if (part.startsWith('`') && part.endsWith('`')) {
         const formula = part.slice(1, -1);
         return (
-          <code key={index} className="bg-primary/10 text-primary px-2 py-1 rounded font-mono text-sm">
+          <code key={index} className="bg-primary/10 text-primary px-2 py-1 rounded font-mono text-sm block my-1">
             {formula}
           </code>
         );
@@ -48,6 +49,23 @@ export function ChatBot() {
     }
   }, [messages]);
 
+  // Auto-focus input when chat opens (desktop only)
+  useEffect(() => {
+    if (isOpen && !isMobile && inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [isOpen, isMobile]);
+
+  // Prevent body scroll when chat is open on mobile
+  useEffect(() => {
+    if (isMobile && isOpen) {
+      document.body.style.overflow = 'hidden';
+      return () => {
+        document.body.style.overflow = 'unset';
+      };
+    }
+  }, [isMobile, isOpen]);
+
   const handleSend = async () => {
     if (!input.trim() || isLoading) return;
 
@@ -55,6 +73,11 @@ export function ChatBot() {
     setMessages(prev => [...prev, userMessage]);
     setInput("");
     setIsLoading(true);
+
+    // Blur input on mobile to hide keyboard
+    if (isMobile && inputRef.current) {
+      inputRef.current.blur();
+    }
 
     try {
       const { data, error } = await supabase.functions.invoke("chat-assistant", {
@@ -71,8 +94,17 @@ export function ChatBot() {
     } catch (error) {
       console.error("Chat error:", error);
       toast.error("Failed to get response. Please try again.");
+      // Remove user message on error
+      setMessages(prev => prev.slice(0, -1));
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSend();
     }
   };
 
@@ -90,9 +122,9 @@ export function ChatBot() {
 
       {/* Chat Window */}
       {isOpen && (
-        <Card className={`fixed ${isMobile ? 'inset-4' : 'bottom-6 right-6 w-96 h-[600px]'} shadow-2xl z-50 flex flex-col border-2 animate-in slide-in-from-bottom-4`}>
+        <Card className={`fixed ${isMobile ? 'inset-0 rounded-none' : 'bottom-6 right-6 w-96 h-[600px] rounded-2xl'} shadow-2xl z-50 flex flex-col border-2 animate-in slide-in-from-bottom-4 duration-300`}>
           {/* Header */}
-          <div className="flex items-center justify-between p-4 border-b bg-primary text-primary-foreground rounded-t-lg">
+          <div className="flex items-center justify-between p-4 border-b bg-primary text-primary-foreground rounded-t-2xl">
             <div className="flex items-center gap-2">
               <Sparkles className="h-5 w-5" />
               <h3 className="font-semibold">Excel Assistant</h3>
@@ -101,15 +133,16 @@ export function ChatBot() {
               variant="ghost"
               size="icon"
               onClick={() => setIsOpen(false)}
-              className="h-8 w-8 text-primary-foreground hover:bg-primary-dark"
+              className="h-8 w-8 text-primary-foreground hover:bg-primary-dark shrink-0"
+              aria-label="Close chat"
             >
               <X className="h-4 w-4" />
             </Button>
           </div>
 
           {/* Messages */}
-          <ScrollArea className={`flex-1 ${isMobile ? 'p-3' : 'p-4'}`} ref={scrollRef}>
-            <div className="space-y-3">
+          <ScrollArea className={`flex-1 ${isMobile ? 'p-3' : 'p-4'} overflow-y-auto`} ref={scrollRef}>
+            <div className={`space-y-3 ${isMobile ? 'pb-4' : ''}`}>
               {messages.map((message, index) => (
                 <div
                   key={index}
@@ -117,7 +150,7 @@ export function ChatBot() {
                   style={{ animationDelay: `${index * 50}ms` }}
                 >
                   <div
-                    className={`${isMobile ? 'max-w-[85%]' : 'max-w-[80%]'} rounded-2xl ${isMobile ? 'px-3 py-2' : 'px-4 py-3'} shadow-sm ${
+                    className={`${isMobile ? 'max-w-[85%]' : 'max-w-[80%]'} rounded-2xl ${isMobile ? 'px-3 py-2.5' : 'px-4 py-3'} shadow-sm ${
                       message.role === "user"
                         ? "bg-primary text-primary-foreground rounded-br-sm"
                         : "bg-accent text-accent-foreground rounded-bl-sm"
@@ -140,7 +173,7 @@ export function ChatBot() {
           </ScrollArea>
 
           {/* Input */}
-          <div className={`${isMobile ? 'p-3' : 'p-4'} border-t bg-background`}>
+          <div className={`${isMobile ? 'p-3 pb-4' : 'p-4'} border-t bg-background`}>
             <form
               onSubmit={(e) => {
                 e.preventDefault();
@@ -149,17 +182,25 @@ export function ChatBot() {
               className="flex gap-2"
             >
               <Input
+                ref={inputRef}
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
+                onKeyPress={handleKeyPress}
                 placeholder={isMobile ? "Ask about formulas..." : "Ask about Excel formulas..."}
                 disabled={isLoading}
-                className="flex-1"
+                className={`flex-1 ${isMobile ? 'text-base' : ''}`}
+                style={{ fontSize: isMobile ? '16px' : undefined }}
+                autoComplete="off"
+                autoCorrect="off"
+                autoCapitalize="off"
+                spellCheck="false"
               />
               <Button
                 type="submit"
                 size="icon"
                 disabled={isLoading || !input.trim()}
-                className="shrink-0"
+                className="shrink-0 h-10 w-10"
+                aria-label="Send message"
               >
                 <Send className="h-4 w-4" />
               </Button>
