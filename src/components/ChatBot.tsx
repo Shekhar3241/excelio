@@ -6,6 +6,7 @@ import { MessageCircle, X, Send, Loader2, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface Message {
   role: "user" | "assistant";
@@ -13,6 +14,7 @@ interface Message {
 }
 
 export function ChatBot() {
+  const isMobile = useIsMobile();
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -23,6 +25,22 @@ export function ChatBot() {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  const formatMessage = (content: string) => {
+    // Split by code blocks and format formulas
+    const parts = content.split(/(`[^`]+`)/g);
+    return parts.map((part, index) => {
+      if (part.startsWith('`') && part.endsWith('`')) {
+        const formula = part.slice(1, -1);
+        return (
+          <code key={index} className="bg-primary/10 text-primary px-2 py-1 rounded font-mono text-sm">
+            {formula}
+          </code>
+        );
+      }
+      return <span key={index}>{part}</span>;
+    });
+  };
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -63,16 +81,16 @@ export function ChatBot() {
       {/* Floating Button */}
       <Button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-6 right-6 h-14 w-14 rounded-full shadow-lg hover:scale-110 transition-transform z-50"
+        className={`fixed ${isMobile ? 'bottom-4 right-4 h-12 w-12' : 'bottom-6 right-6 h-14 w-14'} rounded-full shadow-lg hover:scale-110 transition-transform z-50`}
         size="icon"
         style={{ display: isOpen ? "none" : "flex" }}
       >
-        <MessageCircle className="h-6 w-6" />
+        <MessageCircle className={isMobile ? "h-5 w-5" : "h-6 w-6"} />
       </Button>
 
       {/* Chat Window */}
       {isOpen && (
-        <Card className="fixed bottom-6 right-6 w-96 h-[600px] shadow-2xl z-50 flex flex-col border-2 animate-in slide-in-from-bottom-4">
+        <Card className={`fixed ${isMobile ? 'inset-4' : 'bottom-6 right-6 w-96 h-[600px]'} shadow-2xl z-50 flex flex-col border-2 animate-in slide-in-from-bottom-4`}>
           {/* Header */}
           <div className="flex items-center justify-between p-4 border-b bg-primary text-primary-foreground rounded-t-lg">
             <div className="flex items-center gap-2">
@@ -90,8 +108,8 @@ export function ChatBot() {
           </div>
 
           {/* Messages */}
-          <ScrollArea className="flex-1 p-4" ref={scrollRef}>
-            <div className="space-y-4">
+          <ScrollArea className={`flex-1 ${isMobile ? 'p-3' : 'p-4'}`} ref={scrollRef}>
+            <div className="space-y-3">
               {messages.map((message, index) => (
                 <div
                   key={index}
@@ -99,19 +117,21 @@ export function ChatBot() {
                   style={{ animationDelay: `${index * 50}ms` }}
                 >
                   <div
-                    className={`max-w-[80%] rounded-lg px-4 py-2 ${
+                    className={`${isMobile ? 'max-w-[85%]' : 'max-w-[80%]'} rounded-2xl ${isMobile ? 'px-3 py-2' : 'px-4 py-3'} shadow-sm ${
                       message.role === "user"
-                        ? "bg-primary text-primary-foreground"
-                        : "bg-accent text-accent-foreground"
+                        ? "bg-primary text-primary-foreground rounded-br-sm"
+                        : "bg-accent text-accent-foreground rounded-bl-sm"
                     }`}
                   >
-                    <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                    <div className={`${isMobile ? 'text-sm' : 'text-sm'} leading-relaxed whitespace-pre-wrap break-words`}>
+                      {formatMessage(message.content)}
+                    </div>
                   </div>
                 </div>
               ))}
               {isLoading && (
                 <div className="flex justify-start animate-in fade-in">
-                  <div className="bg-accent text-accent-foreground rounded-lg px-4 py-2">
+                  <div className="bg-accent text-accent-foreground rounded-2xl rounded-bl-sm px-4 py-3 shadow-sm">
                     <Loader2 className="h-4 w-4 animate-spin" />
                   </div>
                 </div>
@@ -120,7 +140,7 @@ export function ChatBot() {
           </ScrollArea>
 
           {/* Input */}
-          <div className="p-4 border-t">
+          <div className={`${isMobile ? 'p-3' : 'p-4'} border-t bg-background`}>
             <form
               onSubmit={(e) => {
                 e.preventDefault();
@@ -131,7 +151,7 @@ export function ChatBot() {
               <Input
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                placeholder="Ask about Excel formulas..."
+                placeholder={isMobile ? "Ask about formulas..." : "Ask about Excel formulas..."}
                 disabled={isLoading}
                 className="flex-1"
               />
@@ -139,6 +159,7 @@ export function ChatBot() {
                 type="submit"
                 size="icon"
                 disabled={isLoading || !input.trim()}
+                className="shrink-0"
               >
                 <Send className="h-4 w-4" />
               </Button>
