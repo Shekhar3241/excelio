@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "@/hooks/use-theme";
 import { ChatBot } from "@/components/ChatBot";
 import Index from "./pages/Index";
+import About from "./pages/About";
 import Category from "./pages/Category";
 import FormulaDetail from "./pages/FormulaDetail";
 import Favorites from "./pages/Favorites";
@@ -26,6 +27,7 @@ const App = () => (
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Index />} />
+            <Route path="/about" element={<About />} />
             <Route path="/ai-generator" element={<AIFormulaGenerator />} />
             <Route path="/simulator" element={<Simulator />} />
             <Route path="/favorites" element={<Favorites />} />

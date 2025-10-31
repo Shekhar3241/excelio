@@ -12,6 +12,9 @@ export function Header() {
           <span className="font-semibold text-base sm:text-xl">SkillBI's Hub</span>
         </Link>
         <nav className="flex items-center gap-2 sm:gap-4 overflow-x-auto">
+          <Link to="/about" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+            About
+          </Link>
           <Link to="/" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
             Home
           </Link>
