@@ -5,7 +5,7 @@ import { categories, formulas } from "@/data/formulas";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Sparkles } from "lucide-react";
+import { Sparkles, Instagram, Youtube } from "lucide-react";
 
 const Index = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -99,6 +99,38 @@ const Index = () => {
               <div className="text-3xl sm:text-4xl font-bold text-primary mb-2">100%</div>
               <div className="text-sm sm:text-base text-muted-foreground">Free & Open</div>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Social Media Section */}
+      <section className="py-12 px-4">
+        <div className="container mx-auto max-w-4xl">
+          <div className="text-center mb-8 animate-fade-in">
+            <h2 className="text-2xl sm:text-3xl font-bold mb-3">Connect With Us</h2>
+            <p className="text-muted-foreground">Follow us for Excel tips, tutorials, and updates</p>
+          </div>
+          
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center animate-fade-in" style={{ animationDelay: '100ms' }}>
+            <Button
+              variant="outline"
+              size="lg"
+              className="w-full sm:w-auto gap-2 hover-scale"
+              onClick={() => window.open('https://www.instagram.com/skillbi.in/', '_blank')}
+            >
+              <Instagram className="h-5 w-5" />
+              Follow on Instagram
+            </Button>
+            
+            <Button
+              variant="outline"
+              size="lg"
+              className="w-full sm:w-auto gap-2 hover-scale"
+              onClick={() => window.open('https://www.youtube.com/channel/UCr1CnwN0cp_vsSHkIojDhIw', '_blank')}
+            >
+              <Youtube className="h-5 w-5" />
+              Subscribe on YouTube
+            </Button>
           </div>
         </div>
       </section>

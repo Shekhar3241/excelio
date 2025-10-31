@@ -13,7 +13,7 @@ export default function About() {
           {/* Hero Section */}
           <div className="text-center mb-12 animate-fade-in">
             <h1 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
-              About Excelio
+              About Skillbi
             </h1>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
               Your comprehensive Excel formula reference and learning platform
@@ -29,7 +29,7 @@ export default function About() {
               <div>
                 <h2 className="text-2xl font-semibold mb-3">Our Mission</h2>
                 <p className="text-muted-foreground leading-relaxed">
-                  At Excelio, we're dedicated to making Excel formulas accessible to everyone. Whether you're a beginner 
+                  At Skillbi, we're dedicated to making Excel formulas accessible to everyone. Whether you're a beginner 
                   learning the basics or an advanced user looking for complex formulas, we provide comprehensive resources, 
                   examples, and AI-powered assistance to help you master Excel.
                 </p>
