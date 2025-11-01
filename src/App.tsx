@@ -17,6 +17,8 @@ import Contact from "./pages/Contact";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsConditions from "./pages/TermsConditions";
 import NotFound from "./pages/NotFound";
+import Blog from "./pages/Blog";
+import BlogPost from "./pages/BlogPost";
 
 const queryClient = new QueryClient();
 
@@ -31,6 +33,8 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/about" element={<About />} />
+            <Route path="/blog" element={<Blog />} />
+            <Route path="/blog/:blogId" element={<BlogPost />} />
             <Route path="/ai-generator" element={<AIFormulaGenerator />} />
             <Route path="/simulator" element={<Simulator />} />
             <Route path="/favorites" element={<Favorites />} />

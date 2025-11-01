@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { FileSpreadsheet, Star, Clock, Calculator, Sparkles } from "lucide-react";
+import { FileSpreadsheet, Star, Clock, Calculator, Sparkles, BookOpen } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Button } from "@/components/ui/button";
 
@@ -12,14 +12,15 @@ export function Header() {
           <span className="font-semibold text-base sm:text-xl">SkillBI's Hub</span>
         </Link>
         <nav className="flex items-center gap-2 sm:gap-4 overflow-x-auto">
-          <Link to="/about" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-            About
-          </Link>
-          <Link to="/contact" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-            Contact
-          </Link>
           <Link to="/" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
             Home
+          </Link>
+          <Link to="/blog" className="flex items-center gap-1 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+            <BookOpen className="h-4 w-4" />
+            <span className="hidden sm:inline">Blog</span>
+          </Link>
+          <Link to="/about" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors hidden md:block">
+            About
           </Link>
           <Link to="/ai-generator">
             <Button variant="default" size="sm" className="gap-1.5 h-8">
