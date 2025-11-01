@@ -1,4 +1,5 @@
 import { Header } from "@/components/Header";
+import Footer from "@/components/Footer";
 import { CategoryCard } from "@/components/CategoryCard";
 import { SearchBarEnhanced } from "@/components/SearchBarEnhanced";
 import { categories, formulas } from "@/data/formulas";
@@ -135,12 +136,7 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="py-8 px-4 border-t border-border">
-        <div className="container mx-auto text-center text-sm text-muted-foreground">
-          <p>Built for Excel users everywhere. Data accuracy not guaranteed - always verify with official documentation.</p>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 };

@@ -13,6 +13,9 @@ import Favorites from "./pages/Favorites";
 import Recent from "./pages/Recent";
 import AIFormulaGenerator from "./pages/AIFormulaGenerator";
 import Simulator from "./pages/Simulator";
+import Contact from "./pages/Contact";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+import TermsConditions from "./pages/TermsConditions";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -32,6 +35,9 @@ const App = () => (
             <Route path="/simulator" element={<Simulator />} />
             <Route path="/favorites" element={<Favorites />} />
             <Route path="/recent" element={<Recent />} />
+            <Route path="/contact" element={<Contact />} />
+            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+            <Route path="/terms-conditions" element={<TermsConditions />} />
             <Route path="/category/:categoryId" element={<Category />} />
             <Route path="/formula/:formulaId" element={<FormulaDetail />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

@@ -1,4 +1,5 @@
 import { Header } from "@/components/Header";
+import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Instagram, Youtube, Mail, Heart } from "lucide-react";
@@ -120,12 +121,9 @@ export default function About() {
             </div>
           </Card>
 
-          {/* Footer Note */}
-          <div className="text-center mt-8 text-sm text-muted-foreground animate-fade-in">
-            <p>Made with ❤️ by SkillBI Team</p>
-          </div>
         </div>
       </main>
+      <Footer />
     </div>
   );
 }
