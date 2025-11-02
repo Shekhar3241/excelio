@@ -19,6 +19,9 @@ import TermsConditions from "./pages/TermsConditions";
 import NotFound from "./pages/NotFound";
 import Blog from "./pages/Blog";
 import BlogPost from "./pages/BlogPost";
+import Functions from "./pages/Functions";
+import ExcelErrors from "./pages/ExcelErrors";
+import Glossary from "./pages/Glossary";
 
 const queryClient = new QueryClient();
 
@@ -44,6 +47,9 @@ const App = () => (
             <Route path="/terms-conditions" element={<TermsConditions />} />
             <Route path="/category/:categoryId" element={<Category />} />
             <Route path="/formula/:formulaId" element={<FormulaDetail />} />
+            <Route path="/functions" element={<Functions />} />
+            <Route path="/excel-errors" element={<ExcelErrors />} />
+            <Route path="/glossary" element={<Glossary />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

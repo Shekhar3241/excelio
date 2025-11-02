@@ -1,5 +1,6 @@
 import { useParams, Link } from "react-router-dom";
 import { Header } from "@/components/Header";
+import Footer from "@/components/Footer";
 import { formulas, categories } from "@/data/formulas";
 import { ArrowLeft, Copy, Check, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -11,6 +12,15 @@ import { useFavorites } from "@/hooks/use-favorites";
 import { useRecent } from "@/hooks/use-recent";
 import { FormulaCard } from "@/components/FormulaCard";
 import { FormulaTable } from "@/components/FormulaTable";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
+import { Helmet } from "react-helmet";
 
 export default function FormulaDetail() {
   const { formulaId } = useParams<{ formulaId: string }>();
@@ -62,15 +72,40 @@ export default function FormulaDetail() {
 
   return (
     <div className="min-h-screen bg-background">
+      <Helmet>
+        <title>{formula.name} Function - Excel Formula Guide | SkillBI</title>
+        <meta name="description" content={`Learn how to use the ${formula.name} function in Excel. ${formula.description}. Includes syntax, examples, and usage notes.`} />
+        <meta name="keywords" content={`excel ${formula.name}, ${formula.name} function, ${formula.name} formula, excel ${category.name.toLowerCase()}`} />
+      </Helmet>
+
       <Header />
       
       <div className="container mx-auto px-4 py-8 max-w-4xl">
-        <Link to={`/category/${formula.category}`}>
-          <Button variant="ghost" className="mb-6">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to {category.name}
-          </Button>
-        </Link>
+        <Breadcrumb className="mb-6">
+          <BreadcrumbList>
+            <BreadcrumbItem>
+              <BreadcrumbLink asChild>
+                <Link to="/">Home</Link>
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbLink asChild>
+                <Link to="/functions">Functions</Link>
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbLink asChild>
+                <Link to={`/category/${category.id}`}>{category.name}</Link>
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbPage>{formula.name}</BreadcrumbPage>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
 
         <div className="mb-6">
           <div className="flex items-center gap-3 mb-4">
@@ -213,6 +248,8 @@ export default function FormulaDetail() {
           </div>
         )}
       </div>
+
+      <Footer />
     </div>
   );
 }

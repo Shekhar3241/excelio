@@ -1,11 +1,21 @@
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { Header } from "@/components/Header";
+import Footer from "@/components/Footer";
 import { FormulaCard } from "@/components/FormulaCard";
 import { SearchBar } from "@/components/SearchBar";
 import { categories, formulas } from "@/data/formulas";
 import { useState, useEffect } from "react";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
+import { Helmet } from "react-helmet";
 
 export default function Category() {
   const { categoryId } = useParams<{ categoryId: string }>();
@@ -57,15 +67,34 @@ export default function Category() {
 
   return (
     <div className="min-h-screen bg-background">
+      <Helmet>
+        <title>{category.name} - Excel Formulas & Functions | SkillBI</title>
+        <meta name="description" content={`${category.description}. Browse ${categoryFormulas.length} ${category.name.toLowerCase()} formulas with examples and syntax.`} />
+        <meta name="keywords" content={`excel ${category.name.toLowerCase()}, ${category.name.toLowerCase()} formulas, excel functions`} />
+      </Helmet>
+
       <Header />
       
       <div className="container mx-auto px-4 py-8">
-        <Link to="/">
-          <Button variant="ghost" className="mb-6">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Categories
-          </Button>
-        </Link>
+        <Breadcrumb className="mb-6">
+          <BreadcrumbList>
+            <BreadcrumbItem>
+              <BreadcrumbLink asChild>
+                <Link to="/">Home</Link>
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbLink asChild>
+                <Link to="/functions">Functions</Link>
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbPage>{category.name}</BreadcrumbPage>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
 
         <div className="mb-8">
           <div className="flex items-center gap-4 mb-2">
@@ -98,6 +127,8 @@ export default function Category() {
           </p>
         )}
       </div>
+
+      <Footer />
     </div>
   );
 }
