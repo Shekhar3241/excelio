@@ -324,6 +324,525 @@ export const blogPosts: BlogPost[] = [
     ],
     
     conclusion: "VLOOKUP errors are frustrating but usually easy to fix once you know what to look for. Remember: always use FALSE for exact matches, trim spaces, match data types, and lock your ranges with $. If VLOOKUP keeps causing issues, consider upgrading to XLOOKUP or INDEX/MATCH. Apply these 7 fixes to your spreadsheet and your lookups will work perfectly!"
+  },
+  {
+    id: "excel-divide-by-zero-error",
+    title: "How to Fix #DIV/0! Error in Excel",
+    metaTitle: "How to Fix #DIV/0! Error in Excel (3 Easy Solutions) - 2025",
+    metaDescription: "Learn how to fix and prevent #DIV/0! errors in Excel with IFERROR, IF functions, and conditional formatting. Includes step-by-step examples.",
+    keywords: ["#DIV/0 error", "divide by zero Excel", "Excel division error", "fix #DIV/0", "IFERROR"],
+    publishDate: "2025-01-16",
+    readTime: "6 min",
+    category: "Troubleshooting",
+    
+    introduction: "The #DIV/0! error appears when you try to divide a number by zero or an empty cell. It's a common spreadsheet error that breaks calculations and looks unprofessional in reports.",
+    
+    problemQuestion: "Why am I getting #DIV/0! error and how do I fix it?",
+    
+    quickAnswer: "Use IFERROR to handle division by zero: =IFERROR(A1/B1,0) or =IFERROR(A1/B1,\"N/A\"). This displays 0 or custom text instead of the error.",
+    
+    detailedSteps: [
+      {
+        step: 1,
+        title: "Identify cells with #DIV/0! error",
+        description: "Look for formulas that divide numbers. The error appears when the divisor (bottom number) is zero or blank.",
+        example: "=A1/B1 → #DIV/0! when B1 is 0 or empty"
+      },
+      {
+        step: 2,
+        title: "Use IFERROR to replace the error",
+        description: "Wrap your division formula with IFERROR to show 0, blank, or custom message instead of #DIV/0!",
+        example: "=IFERROR(A1/B1, 0) or =IFERROR(Sales/Quantity, \"No data\")"
+      },
+      {
+        step: 3,
+        title: "Alternative: Use IF to check before dividing",
+        description: "Check if divisor is zero before performing the calculation.",
+        example: "=IF(B1=0, \"Cannot divide\", A1/B1)"
+      },
+      {
+        step: 4,
+        title: "For multiple cells, apply to entire column",
+        description: "Click the cell with your fixed formula, then drag the fill handle down to copy it to other rows.",
+      }
+    ],
+    
+    sampleData: {
+      headers: ["Sales", "Quantity", "Price per Unit (Formula)", "Fixed Formula"],
+      rows: [
+        ["$500", "10", "=A2/B2 → $50", "=IFERROR(A2/B2,0) → $50"],
+        ["$300", "0", "=A3/B3 → #DIV/0!", "=IFERROR(A3/B3,0) → 0"],
+        ["$750", "15", "=A4/B4 → $50", "=IFERROR(A4/B4,0) → $50"]
+      ]
+    },
+    
+    whyThisHappens: "Excel cannot divide by zero mathematically - the result is undefined. When the divisor cell is empty, Excel treats it as zero. This is why =100/ (blank cell) also produces #DIV/0!. The error prevents Excel from completing calculations that reference the error cell.",
+    
+    commonMistakes: [
+      "Forgetting to check if divisor cells are empty",
+      "Not applying the fix to all affected cells",
+      "Using 0 as replacement when blank (\"\") would be better for averages",
+      "Dividing by cells that might contain text instead of numbers"
+    ],
+    
+    alternativeMethod: {
+      title: "Use IF Function for Custom Logic",
+      description: "For more control over what happens, use IF to check conditions before dividing.",
+      steps: [
+        "Click the cell where you want the result",
+        "Type: =IF(B2=0, \"N/A\", A2/B2)",
+        "This checks if B2 is zero before dividing",
+        "Replace \"N/A\" with your preferred message or 0"
+      ]
+    },
+    
+    advancedTip: "For percentage calculations, use =IFERROR(A1/B1,\"\") with conditional formatting to hide zeros. Apply a rule: Format cells where value equals 0 with white font. This keeps formulas intact while making reports cleaner.",
+    
+    relatedQuestions: [
+      {
+        question: "How to fix #N/A error in Excel?",
+        link: "/blog/fix-na-error-excel"
+      },
+      {
+        question: "Understanding all Excel error types",
+        link: "/blog/excel-error-types"
+      },
+      {
+        question: "IF function complete guide",
+        link: "/formula/if"
+      },
+      {
+        question: "IFERROR vs IFNA - when to use each",
+        link: "/formula/iferror"
+      }
+    ],
+    
+    faqs: [
+      {
+        question: "What does #DIV/0! mean in Excel?",
+        answer: "#DIV/0! means 'division by zero error'. It appears when a formula tries to divide a number by zero or an empty cell, which is mathematically undefined."
+      },
+      {
+        question: "Should I use 0 or blank when fixing #DIV/0! errors?",
+        answer: "Use 0 for sum totals, but use \"\" (blank) for averages and percentages. Blank cells are excluded from AVERAGE calculations, while 0s are included and lower the average."
+      },
+      {
+        question: "Can I hide #DIV/0! without changing the formula?",
+        answer: "Yes, use conditional formatting. Select cells, go to Conditional Formatting > New Rule > Format only cells that contain > Errors, then set font color to white or use custom format."
+      },
+      {
+        question: "Does #DIV/0! break other formulas?",
+        answer: "Yes, if you reference a cell containing #DIV/0! in another formula, it spreads the error. Always handle division errors with IFERROR or IF."
+      }
+    ],
+    
+    conclusion: "#DIV/0! errors are easy to prevent with IFERROR or IF functions. Choose IFERROR for quick fixes or IF for custom logic. Remember to use blank (\"\") instead of 0 for percentage and average calculations. Apply these methods and your spreadsheets will look professional!"
+  },
+  {
+    id: "excel-countif-formula-guide",
+    title: "Excel COUNTIF Function: Complete Guide with Examples",
+    metaTitle: "Excel COUNTIF Function Guide - Count Cells with Criteria (2025)",
+    metaDescription: "Master Excel COUNTIF function with examples. Learn to count cells with text, numbers, dates, wildcards, and multiple criteria using COUNTIFS.",
+    keywords: ["COUNTIF Excel", "count cells", "Excel count function", "COUNTIF tutorial", "COUNTIFS"],
+    publishDate: "2025-01-17",
+    readTime: "9 min",
+    category: "Formulas",
+    
+    introduction: "COUNTIF is one of Excel's most useful functions for analyzing data. It counts how many cells in a range meet a specific condition - perfect for tracking sales quotas, attendance, inventory, and much more.",
+    
+    problemQuestion: "How do I count cells that meet specific criteria in Excel?",
+    
+    quickAnswer: "Use COUNTIF: =COUNTIF(range, criteria). Example: =COUNTIF(A1:A10,\">100\") counts cells greater than 100. For multiple criteria, use COUNTIFS: =COUNTIFS(A1:A10,\">100\",B1:B10,\"Yes\").",
+    
+    detailedSteps: [
+      {
+        step: 1,
+        title: "Understand COUNTIF syntax",
+        description: "COUNTIF(range, criteria) - range is where to look, criteria is what to count.",
+        example: "=COUNTIF(A2:A20, \"Completed\") counts cells containing 'Completed'"
+      },
+      {
+        step: 2,
+        title: "Count cells with exact text match",
+        description: "Put text in quotes. Excel is case-insensitive for text.",
+        example: "=COUNTIF(B2:B50, \"Apple\") counts all cells with 'Apple', 'apple', or 'APPLE'"
+      },
+      {
+        step: 3,
+        title: "Count using comparison operators",
+        description: "Use >, <, >=, <=, <> for numbers and dates. Put in quotes.",
+        example: "=COUNTIF(C2:C100, \">1000\") counts values greater than 1000"
+      },
+      {
+        step: 4,
+        title: "Use wildcards for partial matches",
+        description: "* matches any characters, ? matches single character.",
+        example: "=COUNTIF(A2:A50, \"*pending*\") finds 'pending', 'Pending approval', etc."
+      },
+      {
+        step: 5,
+        title: "Count cells not equal to value",
+        description: "Use <> operator to exclude specific values.",
+        example: "=COUNTIF(A2:A100, \"<>0\") counts non-zero cells"
+      },
+      {
+        step: 6,
+        title: "Use COUNTIFS for multiple conditions",
+        description: "COUNTIFS lets you apply multiple criteria across different ranges.",
+        example: "=COUNTIFS(A2:A100,\">500\",B2:B100,\"North\") counts where A>500 AND region=North"
+      }
+    ],
+    
+    sampleData: {
+      headers: ["Product", "Sales", "Region", "Status"],
+      rows: [
+        ["Laptop", "$1,200", "North", "Delivered"],
+        ["Mouse", "$25", "South", "Pending"],
+        ["Keyboard", "$80", "North", "Delivered"],
+        ["Monitor", "$350", "East", "Delivered"],
+        ["Laptop", "$1,200", "South", "Pending"]
+      ]
+    },
+    
+    whyThisHappens: "COUNTIF automates what would otherwise require manual counting or filtering. It's dynamic - when data changes, counts update automatically. This makes it essential for dashboards, reports, and data analysis.",
+    
+    commonMistakes: [
+      "Forgetting quotes around text criteria: use \"Apple\" not Apple",
+      "Not using quotes around comparison operators: use \">100\" not >100",
+      "Confusing COUNTIF (one criterion) with COUNTIFS (multiple criteria)",
+      "Using wildcards without knowing * vs ? difference",
+      "Counting blank cells - use COUNTIF(range,\"\") for blanks",
+      "Expecting case-sensitive matching (COUNTIF is case-insensitive)"
+    ],
+    
+    alternativeMethod: {
+      title: "Use SUMPRODUCT for Complex Conditions",
+      description: "For advanced counting with AND/OR logic, SUMPRODUCT is more flexible than COUNTIFS.",
+      steps: [
+        "SUMPRODUCT can count with OR conditions (COUNTIFS can't)",
+        "Example: =SUMPRODUCT((A2:A100=\"Apple\")+(A2:A100=\"Orange\"))",
+        "Counts cells containing either 'Apple' OR 'Orange'",
+        "Use * for AND, + for OR logic"
+      ]
+    },
+    
+    advancedTip: "Combine COUNTIF with data validation to create dynamic dropdown lists that only show items appearing more than X times: Create named range with criteria, use COUNTIF to filter, apply to dropdown. Also, use COUNTIF/COUNTA for percentage calculations: =COUNTIF(range,criteria)/COUNTA(range)*100 for % of non-empty cells meeting criteria.",
+    
+    relatedQuestions: [
+      {
+        question: "How to use SUMIF function?",
+        link: "/formula/sumif"
+      },
+      {
+        question: "AVERAGEIF complete guide",
+        link: "/formula/averageif"
+      },
+      {
+        question: "Excel IF function tutorial",
+        link: "/formula/if"
+      },
+      {
+        question: "VLOOKUP vs COUNTIF - when to use each",
+        link: "/formula/vlookup"
+      }
+    ],
+    
+    faqs: [
+      {
+        question: "Can COUNTIF count across multiple sheets?",
+        answer: "Not directly. Use COUNTIF on each sheet and add them: =COUNTIF(Sheet1!A:A,\"Yes\")+COUNTIF(Sheet2!A:A,\"Yes\") or use SUMPRODUCT with INDIRECT for dynamic multi-sheet counting."
+      },
+      {
+        question: "How do I count cells containing any text?",
+        answer: "Use =COUNTIF(A1:A100,\"*\") to count any text, or =COUNTA(A1:A100)-COUNT(A1:A100) to count text cells excluding numbers."
+      },
+      {
+        question: "What's the difference between COUNTIF and COUNTIFS?",
+        answer: "COUNTIF counts based on one criterion, COUNTIFS handles multiple criteria. Example: COUNTIF(A:A,\">100\") vs COUNTIFS(A:A,\">100\",B:B,\"North\") for multiple conditions."
+      },
+      {
+        question: "Can I use cell references in COUNTIF criteria?",
+        answer: "Yes! Use &: =COUNTIF(A:A,\">\"&B1) where B1 contains the number. For exact match just reference: =COUNTIF(A:A,B1)."
+      },
+      {
+        question: "How do I count unique values?",
+        answer: "For Excel 365: =COUNTA(UNIQUE(A1:A100)). For older versions: =SUMPRODUCT(1/COUNTIF(A1:A100,A1:A100)) but this requires all non-blank cells."
+      }
+    ],
+    
+    conclusion: "COUNTIF is a powerful function for counting cells based on conditions. Master the basics with simple text and number criteria, then level up with wildcards and COUNTIFS for multiple conditions. Practice with your own data and you'll be analyzing spreadsheets like a pro!"
+  },
+  {
+    id: "excel-remove-duplicates",
+    title: "How to Remove Duplicates in Excel (3 Methods)",
+    metaTitle: "How to Remove Duplicates in Excel - 3 Easy Methods (2025)",
+    metaDescription: "Learn 3 ways to remove duplicate rows in Excel: Remove Duplicates tool, Advanced Filter, and formulas. Find and delete duplicate data quickly.",
+    keywords: ["remove duplicates Excel", "delete duplicates", "find duplicates", "Excel unique values", "duplicate data"],
+    publishDate: "2025-01-18",
+    readTime: "7 min",
+    category: "Tips",
+    
+    introduction: "Duplicate data clutters spreadsheets and causes errors in reports. Excel offers multiple ways to find and remove duplicate rows, from one-click tools to advanced formulas for custom control.",
+    
+    problemQuestion: "How do I find and remove duplicate rows in my Excel spreadsheet?",
+    
+    quickAnswer: "Quick method: Select your data → Data tab → Remove Duplicates → Choose columns → OK. For formulas: =UNIQUE(A1:B100) in Excel 365, or use Advanced Filter for older versions.",
+    
+    detailedSteps: [
+      {
+        step: 1,
+        title: "Method 1: Use Remove Duplicates Tool (Fastest)",
+        description: "Select your data range, go to Data tab, click 'Remove Duplicates'. Choose which columns to check for duplicates.",
+        example: "Removes entire duplicate rows permanently. Excel keeps first occurrence, deletes rest."
+      },
+      {
+        step: 2,
+        title: "Select columns to check",
+        description: "Uncheck 'Select All', then check only columns that define a duplicate. Don't include columns that should be unique (like timestamps).",
+        example: "For customer list, check Name & Email only, not Purchase Date"
+      },
+      {
+        step: 3,
+        title: "Method 2: Advanced Filter (Non-destructive)",
+        description: "Select data → Data tab → Advanced → Check 'Unique records only' → OK. This hides duplicates without deleting.",
+      },
+      {
+        step: 4,
+        title: "Method 3: UNIQUE Function (Excel 365)",
+        description: "For Excel 365, use =UNIQUE(A1:C100) to create a new list without duplicates. Original data stays intact.",
+        example: "=UNIQUE(A2:B50) creates dynamic list that updates when source data changes"
+      },
+      {
+        step: 5,
+        title: "Find duplicates before removing",
+        description: "Use conditional formatting to highlight duplicates first: Home → Conditional Formatting → Highlight Cell Rules → Duplicate Values.",
+      },
+      {
+        step: 6,
+        title: "For older Excel: Use helper column",
+        description: "Create formula to mark duplicates: =COUNTIF($A$2:$A2,A2)>1, then filter or delete manually.",
+        example: "Drag formula down, filter TRUE values, review before deleting"
+      }
+    ],
+    
+    sampleData: {
+      headers: ["Customer Name", "Email", "Purchase Date"],
+      rows: [
+        ["John Smith", "john@email.com", "2025-01-10"],
+        ["Jane Doe", "jane@email.com", "2025-01-11"],
+        ["John Smith", "john@email.com", "2025-01-12"],
+        ["Bob Wilson", "bob@email.com", "2025-01-10"]
+      ]
+    },
+    
+    whyThisHappens: "Duplicates occur from data imports, copy-paste errors, merged spreadsheets, or multiple people entering data. They skew analytics, cause overcounting, and create confusion. Regular duplicate removal maintains data integrity.",
+    
+    commonMistakes: [
+      "Not backing up data before using Remove Duplicates (it's permanent!)",
+      "Checking wrong columns - including unique IDs or timestamps",
+      "Removing duplicates from unsorted data without reviewing first",
+      "Not considering which duplicate to keep (Remove Duplicates keeps first occurrence)",
+      "Forgetting that Remove Duplicates is case-insensitive",
+      "Not expanding selection to include all related columns"
+    ],
+    
+    alternativeMethod: {
+      title: "Use Power Query for Advanced Deduplication",
+      description: "Power Query offers more control over which duplicate to keep and how to merge data.",
+      steps: [
+        "Select data → Data tab → From Table/Range",
+        "In Power Query Editor, select columns to check",
+        "Right-click column → Remove Duplicates, OR",
+        "Home → Remove Rows → Remove Duplicates",
+        "Choose to keep first, last, or aggregate duplicate values",
+        "Close & Load to return cleaned data to Excel"
+      ]
+    },
+    
+    advancedTip: "To keep LAST occurrence instead of first (Remove Duplicates keeps first), add a helper column with =ROW(), sort by it in descending order, remove duplicates, then re-sort to original order. Or use this array formula: =UNIQUE(SORT(A1:C100,1,-1)) then sort back ascending.",
+    
+    relatedQuestions: [
+      {
+        question: "How to highlight duplicates in Excel?",
+        link: "/blog/highlight-duplicates-excel"
+      },
+      {
+        question: "COUNTIF function guide",
+        link: "/blog/excel-countif-formula-guide"
+      },
+      {
+        question: "UNIQUE function for Excel 365",
+        link: "/formula/unique"
+      },
+      {
+        question: "VLOOKUP complete guide",
+        link: "/formula/vlookup"
+      }
+    ],
+    
+    faqs: [
+      {
+        question: "Does Remove Duplicates delete all duplicates or keep one?",
+        answer: "It keeps the FIRST occurrence and deletes all other duplicates. If you want to keep the last, you must sort data in reverse order first."
+      },
+      {
+        question: "Can I undo Remove Duplicates?",
+        answer: "Yes, press Ctrl+Z immediately after. But if you've made other changes or closed the file, you cannot undo it. Always save a backup first!"
+      },
+      {
+        question: "How do I remove duplicates but keep all data from duplicate rows?",
+        answer: "Use Power Query's Group By feature to aggregate data from duplicates, or manually use TEXTJOIN/CONCAT formulas to combine duplicate row data before removing."
+      },
+      {
+        question: "What's the difference between Remove Duplicates and Advanced Filter?",
+        answer: "Remove Duplicates permanently deletes duplicate rows. Advanced Filter hides them temporarily - you can clear the filter to see them again. Use Advanced Filter if you want to review first."
+      },
+      {
+        question: "Can Remove Duplicates work on multiple columns?",
+        answer: "Yes, you select which columns define a duplicate. Rows are only removed if ALL selected columns match. Unchecking a column means Excel ignores it when finding duplicates."
+      }
+    ],
+    
+    conclusion: "Excel offers flexible options for removing duplicates: quick with Remove Duplicates tool, safe with Advanced Filter, or dynamic with UNIQUE function. Always backup data first, choose the right columns to check, and review results. Clean data leads to accurate analysis!"
+  },
+  {
+    id: "excel-conditional-formatting-guide",
+    title: "Excel Conditional Formatting: Complete Guide",
+    metaTitle: "Excel Conditional Formatting Guide - Highlight Data Automatically (2025)",
+    metaDescription: "Master Excel conditional formatting with examples. Learn to highlight cells based on values, formulas, dates, and create data bars, color scales, icon sets.",
+    keywords: ["conditional formatting", "Excel formatting", "highlight cells", "Excel data visualization", "color coding Excel"],
+    publishDate: "2025-01-19",
+    readTime: "10 min",
+    category: "Tutorials",
+    
+    introduction: "Conditional formatting automatically changes cell appearance based on values or formulas. It's perfect for highlighting important data, spotting trends, and making spreadsheets more visual and easier to understand.",
+    
+    problemQuestion: "How do I automatically format cells based on their values in Excel?",
+    
+    quickAnswer: "Select cells → Home tab → Conditional Formatting → Choose rule type (Highlight Cell Rules, Top/Bottom Rules, Data Bars, Color Scales, Icon Sets, or New Rule). Set criteria and formatting, click OK.",
+    
+    detailedSteps: [
+      {
+        step: 1,
+        title: "Access Conditional Formatting",
+        description: "Select the cells you want to format. Go to Home tab → Conditional Formatting. Choose from preset rules or create custom rules.",
+      },
+      {
+        step: 2,
+        title: "Highlight Cells Based on Value",
+        description: "Use 'Highlight Cell Rules' for simple conditions like greater than, less than, between, equal to, or containing text.",
+        example: "Highlight Cell Rules → Greater Than → 1000 → Choose red fill"
+      },
+      {
+        step: 3,
+        title: "Apply Data Bars for Visual Comparison",
+        description: "Data Bars create in-cell bar charts. Select cells → Conditional Formatting → Data Bars → Choose color.",
+        example: "Perfect for sales data - longer bars show higher values instantly"
+      },
+      {
+        step: 4,
+        title: "Use Color Scales for Heat Maps",
+        description: "Color scales apply gradients from low to high values. Great for seeing patterns in large datasets.",
+        example: "Red-Yellow-Green scale: low values red, medium yellow, high green"
+      },
+      {
+        step: 5,
+        title: "Add Icon Sets for Status Indicators",
+        description: "Icon Sets display symbols (arrows, traffic lights, stars) based on value ranges.",
+        example: "Traffic lights: green for high sales, yellow for medium, red for low"
+      },
+      {
+        step: 6,
+        title: "Create Formula-Based Rules",
+        description: "For advanced logic, use 'New Rule' → 'Use a formula'. Formula must return TRUE/FALSE.",
+        example: "=MOD(ROW(),2)=0 formats every other row (zebra striping)"
+      },
+      {
+        step: 7,
+        title: "Manage Multiple Rules",
+        description: "Click 'Manage Rules' to edit, delete, change priority, or see all applied rules.",
+        example: "Rule order matters - first TRUE rule applies, others ignored (unless you check 'Stop If True')"
+      }
+    ],
+    
+    sampleData: {
+      headers: ["Salesperson", "Q1 Sales", "Q2 Sales", "Q3 Sales", "Q4 Sales"],
+      rows: [
+        ["Alice", "$45,000", "$52,000", "$48,000", "$61,000"],
+        ["Bob", "$38,000", "$41,000", "$39,000", "$44,000"],
+        ["Carol", "$51,000", "$48,000", "$55,000", "$58,000"],
+        ["David", "$29,000", "$33,000", "$31,000", "$35,000"]
+      ]
+    },
+    
+    whyThisHappens: "Conditional formatting uses rules that Excel checks every time data changes. When a cell's value meets a rule's criteria, Excel applies the specified formatting. It's dynamic - formatting updates automatically when values change.",
+    
+    commonMistakes: [
+      "Selecting wrong range before applying formatting",
+      "Not using absolute references ($) in formulas when needed",
+      "Creating too many conflicting rules",
+      "Forgetting that first matching rule 'wins' unless managed",
+      "Using relative references incorrectly in formula rules",
+      "Not testing formula rules on sample data first",
+      "Applying formatting to entire columns (slow performance)"
+    ],
+    
+    alternativeMethod: {
+      title: "Use Custom Number Formatting for Simple Cases",
+      description: "For basic conditional display (not colors), custom number formats are faster than conditional formatting.",
+      steps: [
+        "Right-click cell → Format Cells → Number → Custom",
+        "Use format: [Condition]format;[Condition]format;default",
+        "Example: [>1000]$#,##0;[<0]\"Negative\";$#,##0",
+        "This shows values >1000 with $ and comma, negatives as 'Negative', others normal"
+      ]
+    },
+    
+    advancedTip: "Create dynamic ranges with conditional formatting using OFFSET or Table references. Example: Highlight top 10% that changes as data grows. Also, combine multiple formulas with AND/OR: =AND($B2>1000,$C2=\"Completed\") highlights rows where B>1000 AND C=Completed. Use $ carefully - $B2 locks column, B$2 locks row.",
+    
+    relatedQuestions: [
+      {
+        question: "Excel IF function guide",
+        link: "/formula/if"
+      },
+      {
+        question: "How to create data validation dropdowns",
+        link: "/blog/excel-data-validation"
+      },
+      {
+        question: "Advanced Excel formulas tutorial",
+        link: "/blog/advanced-excel-formulas"
+      },
+      {
+        question: "Excel charts and visualization guide",
+        link: "/blog/excel-charts-guide"
+      }
+    ],
+    
+    faqs: [
+      {
+        question: "Can I copy conditional formatting to other cells?",
+        answer: "Yes, use Format Painter or copy the cell and use Paste Special → Formats. The rule will adjust to new cell references automatically (unless you used absolute references with $)."
+      },
+      {
+        question: "How many conditional formatting rules can I apply?",
+        answer: "Excel allows unlimited rules per worksheet, but performance slows with many rules or large ranges. Limit rules to only necessary cells for best performance."
+      },
+      {
+        question: "Why isn't my conditional formatting working?",
+        answer: "Common causes: 1) Formula syntax error, 2) Wrong cell references (not using $ correctly), 3) Format not visible (e.g., white text on white background), 4) Another rule has higher priority. Check Manage Rules to debug."
+      },
+      {
+        question: "Can I use conditional formatting across different sheets?",
+        answer: "Yes in formulas. Example: =Sheet2!A1>100 highlights based on another sheet's data. But the formatted cells and formula rule must be on the same sheet."
+      },
+      {
+        question: "Does conditional formatting work in Excel Online?",
+        answer: "Yes, most conditional formatting features work in Excel Online, including creating and editing rules. Some advanced features may require desktop Excel."
+      }
+    ],
+    
+    conclusion: "Conditional formatting transforms static data into visual insights. Start with simple highlight rules, then progress to data bars, color scales, and formula-based formatting. Remember to manage rule priority and use absolute references where needed. Practice with your own data and watch your spreadsheets come to life!"
   }
 ];
 

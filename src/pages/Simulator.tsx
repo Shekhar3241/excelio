@@ -136,6 +136,137 @@ export default function Simulator() {
         }
       }
 
+      // IF function
+      if (formulaStr.startsWith("IF(")) {
+        const ifMatch = formulaStr.match(/IF\(([^,]+),([^,]+),([^)]+)\)/);
+        if (ifMatch) {
+          const condition = ifMatch[1].trim();
+          const trueValue = ifMatch[2].trim().replace(/['"]/g, '');
+          const falseValue = ifMatch[3].trim().replace(/['"]/g, '');
+          
+          // Replace cell references in condition
+          let conditionStr = condition.replace(/([A-Z]\d+)/g, (match) => {
+            return getCellValue(match).toString();
+          });
+          
+          const conditionResult = eval(conditionStr);
+          setResult(conditionResult ? trueValue : falseValue);
+          toast.success("Formula executed!");
+          return;
+        }
+      }
+
+      // COUNTIF function
+      if (formulaStr.startsWith("COUNTIF(")) {
+        const countifMatch = formulaStr.match(/COUNTIF\(([A-Z]\d+:[A-Z]\d+),([^)]+)\)/);
+        if (countifMatch) {
+          const values = getRangeValues(countifMatch[1]);
+          const criteria = countifMatch[2].trim().replace(/['"]/g, '');
+          
+          let count = 0;
+          if (criteria.startsWith('>')) {
+            const threshold = parseFloat(criteria.substring(1));
+            count = values.filter(v => v > threshold).length;
+          } else if (criteria.startsWith('<')) {
+            const threshold = parseFloat(criteria.substring(1));
+            count = values.filter(v => v < threshold).length;
+          } else {
+            const target = parseFloat(criteria);
+            count = values.filter(v => v === target).length;
+          }
+          
+          setResult(count.toString());
+          toast.success("Formula executed!");
+          return;
+        }
+      }
+
+      // SUMIF function
+      if (formulaStr.startsWith("SUMIF(")) {
+        const sumifMatch = formulaStr.match(/SUMIF\(([A-Z]\d+:[A-Z]\d+),([^,]+),([^)]+)\)/);
+        if (sumifMatch) {
+          const criteriaRange = getRangeValues(sumifMatch[1]);
+          const criteria = sumifMatch[2].trim().replace(/['"]/g, '');
+          const sumRange = getRangeValues(sumifMatch[3]);
+          
+          let sum = 0;
+          if (criteria.startsWith('>')) {
+            const threshold = parseFloat(criteria.substring(1));
+            criteriaRange.forEach((v, i) => {
+              if (v > threshold && sumRange[i]) sum += sumRange[i];
+            });
+          } else if (criteria.startsWith('<')) {
+            const threshold = parseFloat(criteria.substring(1));
+            criteriaRange.forEach((v, i) => {
+              if (v < threshold && sumRange[i]) sum += sumRange[i];
+            });
+          } else {
+            const target = parseFloat(criteria);
+            criteriaRange.forEach((v, i) => {
+              if (v === target && sumRange[i]) sum += sumRange[i];
+            });
+          }
+          
+          setResult(sum.toString());
+          toast.success("Formula executed!");
+          return;
+        }
+      }
+
+      // CONCATENATE / CONCAT
+      if (formulaStr.startsWith("CONCATENATE(") || formulaStr.startsWith("CONCAT(")) {
+        const concatMatch = formulaStr.match(/CONCATENATE?\(([^)]+)\)/);
+        if (concatMatch) {
+          const parts = concatMatch[1].split(',').map(p => {
+            const trimmed = p.trim().replace(/['"]/g, '');
+            // Check if it's a cell reference
+            if (/^[A-Z]\d+$/.test(trimmed)) {
+              const cell = cells.find(c => {
+                const col = trimmed.charCodeAt(0) - 65;
+                const row = parseInt(trimmed.substring(1)) - 1;
+                return c.row === row && c.col === col;
+              });
+              return cell?.value || '';
+            }
+            return trimmed;
+          });
+          setResult(parts.join(''));
+          toast.success("Formula executed!");
+          return;
+        }
+      }
+
+      // LEN function
+      if (formulaStr.startsWith("LEN(")) {
+        const lenMatch = formulaStr.match(/LEN\(([A-Z]\d+)\)/);
+        if (lenMatch) {
+          const cell = cells.find(c => {
+            const col = lenMatch[1].charCodeAt(0) - 65;
+            const row = parseInt(lenMatch[1].substring(1)) - 1;
+            return c.row === row && c.col === col;
+          });
+          setResult((cell?.value?.length || 0).toString());
+          toast.success("Formula executed!");
+          return;
+        }
+      }
+
+      // ROUND function
+      if (formulaStr.startsWith("ROUND(")) {
+        const roundMatch = formulaStr.match(/ROUND\(([^,]+),(\d+)\)/);
+        if (roundMatch) {
+          let valueStr = roundMatch[1].trim();
+          valueStr = valueStr.replace(/([A-Z]\d+)/g, (match) => {
+            return getCellValue(match).toString();
+          });
+          const value = eval(valueStr);
+          const decimals = parseInt(roundMatch[2]);
+          setResult(value.toFixed(decimals));
+          toast.success("Formula executed!");
+          return;
+        }
+      }
+
       // Simple cell references (e.g., =A1+B1)
       formulaStr = formulaStr.replace(/([A-Z]\d+)/g, (match) => {
         return getCellValue(match).toString();
@@ -316,6 +447,48 @@ export default function Simulator() {
                     <div>
                       <code className="text-xs bg-accent px-1 py-0.5 rounded">=A1+B1</code>
                       <p className="text-muted-foreground mt-1">Basic operations (+, -, *, /)</p>
+                    </div>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-primary">•</span>
+                    <div>
+                      <code className="text-xs bg-accent px-1 py-0.5 rounded">IF(A1&gt;100,"High","Low")</code>
+                      <p className="text-muted-foreground mt-1">Conditional logic</p>
+                    </div>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-primary">•</span>
+                    <div>
+                      <code className="text-xs bg-accent px-1 py-0.5 rounded">COUNTIF(A1:A5,"&gt;100")</code>
+                      <p className="text-muted-foreground mt-1">Count with criteria</p>
+                    </div>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-primary">•</span>
+                    <div>
+                      <code className="text-xs bg-accent px-1 py-0.5 rounded">SUMIF(A1:A5,"&gt;100",B1:B5)</code>
+                      <p className="text-muted-foreground mt-1">Conditional sum</p>
+                    </div>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-primary">•</span>
+                    <div>
+                      <code className="text-xs bg-accent px-1 py-0.5 rounded">CONCATENATE(A1,B1)</code>
+                      <p className="text-muted-foreground mt-1">Join text</p>
+                    </div>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-primary">•</span>
+                    <div>
+                      <code className="text-xs bg-accent px-1 py-0.5 rounded">ROUND(A1,2)</code>
+                      <p className="text-muted-foreground mt-1">Round to decimals</p>
+                    </div>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-primary">•</span>
+                    <div>
+                      <code className="text-xs bg-accent px-1 py-0.5 rounded">LEN(A1)</code>
+                      <p className="text-muted-foreground mt-1">Text length</p>
                     </div>
                   </li>
                 </ul>
