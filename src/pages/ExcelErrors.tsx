@@ -108,6 +108,62 @@ const commonErrors = [
     severity: "medium",
     category: "Compatibility",
   },
+  {
+    error: "Volatile Functions",
+    description: "Functions like NOW(), RAND(), OFFSET() recalculate every time any cell changes, slowing down large workbooks",
+    severity: "medium",
+    category: "Performance",
+    solution: "Minimize use of volatile functions. Replace NOW() with static timestamps, use INDEX instead of OFFSET, and convert INDIRECT references to direct references when possible. For RAND(), press F9 to convert to static values after generation."
+  },
+  {
+    error: "Array Formula Issues",
+    description: "Legacy array formulas (Ctrl+Shift+Enter) may not work correctly or cause calculation errors",
+    severity: "medium",
+    category: "Array",
+    solution: "In Excel 365, use dynamic array formulas instead of legacy CSE arrays. Replace {=SUM(A1:A10*B1:B10)} with =SUM(A1:A10*B1:B10). For older Excel versions, ensure you press Ctrl+Shift+Enter and see curly braces around the formula."
+  },
+  {
+    error: "External Link Broken",
+    description: "Formulas referencing other workbooks show #REF! or update prompts when files are moved/renamed",
+    severity: "high",
+    category: "Links",
+    solution: "Go to Data > Edit Links to update paths. To break links and convert to values: Copy the linked cells > Paste Special > Values. Use INDIRECT with defined names as a workaround for dynamic file paths."
+  },
+  {
+    error: "Merged Cell Problems",
+    description: "Merged cells cause errors with sorting, filtering, and formula references",
+    severity: "medium",
+    category: "Formatting",
+    solution: "Unmerge cells and use 'Center Across Selection' instead: Select cells > Format Cells > Alignment > Horizontal > Center Across Selection. For formulas, reference only the top-left cell of previously merged ranges."
+  },
+  {
+    error: "Text Formatted Numbers",
+    description: "Numbers stored as text cause formula errors and SUM functions to ignore them",
+    severity: "high",
+    category: "Data Type",
+    solution: "Select affected cells > Click the warning icon > Convert to Number. Or multiply by 1: =A1*1. For multiple cells, put 1 in a cell, copy it, select number cells, Paste Special > Multiply. Use VALUE() function to convert: =VALUE(A1)."
+  },
+  {
+    error: "Date Serial Issues",
+    description: "Dates showing as numbers (e.g., 45231) or text dates not being recognized by formulas",
+    severity: "medium",
+    category: "Date/Time",
+    solution: "For numbers showing as dates: Format > Number > Date. For text dates: Use DATEVALUE() function or Text to Columns (Data tab) > Date format. Ensure consistent date formats across your workbook. Use DATE(year,month,day) to construct dates programmatically."
+  },
+  {
+    error: "Slow Calculation",
+    description: "Excel takes too long to recalculate, especially with complex formulas or large datasets",
+    severity: "low",
+    category: "Performance",
+    solution: "Set calculation to Manual: Formulas > Calculation Options > Manual. Replace volatile functions (NOW, TODAY, RAND, OFFSET). Use tables instead of entire column references (A:A). Break complex formulas into helper columns. Disable automatic workbook saving during heavy calculations."
+  },
+  {
+    error: "Lookup Return Wrong Value",
+    description: "VLOOKUP/XLOOKUP returns incorrect results even when value exists",
+    severity: "high",
+    category: "Lookup",
+    solution: "Check for: 1) Extra spaces - use TRIM(). 2) Different data types - ensure both text or both numbers. 3) Approximate match when you need exact - use FALSE/0 as last parameter. 4) Hidden characters - use CLEAN(). 5) Duplicate values in lookup column - VLOOKUP returns first match only."
+  },
 ];
 
 const quickFixes = [
@@ -139,9 +195,41 @@ export default function ExcelErrors() {
         />
         <meta
           name="keywords"
-          content="excel errors, fix excel errors, #N/A error, #DIV/0 error, #VALUE error, #REF error, excel troubleshooting, formula errors"
+          content="excel errors, fix excel errors, #N/A error, #DIV/0 error, #VALUE error, #REF error, excel troubleshooting, formula errors, #SPILL error, #CALC error, circular reference"
         />
-        <link rel="canonical" href="https://yourdomain.com/excel-errors" />
+        <link rel="canonical" href="https://skillbi.in/excel-errors" />
+        <script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "FAQPage",
+            "mainEntity": [
+              {
+                "@type": "Question",
+                "name": "What is the #N/A error in Excel?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "The #N/A error occurs when a lookup function can't find the value you're searching for. Common with VLOOKUP, XLOOKUP, and MATCH functions."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "How do I fix #DIV/0! error in Excel?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Use IFERROR to handle division by zero: =IFERROR(A1/B1,0) or check before dividing: =IF(B1=0,\"Error\",A1/B1)"
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "What causes #REF! error in Excel?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "#REF! error happens when a cell reference is deleted or invalid. Check your formulas for references to deleted cells or sheets."
+                }
+              }
+            ]
+          })}
+        </script>
         <meta property="og:title" content="Most Common Excel Errors & How to Fix Them" />
         <meta
           property="og:description"
@@ -241,6 +329,11 @@ export default function ExcelErrors() {
                     >
                       View detailed solution →
                     </Link>
+                  ) : error.solution ? (
+                    <div className="text-sm text-foreground space-y-2">
+                      <p className="font-semibold text-primary">Solution:</p>
+                      <p className="leading-relaxed">{error.solution}</p>
+                    </div>
                   ) : (
                     <p className="text-sm text-muted-foreground">
                       Solution guide coming soon

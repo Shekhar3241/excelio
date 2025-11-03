@@ -15,9 +15,6 @@ export function Header() {
           <Link to="/" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
             Home
           </Link>
-          <Link to="/functions" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors hidden sm:block">
-            Functions
-          </Link>
           <Link to="/blog" className="flex items-center gap-1 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
             <BookOpen className="h-4 w-4" />
             <span className="hidden sm:inline">Blog</span>

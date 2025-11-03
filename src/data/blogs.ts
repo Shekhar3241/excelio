@@ -843,6 +843,426 @@ export const blogPosts: BlogPost[] = [
     ],
     
     conclusion: "Conditional formatting transforms static data into visual insights. Start with simple highlight rules, then progress to data bars, color scales, and formula-based formatting. Remember to manage rule priority and use absolute references where needed. Practice with your own data and watch your spreadsheets come to life!"
+  },
+  {
+    id: "excel-text-functions-guide",
+    title: "Master Excel Text Functions: CONCATENATE, LEFT, RIGHT, MID",
+    metaTitle: "Excel Text Functions Guide - CONCATENATE, LEFT, RIGHT, MID (2025)",
+    metaDescription: "Complete guide to Excel text manipulation functions. Learn CONCATENATE, TEXTJOIN, LEFT, RIGHT, MID, TRIM, UPPER, LOWER, and more with practical examples.",
+    keywords: ["Excel text functions", "CONCATENATE", "LEFT RIGHT MID", "text manipulation Excel", "string functions Excel", "TEXTJOIN"],
+    publishDate: "2025-01-20",
+    readTime: "12 min",
+    category: "Formulas",
+    
+    introduction: "Text functions are essential for cleaning, combining, and extracting data in Excel. Whether you're merging first and last names, extracting area codes, or standardizing formats, these functions make text manipulation simple and powerful.",
+    
+    problemQuestion: "How do I manipulate and combine text in Excel cells?",
+    
+    quickAnswer: "Use CONCATENATE or & to combine text: =A1&\" \"&B1 joins cells with space. Use LEFT(text,num) to extract from start, RIGHT(text,num) from end, MID(text,start,num) from middle. TEXTJOIN(delimiter,ignore_empty,range) is best for combining multiple cells.",
+    
+    detailedSteps: [
+      {
+        step: 1,
+        title: "Combine Text with CONCATENATE or &",
+        description: "Join text from multiple cells. The & operator is simpler than CONCATENATE function.",
+        example: "=A1&\" \"&B1 joins first and last name with space. Or =CONCATENATE(A1,\" \",B1)"
+      },
+      {
+        step: 2,
+        title: "Use TEXTJOIN for Multiple Cells",
+        description: "TEXTJOIN is powerful for combining ranges with a delimiter, and can ignore empty cells.",
+        example: "=TEXTJOIN(\", \",TRUE,A1:A10) joins all values with commas, skipping blanks"
+      },
+      {
+        step: 3,
+        title: "Extract from Left with LEFT",
+        description: "LEFT(text, num_chars) extracts specified number of characters from the start.",
+        example: "=LEFT(A1,3) extracts first 3 characters. =LEFT(\"Excel\",2) returns \"Ex\""
+      },
+      {
+        step: 4,
+        title: "Extract from Right with RIGHT",
+        description: "RIGHT(text, num_chars) extracts from the end of text.",
+        example: "=RIGHT(A1,4) gets last 4 characters. Useful for extracting file extensions"
+      },
+      {
+        step: 5,
+        title: "Extract Middle Text with MID",
+        description: "MID(text, start_num, num_chars) extracts from any position.",
+        example: "=MID(A1,5,3) starts at position 5, extracts 3 characters"
+      },
+      {
+        step: 6,
+        title: "Clean Text with TRIM and CLEAN",
+        description: "TRIM removes extra spaces. CLEAN removes non-printable characters.",
+        example: "=TRIM(A1) removes leading/trailing spaces and extra spaces between words"
+      },
+      {
+        step: 7,
+        title: "Change Case with UPPER, LOWER, PROPER",
+        description: "Convert text to uppercase, lowercase, or proper case (capital first letter).",
+        example: "=UPPER(A1) → \"HELLO\", =LOWER(A1) → \"hello\", =PROPER(A1) → \"Hello World\""
+      }
+    ],
+    
+    sampleData: {
+      headers: ["First Name", "Last Name", "Full Name Formula", "Email Prefix"],
+      rows: [
+        ["John", "Smith", "=A2&\" \"&B2", "=LOWER(A2)&\".\"&LOWER(B2)"],
+        ["Mary", "Johnson", "John Smith", "john.smith"],
+        ["Robert", "Williams", "Mary Johnson", "mary.johnson"]
+      ]
+    },
+    
+    whyThisHappens: "Excel treats text as strings of characters, each with a position. Text functions use these positions to extract, combine, or modify text. Understanding character positions (starting at 1, not 0) is key to mastering these functions.",
+    
+    commonMistakes: [
+      "Forgetting that Excel positions start at 1, not 0",
+      "Not accounting for spaces when combining text",
+      "Using CONCATENATE instead of simpler & operator",
+      "Not using TRIM before text operations",
+      "Forgetting RIGHT/LEFT return text even for numbers",
+      "Using MID with wrong start position",
+      "Not converting text to proper case before comparisons"
+    ],
+    
+    alternativeMethod: {
+      title: "Use CONCAT and CONCAT with Array",
+      description: "Excel 365 has CONCAT which works like CONCATENATE but accepts ranges.",
+      steps: [
+        "=CONCAT(A1:A10) joins all cells without delimiter",
+        "More flexible than old CONCATENATE which needed individual references",
+        "For delimiters, use TEXTJOIN instead",
+        "=CONCAT(A1,\" \",B1) works but & is simpler for few cells"
+      ]
+    },
+    
+    advancedTip: "Combine FIND/SEARCH with LEFT/RIGHT/MID for dynamic extraction. Example: =LEFT(A1,FIND(\"@\",A1)-1) extracts username from email. =RIGHT(A1,LEN(A1)-FIND(\"@\",A1)) gets domain. Use SUBSTITUTE to replace text: =SUBSTITUTE(A1,\"old\",\"new\") replaces all occurrences.",
+    
+    relatedQuestions: [
+      {
+        question: "FIND and SEARCH functions explained",
+        link: "/formula/find"
+      },
+      {
+        question: "LEN function to count characters",
+        link: "/formula/len"
+      },
+      {
+        question: "TEXT function for number formatting",
+        link: "/formula/text"
+      },
+      {
+        question: "Excel data cleaning techniques",
+        link: "/blog/excel-data-cleaning"
+      }
+    ],
+    
+    faqs: [
+      {
+        question: "What's the difference between CONCATENATE and &?",
+        answer: "They do the same thing - combine text. & is simpler and faster to type. CONCATENATE is a function, & is an operator. Use & for most cases: =A1&B1 instead of =CONCATENATE(A1,B1)."
+      },
+      {
+        question: "How do I combine text with line breaks?",
+        answer: "Use CHAR(10) for line break: =A1&CHAR(10)&B1. You must also enable Wrap Text (Home > Wrap Text) to see the line break. On Mac, use CHAR(13) instead."
+      },
+      {
+        question: "Can I extract text between two characters?",
+        answer: "Yes, combine FIND/SEARCH with MID: =MID(A1, FIND(\"(\",A1)+1, FIND(\")\",A1)-FIND(\"(\",A1)-1) extracts text between parentheses."
+      },
+      {
+        question: "Why does LEFT return numbers as text?",
+        answer: "LEFT/RIGHT/MID always return text, even when extracting numbers. Use VALUE() to convert back: =VALUE(LEFT(A1,3)) converts the extracted text to number."
+      },
+      {
+        question: "How do I remove specific characters from text?",
+        answer: "Use SUBSTITUTE: =SUBSTITUTE(A1,\"-\",\"\") removes all hyphens. For multiple characters, nest SUBSTITUTE functions or use newer TEXTBEFORE/TEXTAFTER functions in Excel 365."
+      }
+    ],
+    
+    conclusion: "Excel's text functions give you complete control over text manipulation. Master LEFT/RIGHT/MID for extraction, TEXTJOIN for combining, and TRIM/UPPER/LOWER for cleaning. Combine these with FIND/SEARCH for powerful dynamic text operations. Practice with your own data and you'll handle any text challenge!"
+  },
+  {
+    id: "excel-date-time-functions",
+    title: "Excel Date & Time Functions: TODAY, NOW, DATE, DATEDIF",
+    metaTitle: "Excel Date & Time Functions Complete Guide - TODAY, NOW, DATE (2025)",
+    metaDescription: "Master Excel date and time functions. Learn TODAY, NOW, DATE, DATEDIF, EDATE, EOMONTH, NETWORKDAYS, and time calculations with practical examples.",
+    keywords: ["Excel date functions", "TODAY function", "NOW function", "DATEDIF", "Excel time functions", "date calculations Excel"],
+    publishDate: "2025-01-21",
+    readTime: "11 min",
+    category: "Formulas",
+    
+    introduction: "Date and time functions are crucial for tracking deadlines, calculating durations, scheduling, and analyzing time-based data. Excel stores dates as serial numbers, making calculations straightforward once you understand the system.",
+    
+    problemQuestion: "How do I calculate dates, durations, and work with time in Excel?",
+    
+    quickAnswer: "Use TODAY() for current date, NOW() for date + time. DATE(year,month,day) creates dates. DATEDIF(start,end,unit) calculates duration. Add/subtract numbers to dates: =TODAY()+7 for date 7 days from now. Time is decimal: 0.5 = 12 hours.",
+    
+    detailedSteps: [
+      {
+        step: 1,
+        title: "Get Current Date with TODAY()",
+        description: "TODAY() returns today's date (updates daily). Perfect for dynamic dates in reports.",
+        example: "=TODAY() shows current date. =TODAY()+30 shows date 30 days from now"
+      },
+      {
+        step: 2,
+        title: "Get Current Date & Time with NOW()",
+        description: "NOW() returns current date and time (updates every calculation).",
+        example: "=NOW() shows current timestamp. =NOW()+1/24 adds 1 hour"
+      },
+      {
+        step: 3,
+        title: "Create Specific Dates with DATE()",
+        description: "DATE(year, month, day) constructs a date from components.",
+        example: "=DATE(2025,12,31) creates Dec 31, 2025. =DATE(A2,B2,C2) from cells"
+      },
+      {
+        step: 4,
+        title: "Calculate Duration with DATEDIF()",
+        description: "DATEDIF(start_date, end_date, unit) calculates difference. Units: \"Y\"=years, \"M\"=months, \"D\"=days.",
+        example: "=DATEDIF(A1,TODAY(),\"Y\") calculates age in years"
+      },
+      {
+        step: 5,
+        title: "End of Month with EOMONTH()",
+        description: "EOMONTH(start_date, months) returns last day of month, offset by months.",
+        example: "=EOMONTH(TODAY(),0) gives last day of current month. =EOMONTH(A1,3) adds 3 months"
+      },
+      {
+        step: 6,
+        title: "Calculate Workdays with NETWORKDAYS()",
+        description: "NETWORKDAYS(start, end, [holidays]) counts working days excluding weekends and holidays.",
+        example: "=NETWORKDAYS(A1,B1) counts weekdays between dates"
+      },
+      {
+        step: 7,
+        title: "Extract Date Parts",
+        description: "Use YEAR(), MONTH(), DAY(), HOUR(), MINUTE(), SECOND() to extract components.",
+        example: "=YEAR(TODAY()) returns current year. =MONTH(A1) extracts month number"
+      }
+    ],
+    
+    sampleData: {
+      headers: ["Start Date", "End Date", "Days Between", "Workdays", "Age (Years)"],
+      rows: [
+        ["2025-01-01", "2025-01-31", "=B2-A2", "=NETWORKDAYS(A2,B2)", "=DATEDIF(A2,TODAY(),\"Y\")"],
+        ["Jan 1, 2025", "Jan 31, 2025", "30", "22", "0"]
+      ]
+    },
+    
+    whyThisHappens: "Excel stores dates as serial numbers starting from Jan 1, 1900 = 1. Each day adds 1. Times are decimals: 0.5 = noon, 0.25 = 6 AM. This makes date math simple - adding 7 to a date adds 7 days.",
+    
+    commonMistakes: [
+      "Not formatting cells as dates after formulas",
+      "Using text dates instead of proper date values",
+      "Forgetting TODAY() and NOW() are volatile (recalculate often)",
+      "Not accounting for regional date formats",
+      "Mixing up M (minutes) and MM (months) in TEXT function",
+      "Using DATEDIF wrong unit codes",
+      "Not handling negative date differences"
+    ],
+    
+    alternativeMethod: {
+      title: "Use EDATE for Month Calculations",
+      description: "EDATE(start_date, months) adds/subtracts months more reliably than adding 30.",
+      steps: [
+        "=EDATE(TODAY(),6) adds 6 months to today",
+        "Better than +180 days which isn't exactly 6 months",
+        "EDATE adjusts for different month lengths automatically",
+        "Use negative numbers to subtract: =EDATE(A1,-3) subtracts 3 months"
+      ]
+    },
+    
+    advancedTip: "Combine TEXT with date functions for custom formats: =TEXT(TODAY(),\"dddd, mmmm d, yyyy\") shows \"Monday, January 1, 2025\". Calculate business days forward with WORKDAY: =WORKDAY(TODAY(),20,[holidays]) adds 20 workdays. For age calculations accounting for months and days: =DATEDIF(birthdate,TODAY(),\"Y\")&\" years, \"&DATEDIF(birthdate,TODAY(),\"YM\")&\" months\"",
+    
+    relatedQuestions: [
+      {
+        question: "TEXT function for date formatting",
+        link: "/formula/text"
+      },
+      {
+        question: "IF function with dates",
+        link: "/formula/if"
+      },
+      {
+        question: "Conditional formatting with dates",
+        link: "/blog/excel-conditional-formatting-guide"
+      },
+      {
+        question: "Excel time tracking template",
+        link: "/blog/excel-time-tracking"
+      }
+    ],
+    
+    faqs: [
+      {
+        question: "Why does my date show as a number like 45231?",
+        answer: "The cell isn't formatted as a date. Right-click > Format Cells > Date. The number is correct (Excel's serial date), just displayed wrong."
+      },
+      {
+        question: "How do I calculate someone's age in Excel?",
+        answer: "Use DATEDIF: =DATEDIF(birthdate,TODAY(),\"Y\") gives age in complete years. Or =(TODAY()-birthdate)/365.25 for decimal age."
+      },
+      {
+        question: "Can I add business days only?",
+        answer: "Yes, use WORKDAY: =WORKDAY(start_date,num_days,[holidays]). This adds working days, skipping weekends and optional holiday list."
+      },
+      {
+        question: "How do I calculate hours between two times?",
+        answer: "Subtract times and multiply by 24: =(end_time-start_time)*24. Format result as Number. For times spanning midnight, use: =IF(end>start,end-start,1+end-start)*24"
+      },
+      {
+        question: "What's the difference between DATEDIF units?",
+        answer: "\"Y\"=complete years, \"M\"=complete months, \"D\"=days, \"YM\"=months ignoring years, \"YD\"=days ignoring years, \"MD\"=days ignoring months and years."
+      }
+    ],
+    
+    conclusion: "Excel's date and time functions make temporal calculations easy. Use TODAY/NOW for dynamic dates, DATE for construction, DATEDIF for durations, and NETWORKDAYS for business day calculations. Remember dates are numbers, making math straightforward. Master these functions and time-based analysis becomes simple!"
+  },
+  {
+    id: "excel-lookup-functions-comparison",
+    title: "VLOOKUP vs XLOOKUP vs INDEX MATCH: Which to Use?",
+    metaTitle: "VLOOKUP vs XLOOKUP vs INDEX MATCH - Complete Comparison (2025)",
+    metaDescription: "Compare VLOOKUP, XLOOKUP, and INDEX MATCH lookup functions. Learn which Excel lookup function to use, with pros, cons, and practical examples.",
+    keywords: ["VLOOKUP vs XLOOKUP", "INDEX MATCH", "Excel lookup functions", "VLOOKUP alternative", "best Excel lookup function"],
+    publishDate: "2025-01-22",
+    readTime: "13 min",
+    category: "Formulas",
+    
+    introduction: "Excel offers multiple lookup functions, each with strengths and limitations. Understanding when to use VLOOKUP, XLOOKUP, or INDEX MATCH can dramatically improve your spreadsheet efficiency and reduce errors.",
+    
+    problemQuestion: "Which Excel lookup function should I use - VLOOKUP, XLOOKUP, or INDEX MATCH?",
+    
+    quickAnswer: "Use XLOOKUP if available (Excel 365/2021) - it's most flexible. Use INDEX MATCH for older Excel or when you need advanced features. Use VLOOKUP only for simple right-side lookups in older Excel. XLOOKUP is fastest and most readable.",
+    
+    detailedSteps: [
+      {
+        step: 1,
+        title: "VLOOKUP - Simple Right-Side Lookups",
+        description: "Best for basic lookups where return column is right of lookup column. Limited but widely compatible.",
+        example: "=VLOOKUP(lookup_value, A:C, 3, FALSE) → Looks in column A, returns from column C"
+      },
+      {
+        step: 2,
+        title: "VLOOKUP Limitations",
+        description: "Can't look left, breaks when columns inserted, requires column counting, only approximate or exact match.",
+        example: "Can't do: Lookup in C, return from A (must be A to C, not C to A)"
+      },
+      {
+        step: 3,
+        title: "XLOOKUP - Modern Solution (Excel 365)",
+        description: "Most powerful and flexible. Can look any direction, has built-in error handling, searches from top/bottom.",
+        example: "=XLOOKUP(lookup, lookup_array, return_array, \"Not Found\", 0, 1)"
+      },
+      {
+        step: 4,
+        title: "XLOOKUP Advantages",
+        description: "Looks left/right, default exact match, returns arrays, has wildcards, searches top-to-bottom or reverse.",
+        example: "=XLOOKUP(A2, C:C, A:A) → Looks in C, returns from A (impossible with VLOOKUP)"
+      },
+      {
+        step: 5,
+        title: "INDEX MATCH - Universal Solution",
+        description: "Works in all Excel versions. More flexible than VLOOKUP, faster for large datasets.",
+        example: "=INDEX(return_range, MATCH(lookup_value, lookup_range, 0))"
+      },
+      {
+        step: 6,
+        title: "INDEX MATCH Advantages",
+        description: "Looks any direction, doesn't break with column changes, faster than VLOOKUP, can do two-way lookups.",
+        example: "=INDEX(A:A, MATCH(E2, C:C, 0)) → Flexible lookup left or right"
+      },
+      {
+        step: 7,
+        title: "Choose Based on Excel Version and Needs",
+        description: "Excel 365? Use XLOOKUP. Older Excel or shared files? INDEX MATCH. Simple lookup in old Excel? VLOOKUP acceptable.",
+      }
+    ],
+    
+    sampleData: {
+      headers: ["Function", "Syntax", "Excel Version", "Can Look Left", "Performance"],
+      rows: [
+        ["VLOOKUP", "=VLOOKUP(value, range, col, FALSE)", "All", "No", "Moderate"],
+        ["XLOOKUP", "=XLOOKUP(value, array, array)", "365/2021", "Yes", "Fast"],
+        ["INDEX MATCH", "=INDEX(array, MATCH(value, array, 0))", "All", "Yes", "Fastest"]
+      ]
+    },
+    
+    whyThisHappens: "VLOOKUP was Excel's first lookup function - simple but limited. INDEX MATCH combined two functions for flexibility. XLOOKUP is Microsoft's modern solution combining best features of both with easier syntax.",
+    
+    commonMistakes: [
+      "Using VLOOKUP when you need to look left",
+      "Not locking ranges with $ in VLOOKUP column numbers",
+      "Forgetting FALSE/0 for exact match in VLOOKUP",
+      "Not understanding MATCH returns position, INDEX returns value",
+      "Using VLOOKUP in Excel 365 when XLOOKUP is better",
+      "Not considering file compatibility with XLOOKUP",
+      "Counting columns wrong in VLOOKUP"
+    ],
+    
+    alternativeMethod: {
+      title: "Two-Way Lookup with INDEX MATCH MATCH",
+      description: "For table lookups (row AND column), combine two MATCH functions.",
+      steps: [
+        "=INDEX(data_range, MATCH(row_value, row_headers, 0), MATCH(col_value, col_headers, 0))",
+        "First MATCH finds row position",
+        "Second MATCH finds column position",
+        "INDEX returns value at intersection",
+        "Example: Lookup sales for specific product and month"
+      ]
+    },
+    
+    advancedTip: "For multiple criteria lookups: XLOOKUP can handle it with & concatenation: =XLOOKUP(A2&B2, lookup1&lookup2, return). INDEX MATCH needs array formulas. For approximate match ranges (tax brackets, discounts), VLOOKUP with TRUE is simpler than XLOOKUP. Consider FILTER function (Excel 365) for returning multiple matches instead of just first.",
+    
+    relatedQuestions: [
+      {
+        question: "VLOOKUP function complete guide",
+        link: "/formula/vlookup"
+      },
+      {
+        question: "XLOOKUP function tutorial",
+        link: "/formula/xlookup"
+      },
+      {
+        question: "INDEX and MATCH functions",
+        link: "/formula/index"
+      },
+      {
+        question: "Fix #N/A errors in lookup functions",
+        link: "/blog/fix-na-error-excel"
+      },
+      {
+        question: "VLOOKUP not working? Troubleshoot here",
+        link: "/blog/vlookup-not-working"
+      }
+    ],
+    
+    faqs: [
+      {
+        question: "Should I still learn VLOOKUP if I have Excel 365?",
+        answer: "Know the basics since many existing spreadsheets use it, but use XLOOKUP for new work. VLOOKUP is still needed when sharing files with older Excel users."
+      },
+      {
+        question: "Is INDEX MATCH really faster than VLOOKUP?",
+        answer: "Yes, especially for large datasets. MATCH finds position once, then INDEX jumps directly there. VLOOKUP scans left-to-right every time, checking unnecessary columns."
+      },
+      {
+        question: "Can XLOOKUP replace all my VLOOKUP formulas?",
+        answer: "Technically yes, but only convert if: 1) Everyone has Excel 365/2021, 2) Worth the effort, 3) File won't be opened in older Excel (where XLOOKUP shows #NAME? error)."
+      },
+      {
+        question: "How do I do multiple criteria lookup?",
+        answer: "XLOOKUP: =XLOOKUP(A2&B2,lookup1&lookup2,return). INDEX MATCH: =INDEX(return, MATCH(1,(criteria1=range1)*(criteria2=range2),0)) as array formula. Or use FILTER in Excel 365."
+      },
+      {
+        question: "What's the difference between 0, 1, -1 in MATCH?",
+        answer: "0 = exact match (most common). 1 = largest value ≤ lookup (requires sorted ascending). -1 = smallest value ≥ lookup (requires sorted descending)."
+      }
+    ],
+    
+    conclusion: "Choose your lookup function wisely: XLOOKUP for Excel 365 (easiest and most powerful), INDEX MATCH for compatibility and flexibility, VLOOKUP only for simple cases in older Excel. Understanding all three makes you versatile across any Excel environment. Practice with real data to master each!"
   }
 ];
 

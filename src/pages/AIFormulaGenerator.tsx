@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Helmet } from "react-helmet";
 import { Header } from "@/components/Header";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -67,6 +68,44 @@ export default function AIFormulaGenerator() {
 
   return (
     <div className="min-h-screen bg-background">
+      <Helmet>
+        <title>AI Excel Formula Generator - Create Formulas from Plain English | SkillBI</title>
+        <meta
+          name="description"
+          content="Generate Excel formulas instantly using AI. Describe what you want in plain English and get accurate Excel formulas. Free AI-powered formula generator for SUM, VLOOKUP, IF, and more."
+        />
+        <meta
+          name="keywords"
+          content="AI Excel formula generator, Excel formula creator, automatic formula generator, Excel AI assistant, create Excel formulas, formula builder, Excel automation"
+        />
+        <link rel="canonical" href="https://skillbi.in/ai-generator" />
+        <meta property="og:title" content="AI Excel Formula Generator - Create Formulas from Plain English" />
+        <meta
+          property="og:description"
+          content="Generate Excel formulas instantly using AI. Describe what you want in plain English and get accurate formulas."
+        />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://skillbi.in/ai-generator" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="AI Excel Formula Generator - SkillBI" />
+        <meta name="twitter:description" content="Generate Excel formulas from plain English using AI" />
+        <script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "WebApplication",
+            "name": "AI Excel Formula Generator",
+            "description": "Generate Excel formulas instantly from plain English descriptions using AI",
+            "url": "https://skillbi.in/ai-generator",
+            "applicationCategory": "BusinessApplication",
+            "operatingSystem": "Web Browser",
+            "offers": {
+              "@type": "Offer",
+              "price": "0",
+              "priceCurrency": "USD"
+            }
+          })}
+        </script>
+      </Helmet>
       <Header />
       
       <section className="py-16 px-4" style={{ background: 'var(--gradient-hero)' }}>
