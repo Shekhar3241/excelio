@@ -66,6 +66,48 @@ const commonErrors = [
     severity: "medium",
     category: "Array",
   },
+  {
+    error: "#CALC!",
+    description: "Calculation Error - occurs in array formulas when the array size is inconsistent",
+    severity: "medium",
+    category: "Array",
+  },
+  {
+    error: "#GETTING_DATA",
+    description: "Temporary status shown while Excel retrieves external data",
+    severity: "low",
+    category: "Data Connection",
+  },
+  {
+    error: "Circular Reference",
+    description: "Formula refers back to itself directly or indirectly, creating an endless loop",
+    severity: "high",
+    category: "Formula Logic",
+  },
+  {
+    error: "#BLOCKED!",
+    description: "Formula references blocked external content or unverified data connection",
+    severity: "high",
+    category: "Security",
+  },
+  {
+    error: "#CONNECT!",
+    description: "Excel can't connect to external data source or Power Query connection failed",
+    severity: "medium",
+    category: "Data Connection",
+  },
+  {
+    error: "#FIELD!",
+    description: "Invalid field reference in data model or PivotTable formula",
+    severity: "medium",
+    category: "Data Model",
+  },
+  {
+    error: "#UNKNOWN!",
+    description: "Function not recognized - often happens with formulas from newer Excel versions",
+    severity: "medium",
+    category: "Compatibility",
+  },
 ];
 
 const quickFixes = [
@@ -260,6 +302,30 @@ export default function ExcelErrors() {
                 <h3 className="font-semibold mb-2">4. Check for Hidden Characters</h3>
                 <p className="text-muted-foreground">
                   Use TRIM() and CLEAN() functions to remove extra spaces and non-printable characters.
+                </p>
+              </div>
+              <div>
+                <h3 className="font-semibold mb-2">5. Enable Error Checking</h3>
+                <p className="text-muted-foreground">
+                  Go to File → Options → Formulas → Enable background error checking to catch common errors automatically.
+                </p>
+              </div>
+              <div>
+                <h3 className="font-semibold mb-2">6. Use Formula Auditing Tools</h3>
+                <p className="text-muted-foreground">
+                  Formulas tab → Formula Auditing → Trace Precedents/Dependents to visualize formula relationships.
+                </p>
+              </div>
+              <div>
+                <h3 className="font-semibold mb-2">7. Check Data Types</h3>
+                <p className="text-muted-foreground">
+                  Ensure cells contain the correct data type (numbers vs text). Use VALUE() or TEXT() functions to convert.
+                </p>
+              </div>
+              <div>
+                <h3 className="font-semibold mb-2">8. Review Circular References</h3>
+                <p className="text-muted-foreground">
+                  Formulas tab → Error Checking → Circular References to locate and fix circular reference errors.
                 </p>
               </div>
             </CardContent>
