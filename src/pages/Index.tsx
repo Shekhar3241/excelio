@@ -99,76 +99,76 @@ const Index = () => {
       <Header />
       
       {/* Hero Section */}
-      <section className="py-16 px-4 md:py-20" style={{ background: 'var(--gradient-hero)' }}>
-        <div className="container mx-auto max-w-4xl">
-          <div className="text-center mb-8">
-            <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-primary to-primary-light bg-clip-text text-transparent animate-fade-in">
+      <section className="py-12 px-4 md:py-20" style={{ background: 'var(--gradient-hero)' }}>
+        <div className="container mx-auto max-w-4xl px-2 sm:px-4">
+          <div className="text-center mb-6 md:mb-8">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 md:mb-6 bg-gradient-to-r from-primary to-primary-light bg-clip-text text-transparent animate-fade-in px-2">
               SkillBI's Hub
             </h1>
-            <p className="text-lg sm:text-xl text-muted-foreground mb-8 px-4 animate-fade-in" style={{ animationDelay: '100ms' }}>
+            <p className="text-base sm:text-lg md:text-xl text-muted-foreground mb-6 md:mb-8 px-4 sm:px-6 animate-fade-in" style={{ animationDelay: '100ms' }}>
               Your comprehensive guide to Excel formulas. Search, browse, and master the most essential functions.
             </p>
           </div>
 
           {/* AI Formula Generator */}
-          <Card className="mb-8 animate-fade-in" style={{ animationDelay: '150ms' }}>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-2xl">
-                <Sparkles className="h-6 w-6 text-primary" />
+          <Card className="mb-6 md:mb-8 animate-fade-in" style={{ animationDelay: '150ms' }}>
+            <CardHeader className="pb-3 md:pb-6">
+              <CardTitle className="flex items-center gap-2 text-lg sm:text-xl md:text-2xl">
+                <Sparkles className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
                 AI Formula Generator
               </CardTitle>
-              <p className="text-muted-foreground">Describe what you want to calculate and get Excel formulas instantly</p>
+              <p className="text-sm sm:text-base text-muted-foreground">Describe what you want to calculate and get Excel formulas instantly</p>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-3 md:space-y-4">
               <div className="flex flex-col sm:flex-row gap-2">
                 <input
                   type="text"
-                  placeholder="e.g., Calculate sum of sales for products containing 'Apple'"
+                  placeholder="e.g., Calculate sum of sales for products..."
                   value={aiQuery}
                   onChange={(e) => setAiQuery(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleGenerateAI()}
-                  className="flex-1 px-4 py-3 rounded-lg border border-input bg-background text-base"
+                  className="flex-1 px-3 sm:px-4 py-2 sm:py-3 rounded-lg border border-input bg-background text-sm sm:text-base"
                   disabled={isGenerating}
                 />
                 <Button
                   onClick={handleGenerateAI}
                   disabled={isGenerating}
                   size="lg"
-                  className="gap-2"
+                  className="gap-2 w-full sm:w-auto"
                 >
                   {isGenerating ? (
                     <>
-                      <Loader2 className="h-5 w-5 animate-spin" />
-                      Generating...
+                      <Loader2 className="h-4 w-4 sm:h-5 sm:w-5 animate-spin" />
+                      <span className="text-sm sm:text-base">Generating...</span>
                     </>
                   ) : (
                     <>
-                      <Sparkles className="h-5 w-5" />
-                      Generate
+                      <Sparkles className="h-4 w-4 sm:h-5 sm:w-5" />
+                      <span className="text-sm sm:text-base">Generate</span>
                     </>
                   )}
                 </Button>
               </div>
 
               {generatedFormulas.length > 0 && (
-                <div className="space-y-3 mt-4">
-                  <h3 className="font-semibold">Generated Formulas:</h3>
+                <div className="space-y-2 md:space-y-3 mt-3 md:mt-4">
+                  <h3 className="font-semibold text-sm sm:text-base">Generated Formulas:</h3>
                   {generatedFormulas.map((formula, index) => (
                     <div
                       key={index}
-                      className="flex items-center justify-between bg-muted p-3 rounded-lg group"
+                      className="flex items-start sm:items-center gap-2 bg-muted p-2 sm:p-3 rounded-lg group"
                     >
-                      <code className="text-sm flex-1 font-mono">{formula}</code>
+                      <code className="text-xs sm:text-sm flex-1 font-mono break-all">{formula}</code>
                       <Button
                         size="sm"
                         variant="ghost"
                         onClick={() => copyFormula(formula, index)}
-                        className="ml-2"
+                        className="shrink-0"
                       >
                         {copiedIndex === index ? (
-                          <Check className="h-4 w-4 text-green-500" />
+                          <Check className="h-3 w-3 sm:h-4 sm:w-4 text-green-500" />
                         ) : (
-                          <Copy className="h-4 w-4" />
+                          <Copy className="h-3 w-3 sm:h-4 sm:w-4" />
                         )}
                       </Button>
                     </div>
@@ -208,10 +208,10 @@ const Index = () => {
       </section>
 
       {/* Categories Grid */}
-      <section className="py-12 px-4">
+      <section className="py-8 sm:py-12 px-4">
         <div className="container mx-auto">
-          <h2 className="text-2xl sm:text-3xl font-bold mb-8 text-center animate-fade-in">Browse by Category</h2>
-          <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 max-w-6xl mx-auto">
+          <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-6 sm:mb-8 text-center animate-fade-in">Browse by Category</h2>
+          <div className="grid gap-3 sm:gap-4 md:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 max-w-6xl mx-auto">
             {categories.map((category, index) => (
               <div key={category.id} className="animate-fade-in" style={{ animationDelay: `${index * 50}ms` }}>
                 <CategoryCard
@@ -225,42 +225,42 @@ const Index = () => {
       </section>
 
       {/* Quick Stats */}
-      <section className="py-12 px-4 bg-accent">
+      <section className="py-8 sm:py-12 px-4 bg-accent">
         <div className="container mx-auto max-w-4xl">
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-8 text-center">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 md:gap-8 text-center">
             <div className="animate-fade-in hover:scale-105 transition-transform duration-300" style={{ animationDelay: '100ms' }}>
-              <div className="text-3xl sm:text-4xl font-bold text-primary mb-2">{formulas.length}</div>
-              <div className="text-sm sm:text-base text-muted-foreground">Total Formulas</div>
+              <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-primary mb-1 sm:mb-2">{formulas.length}</div>
+              <div className="text-xs sm:text-sm md:text-base text-muted-foreground">Total Formulas</div>
             </div>
             <div className="animate-fade-in hover:scale-105 transition-transform duration-300" style={{ animationDelay: '200ms' }}>
-              <div className="text-3xl sm:text-4xl font-bold text-primary mb-2">{categories.length}</div>
-              <div className="text-sm sm:text-base text-muted-foreground">Categories</div>
+              <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-primary mb-1 sm:mb-2">{categories.length}</div>
+              <div className="text-xs sm:text-sm md:text-base text-muted-foreground">Categories</div>
             </div>
             <div className="animate-fade-in hover:scale-105 transition-transform duration-300" style={{ animationDelay: '300ms' }}>
-              <div className="text-3xl sm:text-4xl font-bold text-primary mb-2">100%</div>
-              <div className="text-sm sm:text-base text-muted-foreground">Free & Open</div>
+              <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-primary mb-1 sm:mb-2">100%</div>
+              <div className="text-xs sm:text-sm md:text-base text-muted-foreground">Free & Open</div>
             </div>
           </div>
         </div>
       </section>
 
       {/* Social Media Section */}
-      <section className="py-12 px-4">
+      <section className="py-8 sm:py-12 px-4">
         <div className="container mx-auto max-w-4xl">
-          <div className="text-center mb-8 animate-fade-in">
-            <h2 className="text-2xl sm:text-3xl font-bold mb-3">Connect With Us</h2>
-            <p className="text-muted-foreground">Follow us for Excel tips, tutorials, and updates</p>
+          <div className="text-center mb-6 sm:mb-8 animate-fade-in">
+            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-2 sm:mb-3">Connect With Us</h2>
+            <p className="text-sm sm:text-base text-muted-foreground">Follow us for Excel tips, tutorials, and updates</p>
           </div>
           
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center animate-fade-in" style={{ animationDelay: '100ms' }}>
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-stretch sm:items-center animate-fade-in" style={{ animationDelay: '100ms' }}>
             <Button
               variant="outline"
               size="lg"
               className="w-full sm:w-auto gap-2 hover-scale"
               onClick={() => window.open('https://www.instagram.com/skillbi.in/', '_blank')}
             >
-              <Instagram className="h-5 w-5" />
-              Follow on Instagram
+              <Instagram className="h-4 w-4 sm:h-5 sm:w-5" />
+              <span className="text-sm sm:text-base">Follow on Instagram</span>
             </Button>
             
             <Button
@@ -269,8 +269,8 @@ const Index = () => {
               className="w-full sm:w-auto gap-2 hover-scale"
               onClick={() => window.open('https://www.youtube.com/channel/UCr1CnwN0cp_vsSHkIojDhIw', '_blank')}
             >
-              <Youtube className="h-5 w-5" />
-              Subscribe on YouTube
+              <Youtube className="h-4 w-4 sm:h-5 sm:w-5" />
+              <span className="text-sm sm:text-base">Subscribe on YouTube</span>
             </Button>
           </div>
         </div>
