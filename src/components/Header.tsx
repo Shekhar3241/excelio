@@ -1,7 +1,13 @@
 import { Link } from "react-router-dom";
-import { FileSpreadsheet, Star, Clock, Calculator, Sparkles, BookOpen } from "lucide-react";
+import { FileSpreadsheet, Star, Clock, Calculator, Sparkles, BookOpen, FolderOpen } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export function Header() {
   return (
@@ -35,6 +41,28 @@ export function Header() {
             <Calculator className="h-4 w-4" />
             <span className="hidden sm:inline">Simulator</span>
           </Link>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="sm" className="gap-1.5 h-8">
+                <FolderOpen className="h-3.5 w-3.5" />
+                <span className="hidden md:inline">Tools</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem asChild>
+                <Link to="/resources" className="cursor-pointer">Resource Library</Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link to="/file-analyzer" className="cursor-pointer">File Analyzer</Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link to="/data-visualization" className="cursor-pointer">Data Visualization</Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link to="/vba-generator" className="cursor-pointer">VBA Generator</Link>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
           <ThemeToggle />
         </nav>
       </div>

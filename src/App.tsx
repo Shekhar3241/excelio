@@ -22,6 +22,10 @@ import BlogPost from "./pages/BlogPost";
 import Functions from "./pages/Functions";
 import ExcelErrors from "./pages/ExcelErrors";
 import Glossary from "./pages/Glossary";
+import Resources from "./pages/Resources";
+import FileAnalyzer from "./pages/FileAnalyzer";
+import DataVisualization from "./pages/DataVisualization";
+import VBAGenerator from "./pages/VBAGenerator";
 
 const queryClient = new QueryClient();
 
@@ -50,6 +54,10 @@ const App = () => (
             <Route path="/functions" element={<Functions />} />
             <Route path="/excel-errors" element={<ExcelErrors />} />
             <Route path="/glossary" element={<Glossary />} />
+            <Route path="/resources" element={<Resources />} />
+            <Route path="/file-analyzer" element={<FileAnalyzer />} />
+            <Route path="/data-visualization" element={<DataVisualization />} />
+            <Route path="/vba-generator" element={<VBAGenerator />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
