@@ -7,14 +7,16 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Download, FileSpreadsheet, FileText, BookOpen, Building2 } from "lucide-react";
+import { Download, FileSpreadsheet, FileText, BookOpen, Building2, Loader2 } from "lucide-react";
 import { resources, categories, industries } from "@/data/resources";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function Resources() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [selectedIndustry, setSelectedIndustry] = useState("All");
+  const [downloadingId, setDownloadingId] = useState<string | null>(null);
 
   const filteredResources = resources.filter((resource) => {
     const matchesSearch = resource.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -27,9 +29,45 @@ export default function Resources() {
     return matchesSearch && matchesCategory && matchesIndustry;
   });
 
-  const handleDownload = (resource: typeof resources[0]) => {
-    toast.success(`Downloading ${resource.title}...`);
-    // In a real implementation, this would trigger an actual download
+  const handleDownload = async (resource: typeof resources[0]) => {
+    try {
+      setDownloadingId(resource.id);
+      toast.loading(`Preparing ${resource.title}...`, { id: resource.id });
+
+      // Download file from Supabase Storage
+      const { data, error } = await supabase.storage
+        .from('resources')
+        .download(resource.downloadUrl);
+
+      if (error) {
+        throw error;
+      }
+
+      // Create blob and trigger download
+      const blob = new Blob([data], { 
+        type: resource.fileType === 'pdf' ? 'application/pdf' : 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+      });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${resource.id}.${resource.fileType}`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+
+      // Track download
+      await supabase.from('resource_downloads').insert({
+        resource_id: resource.id
+      });
+
+      toast.success(`Downloaded ${resource.title}!`, { id: resource.id });
+    } catch (error) {
+      console.error('Download error:', error);
+      toast.error('Download failed. Please try again later.', { id: resource.id });
+    } finally {
+      setDownloadingId(null);
+    }
   };
 
   const getCategoryIcon = (category: string) => {
@@ -145,9 +183,19 @@ export default function Resources() {
                     <Button 
                       onClick={() => handleDownload(resource)}
                       className="gap-2"
+                      disabled={downloadingId === resource.id}
                     >
-                      <Download className="h-4 w-4" />
-                      Download
+                      {downloadingId === resource.id ? (
+                        <>
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          Downloading...
+                        </>
+                      ) : (
+                        <>
+                          <Download className="h-4 w-4" />
+                          Download
+                        </>
+                      )}
                     </Button>
                   </div>
                 </CardContent>

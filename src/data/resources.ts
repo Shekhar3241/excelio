@@ -19,7 +19,7 @@ export const resources: Resource[] = [
     description: 'Complete monthly budget template with automatic calculations, expense categories, and visual charts.',
     category: 'template',
     fileType: 'xlsx',
-    downloadUrl: '#',
+    downloadUrl: 'templates/personal-budget.xlsx',
     downloads: 15420,
     tags: ['budget', 'personal', 'finance', 'tracking']
   },
@@ -29,7 +29,7 @@ export const resources: Resource[] = [
     description: 'Professional business budget template with revenue projections, expense tracking, and cash flow analysis.',
     category: 'template',
     fileType: 'xlsx',
-    downloadUrl: '#',
+    downloadUrl: 'templates/business-budget.xlsx',
     downloads: 8932,
     tags: ['business', 'budget', 'finance', 'cash-flow']
   },
@@ -41,7 +41,7 @@ export const resources: Resource[] = [
     description: 'Dynamic project calendar with Gantt chart visualization, milestone tracking, and automatic date calculations.',
     category: 'template',
     fileType: 'xlsx',
-    downloadUrl: '#',
+    downloadUrl: 'templates/project-calendar.xlsx',
     downloads: 12567,
     tags: ['calendar', 'project', 'timeline', 'planning']
   },
@@ -51,7 +51,7 @@ export const resources: Resource[] = [
     description: 'Social media and content planning calendar with posting schedules and engagement tracking.',
     category: 'template',
     fileType: 'xlsx',
-    downloadUrl: '#',
+    downloadUrl: 'templates/content-calendar.xlsx',
     downloads: 9834,
     tags: ['calendar', 'content', 'marketing', 'social-media']
   },
@@ -63,7 +63,7 @@ export const resources: Resource[] = [
     description: 'Track sales opportunities, conversion rates, and revenue with automated KPI dashboards.',
     category: 'template',
     fileType: 'xlsx',
-    downloadUrl: '#',
+    downloadUrl: 'templates/sales-tracker.xlsx',
     downloads: 11245,
     tags: ['sales', 'crm', 'tracking', 'revenue']
   },
@@ -73,7 +73,7 @@ export const resources: Resource[] = [
     description: 'Complete inventory tracking with low stock alerts, reorder points, and supplier management.',
     category: 'template',
     fileType: 'xlsx',
-    downloadUrl: '#',
+    downloadUrl: 'templates/inventory-tracker.xlsx',
     downloads: 7621,
     tags: ['inventory', 'stock', 'warehouse', 'management']
   },
@@ -85,7 +85,7 @@ export const resources: Resource[] = [
     description: 'Comprehensive PDF guide covering 150+ essential Excel formulas with examples and use cases.',
     category: 'cheat-sheet',
     fileType: 'pdf',
-    downloadUrl: '#',
+    downloadUrl: 'cheat-sheets/formula-cheatsheet.pdf',
     downloads: 23456,
     tags: ['formulas', 'reference', 'guide', 'learning']
   },
@@ -95,7 +95,7 @@ export const resources: Resource[] = [
     description: 'Complete list of Excel keyboard shortcuts for Windows and Mac to boost your productivity.',
     category: 'cheat-sheet',
     fileType: 'pdf',
-    downloadUrl: '#',
+    downloadUrl: 'cheat-sheets/keyboard-shortcuts.pdf',
     downloads: 18932,
     tags: ['shortcuts', 'productivity', 'tips', 'efficiency']
   },
@@ -105,7 +105,7 @@ export const resources: Resource[] = [
     description: 'Step-by-step guide to data analysis in Excel including pivot tables, charts, and statistical functions.',
     category: 'cheat-sheet',
     fileType: 'pdf',
-    downloadUrl: '#',
+    downloadUrl: 'cheat-sheets/data-analysis-guide.pdf',
     downloads: 14567,
     tags: ['data-analysis', 'pivot-tables', 'statistics', 'guide']
   },
@@ -117,7 +117,7 @@ export const resources: Resource[] = [
     description: '50 practice exercises covering basic formulas with solutions and explanations.',
     category: 'workbook',
     fileType: 'xlsx',
-    downloadUrl: '#',
+    downloadUrl: 'workbooks/beginner-exercises.xlsx',
     downloads: 16789,
     tags: ['practice', 'beginner', 'exercises', 'learning']
   },
@@ -127,7 +127,7 @@ export const resources: Resource[] = [
     description: '30 complex scenarios to master advanced formulas, array functions, and dynamic calculations.',
     category: 'workbook',
     fileType: 'xlsx',
-    downloadUrl: '#',
+    downloadUrl: 'workbooks/advanced-exercises.xlsx',
     downloads: 9234,
     tags: ['practice', 'advanced', 'challenges', 'formulas']
   },
@@ -137,7 +137,7 @@ export const resources: Resource[] = [
     description: 'Learn to build professional dashboards with sample data and step-by-step instructions.',
     category: 'workbook',
     fileType: 'xlsx',
-    downloadUrl: '#',
+    downloadUrl: 'workbooks/dashboard-practice.xlsx',
     downloads: 11456,
     tags: ['dashboard', 'visualization', 'practice', 'charts']
   },
@@ -150,7 +150,7 @@ export const resources: Resource[] = [
     category: 'industry',
     industry: 'Accounting',
     fileType: 'xlsx',
-    downloadUrl: '#',
+    downloadUrl: 'industry/accounting-ledger.xlsx',
     downloads: 6789,
     tags: ['accounting', 'ledger', 'finance', 'bookkeeping']
   },
@@ -161,7 +161,7 @@ export const resources: Resource[] = [
     category: 'industry',
     industry: 'HR',
     fileType: 'xlsx',
-    downloadUrl: '#',
+    downloadUrl: 'industry/hr-timesheet.xlsx',
     downloads: 8456,
     tags: ['hr', 'payroll', 'timesheet', 'employee']
   },
@@ -172,7 +172,7 @@ export const resources: Resource[] = [
     category: 'industry',
     industry: 'Sales',
     fileType: 'xlsx',
-    downloadUrl: '#',
+    downloadUrl: 'industry/sales-commission.xlsx',
     downloads: 7234,
     tags: ['sales', 'commission', 'compensation', 'tracking']
   },
@@ -183,7 +183,7 @@ export const resources: Resource[] = [
     category: 'industry',
     industry: 'Accounting',
     fileType: 'xlsx',
-    downloadUrl: '#',
+    downloadUrl: 'industry/financial-dashboard.xlsx',
     downloads: 5432,
     tags: ['finance', 'dashboard', 'kpi', 'analytics']
   },
@@ -194,7 +194,7 @@ export const resources: Resource[] = [
     category: 'industry',
     industry: 'HR',
     fileType: 'xlsx',
-    downloadUrl: '#',
+    downloadUrl: 'industry/recruitment-tracker.xlsx',
     downloads: 6123,
     tags: ['hr', 'recruitment', 'hiring', 'ats']
   }
