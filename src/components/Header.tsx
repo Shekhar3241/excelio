@@ -50,9 +50,6 @@ export function Header() {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuItem asChild>
-                <Link to="/resources" className="cursor-pointer">Resource Library</Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
                 <Link to="/file-analyzer" className="cursor-pointer">File Analyzer</Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>

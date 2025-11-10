@@ -56,11 +56,10 @@ const App = () => (
             <Route path="/functions" element={<Functions />} />
             <Route path="/excel-errors" element={<ExcelErrors />} />
             <Route path="/glossary" element={<Glossary />} />
-            <Route path="/resources" element={<Resources />} />
+            <Route path="/excel-to-pdf" element={<ExcelToPdf />} />
             <Route path="/file-analyzer" element={<FileAnalyzer />} />
             <Route path="/data-visualization" element={<DataVisualization />} />
             <Route path="/vba-generator" element={<VBAGenerator />} />
-            <Route path="/excel-to-pdf" element={<ExcelToPdf />} />
             <Route path="/admin/resource-setup" element={<AdminResourceSetup />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />

@@ -6,25 +6,26 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Upload, FileSpreadsheet, FileText, Loader2, Download, X } from "lucide-react";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
+import * as XLSX from 'xlsx';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 export default function ExcelToPdf() {
   const [file, setFile] = useState<File | null>(null);
   const [isConverting, setIsConverting] = useState(false);
-  const [convertedPdfUrl, setConvertedPdfUrl] = useState<string | null>(null);
+  const [pdfBlob, setPdfBlob] = useState<Blob | null>(null);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
     if (selectedFile) {
       const validTypes = [
         'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        'application/vnd.ms-excel',
-        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        'application/vnd.ms-excel'
       ];
       
       if (validTypes.includes(selectedFile.type) || selectedFile.name.endsWith('.xlsx') || selectedFile.name.endsWith('.xls')) {
         setFile(selectedFile);
-        setConvertedPdfUrl(null);
+        setPdfBlob(null);
         toast.success(`${selectedFile.name} selected`);
       } else {
         toast.error('Please select a valid Excel file (.xlsx or .xls)');
@@ -42,51 +43,96 @@ export default function ExcelToPdf() {
     toast.loading('Converting Excel to PDF...', { id: 'converting' });
 
     try {
-      // Read file as base64
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
+      // Read the Excel file
+      const arrayBuffer = await file.arrayBuffer();
+      const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+
+      // Create PDF
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pageWidth = pdf.internal.pageSize.getWidth();
       
-      reader.onload = async () => {
-        const base64 = reader.result as string;
-        const base64Data = base64.split(',')[1];
+      // Add title
+      pdf.setFontSize(16);
+      pdf.text(file.name.replace(/\.[^/.]+$/, ''), pageWidth / 2, 15, { align: 'center' });
 
-        // Call edge function
-        const { data, error } = await supabase.functions.invoke('excel-to-pdf', {
-          body: { 
-            file: base64Data,
-            filename: file.name
-          }
-        });
+      let yPosition = 25;
 
-        if (error) throw error;
-
-        if (data.pdfUrl) {
-          setConvertedPdfUrl(data.pdfUrl);
-          toast.success('Conversion successful!', { id: 'converting' });
-        } else {
-          throw new Error('No PDF URL returned');
+      // Process each sheet
+      workbook.SheetNames.forEach((sheetName, sheetIndex) => {
+        if (sheetIndex > 0) {
+          pdf.addPage();
+          yPosition = 15;
         }
-      };
 
-      reader.onerror = () => {
-        throw new Error('Failed to read file');
-      };
+        // Add sheet name
+        pdf.setFontSize(12);
+        pdf.setFont(undefined, 'bold');
+        pdf.text(`Sheet: ${sheetName}`, 14, yPosition);
+        yPosition += 10;
+
+        // Convert sheet to array of arrays
+        const worksheet = workbook.Sheets[sheetName];
+        const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 }) as any[][];
+
+        if (jsonData.length > 0) {
+          // Use autoTable to create the table
+          autoTable(pdf, {
+            head: [jsonData[0]],
+            body: jsonData.slice(1),
+            startY: yPosition,
+            theme: 'grid',
+            headStyles: {
+              fillColor: [66, 139, 202],
+              textColor: 255,
+              fontStyle: 'bold',
+              halign: 'center'
+            },
+            styles: {
+              fontSize: 8,
+              cellPadding: 2,
+              overflow: 'linebreak',
+              cellWidth: 'wrap'
+            },
+            columnStyles: {
+              0: { cellWidth: 'auto' }
+            },
+            margin: { left: 14, right: 14 },
+            didDrawPage: (data) => {
+              // Add page numbers
+              const pageCount = pdf.getNumberOfPages();
+              pdf.setFontSize(8);
+              pdf.text(
+                `Page ${pageCount}`,
+                pageWidth - 20,
+                pdf.internal.pageSize.getHeight() - 10
+              );
+            }
+          });
+        }
+      });
+
+      // Generate PDF blob
+      const pdfOutput = pdf.output('blob');
+      setPdfBlob(pdfOutput);
+      toast.success('Conversion successful!', { id: 'converting' });
 
     } catch (error) {
       console.error('Conversion error:', error);
-      toast.error('Conversion failed. Please try again.', { id: 'converting' });
+      toast.error('Conversion failed. Please ensure your Excel file is valid.', { id: 'converting' });
     } finally {
       setIsConverting(false);
     }
   };
 
   const handleDownload = () => {
-    if (convertedPdfUrl) {
+    if (pdfBlob && file) {
+      const url = window.URL.createObjectURL(pdfBlob);
       const a = document.createElement('a');
-      a.href = convertedPdfUrl;
-      a.download = file?.name.replace(/\.[^/.]+$/, '.pdf') || 'converted.pdf';
+      a.href = url;
+      a.download = file.name.replace(/\.[^/.]+$/, '.pdf');
       document.body.appendChild(a);
       a.click();
+      window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
       toast.success('PDF downloaded!');
     }
@@ -94,7 +140,7 @@ export default function ExcelToPdf() {
 
   const handleReset = () => {
     setFile(null);
-    setConvertedPdfUrl(null);
+    setPdfBlob(null);
   };
 
   return (
@@ -153,7 +199,7 @@ export default function ExcelToPdf() {
                 )}
 
                 {/* File Selected */}
-                {file && !convertedPdfUrl && (
+                {file && !pdfBlob && (
                   <div className="space-y-4">
                     <div className="flex items-center justify-between p-4 bg-muted rounded-lg">
                       <div className="flex items-center gap-3">
@@ -192,7 +238,7 @@ export default function ExcelToPdf() {
                 )}
 
                 {/* Conversion Complete */}
-                {convertedPdfUrl && (
+                {pdfBlob && (
                   <div className="space-y-4">
                     <div className="p-6 bg-green-500/10 border border-green-500/20 rounded-lg text-center">
                       <FileText className="h-12 w-12 mx-auto mb-3 text-green-500" />
@@ -237,7 +283,7 @@ export default function ExcelToPdf() {
                 </CardHeader>
                 <CardContent>
                   <p className="text-sm text-muted-foreground">
-                    Your files are processed securely and deleted immediately after conversion
+                    All conversions happen in your browser. Your files never leave your device
                   </p>
                 </CardContent>
               </Card>
@@ -248,7 +294,7 @@ export default function ExcelToPdf() {
                 </CardHeader>
                 <CardContent>
                   <p className="text-sm text-muted-foreground">
-                    Maintains formatting, charts, and images with professional PDF output
+                    Maintains formatting and structure with professional PDF output
                   </p>
                 </CardContent>
               </Card>
