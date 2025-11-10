@@ -145,7 +145,8 @@ export default function ExcelToPdf() {
 
     try {
       const arrayBuffer = await file.arrayBuffer();
-      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+      const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
+      const pdf = await loadingTask.promise;
       
       const workbook = XLSX.utils.book_new();
       
@@ -153,14 +154,44 @@ export default function ExcelToPdf() {
         const page = await pdf.getPage(pageNum);
         const textContent = await page.getTextContent();
         
-        const pageText = textContent.items
-          .map((item: any) => item.str)
-          .join(' ');
+        // Extract text items with their positions
+        const textItems = textContent.items.map((item: any) => ({
+          text: item.str,
+          x: item.transform[4],
+          y: item.transform[5]
+        }));
         
-        const lines = pageText.split('\n').filter(line => line.trim());
-        const data = lines.map(line => [line]);
+        // Sort by Y position (top to bottom) then X position (left to right)
+        textItems.sort((a, b) => {
+          const yDiff = b.y - a.y;
+          if (Math.abs(yDiff) > 5) return yDiff > 0 ? 1 : -1;
+          return a.x - b.x;
+        });
         
-        const worksheet = XLSX.utils.aoa_to_sheet(data);
+        // Group items by rows
+        const rows: string[][] = [];
+        let currentRow: string[] = [];
+        let lastY = textItems[0]?.y || 0;
+        
+        textItems.forEach((item) => {
+          if (Math.abs(item.y - lastY) > 5) {
+            if (currentRow.length > 0) {
+              rows.push([currentRow.join(' ')]);
+              currentRow = [];
+            }
+            lastY = item.y;
+          }
+          if (item.text.trim()) {
+            currentRow.push(item.text);
+          }
+        });
+        
+        if (currentRow.length > 0) {
+          rows.push([currentRow.join(' ')]);
+        }
+        
+        // Create worksheet
+        const worksheet = XLSX.utils.aoa_to_sheet(rows.length > 0 ? rows : [['No text found']]);
         XLSX.utils.book_append_sheet(workbook, worksheet, `Page ${pageNum}`);
       }
       
@@ -170,8 +201,8 @@ export default function ExcelToPdf() {
       toast.success('Conversion successful!', { id: 'converting' });
 
     } catch (error) {
-      console.error('Conversion error:', error);
-      toast.error('Conversion failed. Please ensure your PDF file is valid.', { id: 'converting' });
+      console.error('PDF to Excel conversion error:', error);
+      toast.error(`Conversion failed: ${error instanceof Error ? error.message : 'Unknown error'}`, { id: 'converting' });
     } finally {
       setIsConverting(false);
     }
