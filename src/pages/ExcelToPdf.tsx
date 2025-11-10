@@ -10,10 +10,12 @@ import { toast } from "sonner";
 import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import * as pdfjsLib from 'pdfjs-dist';
+import * as PDFJS from 'pdfjs-dist';
+// @ts-ignore - Vite will inline this as a URL string
+import pdfjsWorker from 'pdfjs-dist/legacy/build/pdf.worker.min?url';
 
 // Set up PDF.js worker
-pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
+PDFJS.GlobalWorkerOptions.workerSrc = pdfjsWorker as any;
 
 export default function ExcelToPdf() {
   const [file, setFile] = useState<File | null>(null);
@@ -145,7 +147,7 @@ export default function ExcelToPdf() {
 
     try {
       const arrayBuffer = await file.arrayBuffer();
-      const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
+      const loadingTask = PDFJS.getDocument({ data: arrayBuffer });
       const pdf = await loadingTask.promise;
       
       const workbook = XLSX.utils.book_new();
