@@ -61,6 +61,9 @@ export function Header() {
               <DropdownMenuItem asChild>
                 <Link to="/vba-generator" className="cursor-pointer">VBA Generator</Link>
               </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link to="/excel-to-pdf" className="cursor-pointer">Excel to PDF</Link>
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
           <ThemeToggle />
