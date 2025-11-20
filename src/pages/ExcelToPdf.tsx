@@ -178,7 +178,7 @@ export default function ExcelToPdf() {
         textItems.forEach((item) => {
           if (Math.abs(item.y - lastY) > 5) {
             if (currentRow.length > 0) {
-              rows.push([currentRow.join(' ')]);
+              rows.push(currentRow);
               currentRow = [];
             }
             lastY = item.y;
@@ -189,7 +189,7 @@ export default function ExcelToPdf() {
         });
         
         if (currentRow.length > 0) {
-          rows.push([currentRow.join(' ')]);
+          rows.push(currentRow);
         }
         
         // Create worksheet
