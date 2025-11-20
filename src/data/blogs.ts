@@ -27,6 +27,12 @@ export interface BlogPost {
     rows: string[][];
   };
   
+  // Comparison table for courses/tools
+  comparisonTable?: {
+    headers: string[];
+    rows: string[][];
+  };
+  
   // Additional sections
   whyThisHappens: string;
   commonMistakes: string[];
@@ -1749,6 +1755,22 @@ export const blogPosts: BlogPost[] = [
         example: "🔗 https://cognitiveclass.ai/paths/data-analyst-career-path\n💵 100% FREE (limited time)\n⏱️ 25-30 hours\n✅ Best for: Multi-tool basics"
       }
     ],
+    
+    comparisonTable: {
+      headers: ["Rank", "Course", "Platform", "Certificate?", "Cost", "Duration", "Best For"],
+      rows: [
+        ["1", "Google Data Analytics", "Coursera", "✅ Yes", "Free w/ Aid", "6 mo", "Complete beginners"],
+        ["2", "IBM Data Analyst", "Coursera", "✅ Yes", "Free w/ Aid", "3–6 mo", "Python + SQL learners"],
+        ["3", "Data Analysis w/ Python", "freeCodeCamp", "✅ Yes", "100% Free", "~80 hrs", "Python practice"],
+        ["4", "Microsoft Data Analyst Path", "Microsoft Learn", "✅ Badge", "100% Free", "~20 hrs", "Power BI skill-building"],
+        ["5", "IBM Cognitive Class Path", "Cognitive Class", "✅ Yes", "100% Free", "~30 hrs", "Multi-tool basics"],
+        ["6", "Harvard CS50P", "edX", "✅ Yes", "Free w/ Aid", "~50 hrs", "Strong Python foundation"],
+        ["7", "Great Learning Courses", "Great Learning", "✅ Yes", "100% Free", "4–8 hrs", "Quick certificates"],
+        ["8", "Simplilearn Intro", "Simplilearn", "✅ Yes", "100% Free", "~8 hrs", "Non-tech beginners"],
+        ["9", "Alison Diploma", "Alison", "✅ Yes (Digital)", "100% Free", "~8 hrs", "Fast theoretical learning"],
+        ["10", "Kaggle Micro-Courses", "Kaggle", "✅ Badge", "100% Free", "1–4 hrs", "Hands-on learning"]
+      ]
+    },
     
     whyThisHappens: "These organizations offer free certificates for several strategic reasons: Google and IBM want to build their talent pipeline and establish industry standards; Microsoft wants Power BI adoption; Harvard and freeCodeCamp follow open education missions; Coursera uses a freemium model where Financial Aid provides access; and platforms like Kaggle benefit from community engagement and data science adoption. The certificates are legitimate and recognized by employers because they require completing real projects and demonstrating actual skills.",
     
