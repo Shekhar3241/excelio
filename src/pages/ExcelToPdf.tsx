@@ -87,12 +87,24 @@ export default function ExcelToPdf() {
         yPosition += 10;
 
         const worksheet = workbook.Sheets[sheetName];
-        const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 }) as any[][];
+        const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: '' }) as any[][];
 
         if (jsonData.length > 0) {
+          // Find the maximum number of columns to ensure all rows have the same length
+          const maxCols = Math.max(...jsonData.map(row => row.length));
+          
+          // Normalize all rows to have the same number of columns
+          const normalizedData = jsonData.map(row => {
+            const newRow = [...row];
+            while (newRow.length < maxCols) {
+              newRow.push('');
+            }
+            return newRow;
+          });
+
           autoTable(pdf, {
-            head: [jsonData[0]],
-            body: jsonData.slice(1),
+            head: normalizedData.length > 0 ? [normalizedData[0]] : [],
+            body: normalizedData.slice(1),
             startY: yPosition,
             theme: 'grid',
             headStyles: {
