@@ -14,7 +14,7 @@ export function Header() {
     <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 animate-fade-in">
       <div className="container mx-auto px-2 sm:px-4 h-16 flex items-center justify-between gap-2">
         <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-all duration-200 hover:scale-105">
-          <FileSpreadsheet className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
+          <img src="/logo.png" alt="SkillBI's Hub" className="h-8 w-auto sm:h-10" />
           <span className="font-semibold text-base sm:text-xl">SkillBI's Hub</span>
         </Link>
         <nav className="flex items-center gap-2 sm:gap-4 overflow-x-auto">
