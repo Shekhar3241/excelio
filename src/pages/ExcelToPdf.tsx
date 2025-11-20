@@ -106,26 +106,42 @@ export default function ExcelToPdf() {
             head: normalizedData.length > 0 ? [normalizedData[0]] : [],
             body: normalizedData.slice(1),
             startY: yPosition,
-            theme: 'grid',
+            theme: 'striped',
             headStyles: {
-              fillColor: [66, 139, 202],
-              textColor: 255,
+              fillColor: [41, 128, 185],
+              textColor: [255, 255, 255],
               fontStyle: 'bold',
-              halign: 'center'
+              halign: 'center',
+              valign: 'middle',
+              fontSize: 10,
+              cellPadding: 4,
+              lineWidth: 0.1,
+              lineColor: [200, 200, 200]
+            },
+            bodyStyles: {
+              textColor: [50, 50, 50],
+              fontSize: 9,
+              cellPadding: 3,
+              valign: 'middle'
+            },
+            alternateRowStyles: {
+              fillColor: [245, 245, 245]
             },
             styles: {
-              fontSize: 8,
-              cellPadding: 2,
               overflow: 'linebreak',
-              cellWidth: 'wrap'
+              cellWidth: 'wrap',
+              lineWidth: 0.1,
+              lineColor: [220, 220, 220],
+              halign: 'left'
             },
             columnStyles: {
-              0: { cellWidth: 'auto' }
+              0: { cellWidth: 'auto', fontStyle: 'bold' }
             },
-            margin: { left: 14, right: 14 },
+            margin: { left: 14, right: 14, top: 10, bottom: 10 },
             didDrawPage: (data) => {
               const pageCount = pdf.getNumberOfPages();
               pdf.setFontSize(8);
+              pdf.setTextColor(150, 150, 150);
               pdf.text(
                 `Page ${pageCount}`,
                 pageWidth - 20,
