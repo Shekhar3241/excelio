@@ -170,27 +170,48 @@ export default function ExcelToPdf() {
           return a.x - b.x;
         });
         
-        // Group items by rows
-        const rows: string[][] = [];
-        let currentRow: string[] = [];
-        let lastY = textItems[0]?.y || 0;
+        // Group items by rows with proper column detection
+        const rowMap = new Map<number, Array<{text: string, x: number}>>();
         
         textItems.forEach((item) => {
-          if (Math.abs(item.y - lastY) > 5) {
-            if (currentRow.length > 0) {
-              rows.push(currentRow);
-              currentRow = [];
-            }
-            lastY = item.y;
+          if (!item.text.trim()) return;
+          
+          // Find or create row bucket (group items with similar Y positions)
+          let rowKey = Math.round(item.y / 5) * 5;
+          if (!rowMap.has(rowKey)) {
+            rowMap.set(rowKey, []);
           }
-          if (item.text.trim()) {
-            currentRow.push(item.text);
-          }
+          rowMap.get(rowKey)!.push({ text: item.text, x: item.x });
         });
         
-        if (currentRow.length > 0) {
-          rows.push(currentRow);
-        }
+        // Convert rows to arrays with column detection
+        const rows: string[][] = [];
+        const sortedRowKeys = Array.from(rowMap.keys()).sort((a, b) => b - a);
+        
+        sortedRowKeys.forEach(rowKey => {
+          const rowItems = rowMap.get(rowKey)!;
+          rowItems.sort((a, b) => a.x - b.x);
+          
+          // Detect column breaks based on X position gaps
+          const columns: string[] = [];
+          let currentColumn = rowItems[0].text;
+          
+          for (let i = 1; i < rowItems.length; i++) {
+            const gap = rowItems[i].x - rowItems[i - 1].x;
+            
+            // If gap is significant (more than 20 units), start new column
+            if (gap > 20) {
+              columns.push(currentColumn.trim());
+              currentColumn = rowItems[i].text;
+            } else {
+              // Small gap, append to current column with space
+              currentColumn += ' ' + rowItems[i].text;
+            }
+          }
+          
+          columns.push(currentColumn.trim());
+          rows.push(columns);
+        });
         
         // Create worksheet
         const worksheet = XLSX.utils.aoa_to_sheet(rows.length > 0 ? rows : [['No text found']]);
