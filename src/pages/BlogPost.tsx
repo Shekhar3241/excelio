@@ -164,13 +164,40 @@ export default function BlogPost() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="pl-14">
-                  <p className="text-foreground mb-3 leading-relaxed">
+                  <p className="text-foreground mb-3 leading-relaxed whitespace-pre-line">
                     {step.description}
                   </p>
                   {step.example && (
-                    <code className="block p-3 bg-accent rounded-lg text-accent-foreground font-mono text-sm overflow-x-auto">
-                      {step.example}
-                    </code>
+                    <div className="p-4 bg-accent/50 rounded-lg space-y-2">
+                      {step.example.split('\n').map((line, idx) => {
+                        // Check if line contains a URL
+                        const urlMatch = line.match(/(https?:\/\/[^\s]+)/);
+                        if (urlMatch) {
+                          const url = urlMatch[1];
+                          const beforeUrl = line.substring(0, line.indexOf(url));
+                          const afterUrl = line.substring(line.indexOf(url) + url.length);
+                          return (
+                            <div key={idx} className="text-sm">
+                              <span className="text-accent-foreground">{beforeUrl}</span>
+                              <a 
+                                href={url} 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className="text-primary hover:text-primary-dark underline font-medium break-all"
+                              >
+                                {url}
+                              </a>
+                              <span className="text-accent-foreground">{afterUrl}</span>
+                            </div>
+                          );
+                        }
+                        return (
+                          <div key={idx} className="text-sm text-accent-foreground">
+                            {line}
+                          </div>
+                        );
+                      })}
+                    </div>
                   )}
                 </CardContent>
               </Card>
@@ -198,6 +225,37 @@ export default function BlogPost() {
                     <TableRow key={rowIdx}>
                       {row.map((cell, cellIdx) => (
                         <TableCell key={cellIdx} className="font-mono text-sm">
+                          {cell}
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </section>
+        )}
+
+        {/* Comparison Table */}
+        {post.comparisonTable && (
+          <section className="mb-10">
+            <h2 className="text-2xl font-bold text-foreground mb-4">Quick Comparison Table</h2>
+            <div className="border border-border rounded-lg overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-primary/10">
+                    {post.comparisonTable.headers.map((header, idx) => (
+                      <TableHead key={idx} className="font-semibold text-foreground whitespace-nowrap">
+                        {header}
+                      </TableHead>
+                    ))}
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {post.comparisonTable.rows.map((row, rowIdx) => (
+                    <TableRow key={rowIdx} className="hover:bg-accent/50">
+                      {row.map((cell, cellIdx) => (
+                        <TableCell key={cellIdx} className="text-sm whitespace-nowrap">
                           {cell}
                         </TableCell>
                       ))}
