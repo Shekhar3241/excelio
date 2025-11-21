@@ -28,11 +28,20 @@ export default function FileAnalyzer() {
   const [progress, setProgress] = useState(0);
   const [analysis, setAnalysis] = useState<AnalysisResult | null>(null);
 
+  const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const uploadedFile = e.target.files?.[0];
     if (uploadedFile) {
+      if (uploadedFile.size > MAX_FILE_SIZE) {
+        toast.error('File too large. Maximum size is 10MB. Please use a smaller file.');
+        e.target.value = '';
+        return;
+      }
+      
       if (!uploadedFile.name.match(/\.(xlsx|xls|xlsm)$/)) {
         toast.error("Please upload a valid Excel file (.xlsx, .xls, .xlsm)");
+        e.target.value = '';
         return;
       }
       setFile(uploadedFile);
