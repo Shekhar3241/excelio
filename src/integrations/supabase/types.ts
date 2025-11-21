@@ -14,6 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      rate_limits: {
+        Row: {
+          created_at: string | null
+          endpoint: string
+          id: string
+          ip_address: string
+          request_count: number | null
+          window_start: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          endpoint: string
+          id?: string
+          ip_address: string
+          request_count?: number | null
+          window_start?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          endpoint?: string
+          id?: string
+          ip_address?: string
+          request_count?: number | null
+          window_start?: string | null
+        }
+        Relationships: []
+      }
       resource_downloads: {
         Row: {
           downloaded_at: string | null
@@ -40,7 +67,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      cleanup_old_rate_limits: { Args: never; Returns: undefined }
     }
     Enums: {
       [_ in never]: never
