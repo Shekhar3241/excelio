@@ -12,6 +12,17 @@ export interface Resource {
 }
 
 export const resources: Resource[] = [
+  // Premium Budget Template
+  {
+    id: 'premium-budget-tracker',
+    title: 'Premium Budget Tracker 2025',
+    description: 'Professional budget tracker with 6 integrated sheets: Dashboard with KPIs, Income tracking, Detailed expense categories, Savings goals with progress tracking, Monthly summary with year-over-year analysis, and comprehensive instructions. Features 100+ automatic calculations, percentage analysis, and financial projections.',
+    category: 'template',
+    fileType: 'xlsx',
+    downloadUrl: 'templates/premium-budget-tracker.xlsx',
+    downloads: 28450,
+    tags: ['budget', 'premium', 'finance', 'tracking', 'dashboard', 'goals', 'savings']
+  },
   // Budget Templates
   {
     id: 'personal-budget',

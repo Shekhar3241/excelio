@@ -28,6 +28,7 @@ import DataVisualization from "./pages/DataVisualization";
 import VBAGenerator from "./pages/VBAGenerator";
 import ExcelToPdf from "./pages/ExcelToPdf";
 import AdminResourceSetup from "./pages/AdminResourceSetup";
+import PremiumBudgetDownload from "./pages/PremiumBudgetDownload";
 
 const queryClient = new QueryClient();
 
@@ -60,6 +61,7 @@ const App = () => (
             <Route path="/file-analyzer" element={<FileAnalyzer />} />
             <Route path="/data-visualization" element={<DataVisualization />} />
             <Route path="/vba-generator" element={<VBAGenerator />} />
+            <Route path="/premium-budget" element={<PremiumBudgetDownload />} />
             <Route path="/admin/resource-setup" element={<AdminResourceSetup />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />

@@ -233,6 +233,259 @@ export function generateInventoryTracker(): Blob {
   return new Blob([wbout], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
 }
 
+export function generatePremiumBudgetTracker(): Blob {
+  const wb = XLSX.utils.book_new();
+  
+  // Dashboard Sheet
+  const dashboardData = [
+    ['PREMIUM BUDGET TRACKER 2025', '', '', '', '', ''],
+    ['', '', '', '', '', ''],
+    ['Financial Overview', '', '', '', '', ''],
+    ['Total Monthly Income', '=Income!B15', '', 'Budget Health', '=IF(Dashboard!B4-Dashboard!B5>0,"SURPLUS","DEFICIT")', ''],
+    ['Total Monthly Expenses', '=Expenses!B50', '', 'Monthly Savings', '=Dashboard!B4-Dashboard!B5', ''],
+    ['Savings Rate', '=Dashboard!B6/Dashboard!B4', '', 'Goal Progress', '=Goals!B20/Goals!B19', ''],
+    ['', '', '', '', '', ''],
+    ['Quick Stats', '', '', '', '', ''],
+    ['Largest Expense', '=MAX(Expenses!C12:C45)', '', 'Category', '=INDEX(Expenses!A12:A45,MATCH(MAX(Expenses!C12:C45),Expenses!C12:C45,0))', ''],
+    ['Average Daily Spending', '=Dashboard!B5/30', '', '', '', ''],
+    ['Days to Emergency Fund Goal', '=IF(Dashboard!B6>0,(Goals!B19-Goals!B20)/Dashboard!B6,0)', '', '', '', ''],
+    ['', '', '', '', '', ''],
+    ['This Month vs Last Month', '', '', '', '', ''],
+    ['Income Change', '0%', '', 'Change in $', '$0', ''],
+    ['Expense Change', '0%', '', 'Change in $', '$0', ''],
+    ['', '', '', '', '', ''],
+    ['Budget Categories (Top 5)', '', 'Amount', '% of Total', '', ''],
+    ['Housing', '', '=Expenses!C12', '=Dashboard!C18/Dashboard!B5', '', ''],
+    ['Transportation', '', '=Expenses!C21', '=Dashboard!C19/Dashboard!B5', '', ''],
+    ['Food', '', '=Expenses!C26', '=Dashboard!C20/Dashboard!B5', '', ''],
+    ['Utilities', '', '=Expenses!C15', '=Dashboard!C21/Dashboard!B5', '', ''],
+    ['Insurance', '', '=Expenses!C31', '=Dashboard!C22/Dashboard!B5', '', ''],
+  ];
+  
+  const dashboardSheet = XLSX.utils.aoa_to_sheet(dashboardData);
+  dashboardSheet['!cols'] = [{ wch: 25 }, { wch: 15 }, { wch: 15 }, { wch: 20 }, { wch: 15 }, { wch: 15 }];
+  XLSX.utils.book_append_sheet(wb, dashboardSheet, 'Dashboard');
+  
+  // Income Sheet
+  const incomeData = [
+    ['INCOME TRACKER', '', '', '', ''],
+    ['Track all your income sources', '', '', '', ''],
+    ['', '', '', '', ''],
+    ['Income Source', 'Budgeted', 'Actual', 'Difference', 'Notes'],
+    ['', '', '', '', ''],
+    ['PRIMARY INCOME', '', '', '', ''],
+    ['Salary (Net)', 4500, 4500, '=C7-B7', 'Main job'],
+    ['Bonuses', 500, 0, '=C8-B8', ''],
+    ['', '', '', '', ''],
+    ['SECONDARY INCOME', '', '', '', ''],
+    ['Freelance/Side Hustle', 800, 950, '=C11-B11', ''],
+    ['Investments/Dividends', 200, 180, '=C12-B12', ''],
+    ['Rental Income', 0, 0, '=C13-B13', ''],
+    ['', '', '', '', ''],
+    ['TOTAL INCOME', '=SUM(B7:B8,B11:B13)', '=SUM(C7:C8,C11:C13)', '=C15-B15', ''],
+    ['', '', '', '', ''],
+    ['Year-to-Date', '', '', '', ''],
+    ['Total Income (YTD)', '=C15*MONTH(TODAY())', '', '', ''],
+    ['Average Monthly', '=C15', '', '', ''],
+    ['Highest Month', '=C15', '', '', ''],
+    ['Lowest Month', '=C15', '', '', ''],
+  ];
+  
+  const incomeSheet = XLSX.utils.aoa_to_sheet(incomeData);
+  incomeSheet['!cols'] = [{ wch: 25 }, { wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 25 }];
+  XLSX.utils.book_append_sheet(wb, incomeSheet, 'Income');
+  
+  // Expenses Sheet
+  const expensesData = [
+    ['MONTHLY EXPENSES', '', '', '', ''],
+    ['Detailed expense tracking by category', '', '', '', ''],
+    ['', '', '', '', ''],
+    ['Category', 'Budgeted', 'Actual', 'Difference', '% of Budget'],
+    ['', '', '', '', ''],
+    ['HOUSING', '', '', '', ''],
+    ['Rent/Mortgage', 1500, 1500, '=C7-B7', '=C7/$C$50'],
+    ['Property Tax', 200, 200, '=C8-B8', '=C8/$C$50'],
+    ['HOA Fees', 100, 100, '=C9-B9', '=C9/$C$50'],
+    ['Home Maintenance', 150, 120, '=C10-B10', '=C10/$C$50'],
+    ['Home Insurance', 100, 100, '=C11-B11', '=C11/$C$50'],
+    ['Subtotal Housing', '=SUM(B7:B11)', '=SUM(C7:C11)', '=C12-B12', ''],
+    ['', '', '', '', ''],
+    ['UTILITIES', '', '', '', ''],
+    ['Electricity', 120, 115, '=C15-B15', '=C15/$C$50'],
+    ['Water/Sewer', 60, 58, '=C16-B16', '=C16/$C$50'],
+    ['Gas/Heating', 80, 75, '=C17-B17', '=C17/$C$50'],
+    ['Internet', 60, 60, '=C18-B18', '=C18/$C$50'],
+    ['Phone', 70, 70, '=C19-B19', '=C19/$C$50'],
+    ['Subtotal Utilities', '=SUM(B15:B19)', '=SUM(C15:C19)', '=C20-B20', ''],
+    ['', '', '', '', ''],
+    ['TRANSPORTATION', '', '', '', ''],
+    ['Car Payment', 350, 350, '=C23-B23', '=C23/$C$50'],
+    ['Gas/Fuel', 200, 180, '=C24-B24', '=C24/$C$50'],
+    ['Car Insurance', 120, 120, '=C25-B25', '=C25/$C$50'],
+    ['Maintenance/Repairs', 100, 85, '=C26-B26', '=C26/$C$50'],
+    ['Public Transportation', 50, 40, '=C27-B27', '=C27/$C$50'],
+    ['Subtotal Transportation', '=SUM(B23:B27)', '=SUM(C23:C27)', '=C28-B28', ''],
+    ['', '', '', '', ''],
+    ['FOOD & DINING', '', '', '', ''],
+    ['Groceries', 500, 520, '=C31-B31', '=C31/$C$50'],
+    ['Restaurants/Takeout', 250, 280, '=C32-B32', '=C32/$C$50'],
+    ['Coffee Shops', 80, 90, '=C33-B33', '=C33/$C$50'],
+    ['Subtotal Food', '=SUM(B31:B33)', '=SUM(C31:C33)', '=C34-B34', ''],
+    ['', '', '', '', ''],
+    ['INSURANCE', '', '', '', ''],
+    ['Health Insurance', 300, 300, '=C37-B37', '=C37/$C$50'],
+    ['Life Insurance', 50, 50, '=C38-B38', '=C38/$C$50'],
+    ['Disability Insurance', 40, 40, '=C39-B39', '=C39/$C$50'],
+    ['Subtotal Insurance', '=SUM(B37:B39)', '=SUM(C37:C39)', '=C40-B40', ''],
+    ['', '', '', '', ''],
+    ['PERSONAL & LIFESTYLE', '', '', '', ''],
+    ['Clothing', 100, 85, '=C43-B43', '=C43/$C$50'],
+    ['Personal Care', 80, 75, '=C44-B44', '=C44/$C$50'],
+    ['Gym Membership', 50, 50, '=C45-B45', '=C45/$C$50'],
+    ['Entertainment', 150, 140, '=C46-B46', '=C46/$C$50'],
+    ['Subscriptions (Netflix, etc)', 60, 60, '=C47-B47', '=C47/$C$50'],
+    ['Hobbies', 100, 120, '=C48-B48', '=C48/$C$50'],
+    ['Subtotal Personal', '=SUM(B43:B48)', '=SUM(C43:C48)', '=C49-B49', ''],
+    ['', '', '', '', ''],
+    ['TOTAL EXPENSES', '=SUM(B12,B20,B28,B34,B40,B49)', '=SUM(C12,C20,C28,C34,C40,C49)', '=C50-B50', ''],
+  ];
+  
+  const expensesSheet = XLSX.utils.aoa_to_sheet(expensesData);
+  expensesSheet['!cols'] = [{ wch: 25 }, { wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 15 }];
+  XLSX.utils.book_append_sheet(wb, expensesSheet, 'Expenses');
+  
+  // Savings Goals Sheet
+  const goalsData = [
+    ['SAVINGS GOALS TRACKER', '', '', '', ''],
+    ['Track your financial goals and progress', '', '', '', ''],
+    ['', '', '', '', ''],
+    ['Goal Name', 'Target Amount', 'Current Saved', 'Monthly Contribution', 'Months to Goal'],
+    ['', '', '', '', ''],
+    ['SHORT-TERM GOALS (< 1 year)', '', '', '', ''],
+    ['Emergency Fund', 10000, 3500, 500, '=IF(D7>0,(B7-C7)/D7,0)'],
+    ['Vacation', 3000, 800, 200, '=IF(D8>0,(B8-C8)/D8,0)'],
+    ['New Laptop', 1500, 600, 150, '=IF(D9>0,(B9-C9)/D9,0)'],
+    ['', '', '', '', ''],
+    ['MEDIUM-TERM GOALS (1-5 years)', '', '', '', ''],
+    ['Car Down Payment', 15000, 2000, 400, '=IF(D12>0,(B12-C12)/D12,0)'],
+    ['Home Renovation', 25000, 5000, 300, '=IF(D13>0,(B13-C13)/D13,0)'],
+    ['', '', '', '', ''],
+    ['LONG-TERM GOALS (5+ years)', '', '', '', ''],
+    ['Retirement Fund', 500000, 50000, 1000, '=IF(D16>0,(B16-C16)/D16,0)'],
+    ['College Fund', 100000, 15000, 500, '=IF(D17>0,(B17-C17)/D17,0)'],
+    ['', '', '', '', ''],
+    ['TOTALS', '', '', '', ''],
+    ['Total Goal Amount', '=SUM(B7:B9,B12:B13,B16:B17)', '', '', ''],
+    ['Total Saved', '=SUM(C7:C9,C12:C13,C16:C17)', '', '', ''],
+    ['Monthly Savings', '=SUM(D7:D9,D12:D13,D16:D17)', '', '', ''],
+    ['Overall Progress', '=C20/B19', '', '', ''],
+    ['', '', '', '', ''],
+    ['Auto-Calculations', '', '', '', ''],
+    ['Next Milestone', '=MIN(B7:B17)', '', '', ''],
+    ['Projected Completion', '=TEXT(TODAY()+30*E7,"mmm yyyy")', '', '', ''],
+  ];
+  
+  const goalsSheet = XLSX.utils.aoa_to_sheet(goalsData);
+  goalsSheet['!cols'] = [{ wch: 25 }, { wch: 15 }, { wch: 15 }, { wch: 20 }, { wch: 15 }];
+  XLSX.utils.book_append_sheet(wb, goalsSheet, 'Goals');
+  
+  // Monthly Summary Sheet
+  const summaryData = [
+    ['MONTHLY SUMMARY & REPORTS', '', '', '', ''],
+    ['', '', '', '', ''],
+    ['Month', 'Income', 'Expenses', 'Savings', 'Savings Rate'],
+    ['January', 6000, 4500, 1500, '=D4/B4'],
+    ['February', 6000, 4550, 1450, '=D5/B5'],
+    ['March', 6150, 4600, 1550, '=D6/B6'],
+    ['April', 6000, 4480, 1520, '=D7/B7'],
+    ['May', 6200, 4520, 1680, '=D8/B8'],
+    ['June', 6000, 4590, 1410, '=D9/B9'],
+    ['July', 0, 0, 0, '=IF(B10>0,D10/B10,0)'],
+    ['August', 0, 0, 0, '=IF(B11>0,D11/B11,0)'],
+    ['September', 0, 0, 0, '=IF(B12>0,D12/B12,0)'],
+    ['October', 0, 0, 0, '=IF(B13>0,D13/B13,0)'],
+    ['November', 0, 0, 0, '=IF(B14>0,D14/B14,0)'],
+    ['December', 0, 0, 0, '=IF(B15>0,D15/B15,0)'],
+    ['', '', '', '', ''],
+    ['YEAR TOTALS', '=SUM(B4:B15)', '=SUM(C4:C15)', '=SUM(D4:D15)', '=D17/B17'],
+    ['', '', '', '', ''],
+    ['ANALYSIS', '', '', '', ''],
+    ['Best Savings Month', '=MAX(D4:D15)', '', '', ''],
+    ['Worst Savings Month', '=MIN(D4:D15)', '', '', ''],
+    ['Average Monthly Savings', '=AVERAGE(D4:D15)', '', '', ''],
+    ['Total Saved YTD', '=SUM(D4:D15)', '', '', ''],
+    ['', '', '', '', ''],
+    ['PROJECTIONS', '', '', '', ''],
+    ['Projected Year-End Savings', '=D22*12', '', '', ''],
+    ['Projected Annual Income', '=AVERAGE(B4:B15)*12', '', '', ''],
+    ['Projected Annual Expenses', '=AVERAGE(C4:C15)*12', '', '', ''],
+  ];
+  
+  const summarySheet = XLSX.utils.aoa_to_sheet(summaryData);
+  summarySheet['!cols'] = [{ wch: 15 }, { wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 15 }];
+  XLSX.utils.book_append_sheet(wb, summarySheet, 'Summary');
+  
+  // Instructions Sheet
+  const instructionsData = [
+    ['PREMIUM BUDGET TRACKER - USER GUIDE', '', ''],
+    ['', '', ''],
+    ['Welcome to your Premium Budget Tracker!', '', ''],
+    ['', '', ''],
+    ['HOW TO USE THIS TEMPLATE:', '', ''],
+    ['', '', ''],
+    ['1. DASHBOARD', '', ''],
+    ['   - View your overall financial health at a glance', '', ''],
+    ['   - See key metrics like savings rate and budget health', '', ''],
+    ['   - Monitor your top expense categories', '', ''],
+    ['', '', ''],
+    ['2. INCOME', '', ''],
+    ['   - Enter your budgeted income for each source', '', ''],
+    ['   - Update actual amounts as you receive income', '', ''],
+    ['   - Track year-to-date totals automatically', '', ''],
+    ['', '', ''],
+    ['3. EXPENSES', '', ''],
+    ['   - Set budget amounts for each category', '', ''],
+    ['   - Enter actual spending as it occurs', '', ''],
+    ['   - See automatic calculations for differences and percentages', '', ''],
+    ['', '', ''],
+    ['4. GOALS', '', ''],
+    ['   - Define your short, medium, and long-term savings goals', '', ''],
+    ['   - Set target amounts and monthly contributions', '', ''],
+    ['   - Track progress automatically with months-to-goal calculations', '', ''],
+    ['', '', ''],
+    ['5. SUMMARY', '', ''],
+    ['   - Review monthly trends throughout the year', '', ''],
+    ['   - Analyze savings patterns and identify improvements', '', ''],
+    ['   - View projections for year-end finances', '', ''],
+    ['', '', ''],
+    ['TIPS FOR SUCCESS:', '', ''],
+    ['', '', ''],
+    ['✓ Update your actual expenses weekly for accuracy', '', ''],
+    ['✓ Review your Dashboard monthly to track progress', '', ''],
+    ['✓ Adjust budget amounts based on spending patterns', '', ''],
+    ['✓ Set realistic savings goals and celebrate milestones', '', ''],
+    ['✓ Use the Summary sheet to identify spending trends', '', ''],
+    ['', '', ''],
+    ['PREMIUM FEATURES:', '', ''],
+    ['', '', ''],
+    ['• Advanced formulas for automatic calculations', '', ''],
+    ['• Multiple tracking sheets for comprehensive budgeting', '', ''],
+    ['• Goal tracking with progress indicators', '', ''],
+    ['• Year-to-date summaries and projections', '', ''],
+    ['• Percentage-based expense analysis', '', ''],
+    ['• Professional formatting and organization', '', ''],
+    ['', '', ''],
+    ['For questions or support, visit our website', '', ''],
+  ];
+  
+  const instructionsSheet = XLSX.utils.aoa_to_sheet(instructionsData);
+  instructionsSheet['!cols'] = [{ wch: 50 }, { wch: 20 }, { wch: 20 }];
+  XLSX.utils.book_append_sheet(wb, instructionsSheet, 'Instructions');
+  
+  const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+  return new Blob([wbout], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+}
+
 export async function uploadTemplateToStorage(blob: Blob, path: string) {
   const { supabase } = await import('@/integrations/supabase/client');
   
