@@ -1,0 +1,85 @@
+import { Database, FileSpreadsheet, Smile, FileText, Code2, Hash, FileCode, Table } from "lucide-react";
+
+export interface Tool {
+  id: string;
+  name: string;
+  description: string;
+  icon: any;
+  iconColor: string;
+  path: string;
+}
+
+export const tools: Tool[] = [
+  {
+    id: "ai-data-analysis",
+    name: "AI Data Analysis Chat",
+    description: "Chat with your data to generate visualizations, spreadsheets, insights, advanced analysis & more.",
+    icon: Database,
+    iconColor: "hsl(270, 60%, 60%)",
+    path: "/simulator"
+  },
+  {
+    id: "ai-formula-generator",
+    name: "AI Excel Formula Generator",
+    description: "Convert your text instructions into formulas or input a formula to have it explained with our Excel AI Formula Generator.",
+    icon: FileSpreadsheet,
+    iconColor: "hsl(145, 63%, 49%)",
+    path: "/ai-formula-generator"
+  },
+  {
+    id: "sentiment-analysis",
+    name: "Sentiment Analysis Tool",
+    description: "Upload a file or list of text to generate the sentiment - positive, negative or neutral.",
+    icon: Smile,
+    iconColor: "hsl(35, 100%, 60%)",
+    path: "/contact"
+  },
+  {
+    id: "pdf-to-excel",
+    name: "PDF to Excel AI Converter",
+    description: "Convert your PDF into an Excel file in seconds.",
+    icon: FileText,
+    iconColor: "hsl(0, 75%, 60%)",
+    path: "/excel-to-pdf"
+  },
+  {
+    id: "sql-query-generator",
+    name: "AI SQL Query Generator",
+    description: "Convert your text instructions into SQL queries - powered by AI.",
+    icon: Code2,
+    iconColor: "hsl(195, 75%, 60%)",
+    path: "/contact"
+  },
+  {
+    id: "vba-code-generator",
+    name: "AI Excel VBA Code Generator",
+    description: "Generate Excel VBA (Visual Basic for Applications) code to automate tasks and create personalized solutions within Microsoft Excel.",
+    icon: Code2,
+    iconColor: "hsl(15, 75%, 60%)",
+    path: "/vba-generator"
+  },
+  {
+    id: "google-apps-scripts",
+    name: "AI Google Apps Scripts Generator",
+    description: "Generate Google Apps Scripts to automate tasks and create personalized solutions within Google Sheets.",
+    icon: FileCode,
+    iconColor: "hsl(45, 90%, 55%)",
+    path: "/contact"
+  },
+  {
+    id: "regex-generator",
+    name: "AI Regex Generator",
+    description: "Convert your text instructions into regex (regular expression) or input an expression to have it explained.",
+    icon: Hash,
+    iconColor: "hsl(0, 0%, 30%)",
+    path: "/contact"
+  },
+  {
+    id: "spreadsheet-generator",
+    name: "AI Spreadsheet Data Generator",
+    description: "Create an Excel spreadsheet based on your prompt in seconds with AI.",
+    icon: Table,
+    iconColor: "hsl(90, 60%, 50%)",
+    path: "/contact"
+  }
+];
