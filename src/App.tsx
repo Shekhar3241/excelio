@@ -27,6 +27,8 @@ import VBAGenerator from "./pages/VBAGenerator";
 import ExcelToPdf from "./pages/ExcelToPdf";
 import AdminResourceSetup from "./pages/AdminResourceSetup";
 import PremiumBudgetDownload from "./pages/PremiumBudgetDownload";
+import SentimentAnalysis from "./pages/SentimentAnalysis";
+import SQLGenerator from "./pages/SQLGenerator";
 
 const queryClient = new QueryClient();
 
@@ -45,6 +47,8 @@ const App = () => (
             <Route path="/blog/:blogId" element={<BlogPost />} />
             <Route path="/ai-generator" element={<AIFormulaGenerator />} />
             <Route path="/simulator" element={<Simulator />} />
+            <Route path="/sentiment-analysis" element={<SentimentAnalysis />} />
+            <Route path="/sql-generator" element={<SQLGenerator />} />
             <Route path="/favorites" element={<Favorites />} />
             <Route path="/recent" element={<Recent />} />
             <Route path="/contact" element={<Contact />} />
