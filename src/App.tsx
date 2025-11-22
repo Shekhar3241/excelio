@@ -23,8 +23,6 @@ import Functions from "./pages/Functions";
 import ExcelErrors from "./pages/ExcelErrors";
 import Glossary from "./pages/Glossary";
 import Resources from "./pages/Resources";
-import FileAnalyzer from "./pages/FileAnalyzer";
-import DataVisualization from "./pages/DataVisualization";
 import VBAGenerator from "./pages/VBAGenerator";
 import ExcelToPdf from "./pages/ExcelToPdf";
 import AdminResourceSetup from "./pages/AdminResourceSetup";
@@ -58,8 +56,6 @@ const App = () => (
             <Route path="/excel-errors" element={<ExcelErrors />} />
             <Route path="/glossary" element={<Glossary />} />
             <Route path="/excel-to-pdf" element={<ExcelToPdf />} />
-            <Route path="/file-analyzer" element={<FileAnalyzer />} />
-            <Route path="/data-visualization" element={<DataVisualization />} />
             <Route path="/vba-generator" element={<VBAGenerator />} />
             <Route path="/premium-budget" element={<PremiumBudgetDownload />} />
             <Route path="/admin/resource-setup" element={<AdminResourceSetup />} />
