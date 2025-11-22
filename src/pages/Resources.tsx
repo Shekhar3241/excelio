@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Helmet } from "react-helmet";
+import { Link } from "react-router-dom";
 import { Header } from "@/components/Header";
 import Footer from "@/components/Footer";
 import { SearchBar } from "@/components/SearchBar";
@@ -7,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Download, FileSpreadsheet, FileText, BookOpen, Building2, Loader2 } from "lucide-react";
+import { Download, FileSpreadsheet, FileText, BookOpen, Building2, Loader2, Star, ExternalLink } from "lucide-react";
 import { resources, categories, industries } from "@/data/resources";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -113,6 +114,45 @@ export default function Resources() {
               />
             </div>
           </div>
+
+          {/* Featured Premium Budget Tracker */}
+          <Card className="mb-8 border-primary bg-gradient-to-br from-primary/5 via-background to-primary/10 animate-fade-in overflow-hidden relative">
+            <div className="absolute top-4 right-4 z-10">
+              <Badge className="bg-primary text-primary-foreground shadow-lg">
+                <Star className="h-3 w-3 mr-1 fill-current" />
+                Featured
+              </Badge>
+            </div>
+            <CardHeader>
+              <div className="flex items-start gap-4">
+                <div className="p-3 rounded-xl bg-primary/10">
+                  <FileSpreadsheet className="h-8 w-8 text-primary" />
+                </div>
+                <div className="flex-1">
+                  <CardTitle className="text-2xl mb-2">Premium Budget Tracker 2025</CardTitle>
+                  <CardDescription className="text-base">
+                    Professional budget tracker with 6 integrated sheets, 100+ automatic calculations, and comprehensive financial management tools. Includes Dashboard, Income Tracking, Expense Categories, Savings Goals, Monthly Summary, and Instructions.
+                  </CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-wrap gap-2 mb-4">
+                <Badge variant="secondary">Dashboard</Badge>
+                <Badge variant="secondary">Income Tracker</Badge>
+                <Badge variant="secondary">Expense Tracking</Badge>
+                <Badge variant="secondary">Savings Goals</Badge>
+                <Badge variant="secondary">100+ Formulas</Badge>
+                <Badge variant="secondary">Professional</Badge>
+              </div>
+              <Link to="/premium-budget">
+                <Button size="lg" className="w-full sm:w-auto group">
+                  View Details & Download Free
+                  <ExternalLink className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                </Button>
+              </Link>
+            </CardContent>
+          </Card>
 
           {/* Categories Tabs */}
           <Tabs value={selectedCategory} onValueChange={setSelectedCategory} className="mb-8">
