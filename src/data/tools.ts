@@ -32,7 +32,7 @@ export const tools: Tool[] = [
     description: "Upload a file or list of text to generate the sentiment - positive, negative or neutral.",
     icon: Smile,
     iconColor: "hsl(35, 100%, 60%)",
-    path: "/contact"
+    path: "/sentiment-analysis"
   },
   {
     id: "pdf-to-excel",
@@ -48,7 +48,7 @@ export const tools: Tool[] = [
     description: "Convert your text instructions into SQL queries - powered by AI.",
     icon: Code2,
     iconColor: "hsl(195, 75%, 60%)",
-    path: "/contact"
+    path: "/sql-generator"
   },
   {
     id: "vba-code-generator",
