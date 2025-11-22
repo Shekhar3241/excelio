@@ -131,5 +131,30 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+@layer utilities {
+  .premium-card {
+    @apply bg-gradient-to-br from-card to-card/80 backdrop-blur-xl border border-border/50 shadow-[var(--shadow-soft)] hover:shadow-[var(--shadow-medium)] transition-all duration-500;
+  }
+  
+  .premium-glass {
+    @apply bg-background/80 backdrop-blur-xl border border-border/50 shadow-[var(--shadow-soft)];
+  }
+  
+  .premium-text-gradient {
+    @apply bg-gradient-to-r from-primary via-primary-light to-accent bg-clip-text text-transparent;
+  }
+  
+  .premium-hover {
+    @apply transition-all duration-300 hover:scale-[1.02] hover:shadow-[var(--shadow-medium)];
+  }
+  
+  .premium-glow {
+    @apply shadow-[var(--shadow-glow)] transition-shadow duration-500;
   }
 }
