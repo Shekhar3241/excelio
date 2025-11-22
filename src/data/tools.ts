@@ -24,7 +24,7 @@ export const tools: Tool[] = [
     description: "Convert your text instructions into formulas or input a formula to have it explained with our Excel AI Formula Generator.",
     icon: FileSpreadsheet,
     iconColor: "hsl(145, 63%, 49%)",
-    path: "/ai-formula-generator"
+    path: "/ai-generator"
   },
   {
     id: "sentiment-analysis",
@@ -57,29 +57,5 @@ export const tools: Tool[] = [
     icon: Code2,
     iconColor: "hsl(15, 75%, 60%)",
     path: "/vba-generator"
-  },
-  {
-    id: "google-apps-scripts",
-    name: "AI Google Apps Scripts Generator",
-    description: "Generate Google Apps Scripts to automate tasks and create personalized solutions within Google Sheets.",
-    icon: FileCode,
-    iconColor: "hsl(45, 90%, 55%)",
-    path: "/contact"
-  },
-  {
-    id: "regex-generator",
-    name: "AI Regex Generator",
-    description: "Convert your text instructions into regex (regular expression) or input an expression to have it explained.",
-    icon: Hash,
-    iconColor: "hsl(0, 0%, 30%)",
-    path: "/contact"
-  },
-  {
-    id: "spreadsheet-generator",
-    name: "AI Spreadsheet Data Generator",
-    description: "Create an Excel spreadsheet based on your prompt in seconds with AI.",
-    icon: Table,
-    iconColor: "hsl(90, 60%, 50%)",
-    path: "/contact"
   }
 ];
