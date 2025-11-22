@@ -1,12 +1,14 @@
 import { Header } from "@/components/Header";
 import Footer from "@/components/Footer";
 import { CategoryCard } from "@/components/CategoryCard";
+import { ToolCard } from "@/components/ToolCard";
 import { SearchBar } from "@/components/SearchBar";
 import { categories, formulas } from "@/data/formulas";
+import { tools } from "@/data/tools";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Sparkles, Instagram, Youtube, Loader2, Copy, Check } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Sparkles, Instagram, Youtube, Loader2, Copy, Check, Zap } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -110,16 +112,25 @@ const Index = () => {
             </p>
           </div>
 
-          {/* AI Formula Generator */}
-          <Card className="mb-6 md:mb-8 animate-fade-in clean-card" style={{ animationDelay: '150ms' }}>
-            <CardHeader className="pb-3 md:pb-6">
-              <CardTitle className="flex items-center gap-2 text-lg sm:text-xl md:text-2xl">
-                <Sparkles className="h-5 w-5 sm:h-6 sm:w-6 text-accent" />
-                AI Formula Generator
-              </CardTitle>
-              <p className="text-sm sm:text-base text-muted-foreground">Describe what you want to calculate and get Excel formulas instantly</p>
+          {/* Premium AI Formula Generator */}
+          <Card className="mb-6 md:mb-8 animate-fade-in border-2 border-primary/20 bg-gradient-to-br from-card to-primary/5 shadow-xl" style={{ animationDelay: '150ms' }}>
+            <CardHeader className="pb-3 md:pb-6 space-y-2">
+              <div className="flex items-center gap-2">
+                <div className="p-2 rounded-lg bg-primary/10">
+                  <Sparkles className="h-6 w-6 text-primary animate-pulse" />
+                </div>
+                <div>
+                  <CardTitle className="text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+                    AI Formula Generator
+                  </CardTitle>
+                  <CardDescription className="text-sm">
+                    Powered by Advanced AI • Instant Results
+                  </CardDescription>
+                </div>
+              </div>
+              <p className="text-base text-foreground/80 font-medium">Transform natural language into powerful Excel formulas with our premium AI engine</p>
             </CardHeader>
-            <CardContent className="space-y-3 md:space-y-4">
+            <CardContent className="space-y-4">
               <div className="flex flex-col sm:flex-row gap-2">
                 <input
                   type="text"
@@ -127,48 +138,51 @@ const Index = () => {
                   value={aiQuery}
                   onChange={(e) => setAiQuery(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleGenerateAI()}
-                  className="flex-1 px-3 sm:px-4 py-2 sm:py-3 rounded-lg border border-input bg-background text-sm sm:text-base focus:border-accent focus:ring-2 focus:ring-accent/20 transition-all duration-200"
+                  className="flex-1 px-4 py-3.5 rounded-lg border-2 border-input bg-background text-base focus:border-primary focus:ring-4 focus:ring-primary/20 transition-all duration-200 font-medium"
                   disabled={isGenerating}
                 />
                 <Button
                   onClick={handleGenerateAI}
                   disabled={isGenerating}
                   size="lg"
-                  className="gap-2 w-full sm:w-auto font-semibold bg-accent hover:bg-accent/90 text-white"
+                  className="gap-2 w-full sm:w-auto font-bold bg-gradient-to-r from-primary to-accent hover:opacity-90 text-white shadow-lg hover:shadow-xl transition-all duration-300 px-8"
                 >
                   {isGenerating ? (
                     <>
-                      <Loader2 className="h-4 w-4 sm:h-5 sm:w-5 animate-spin" />
-                      <span className="text-sm sm:text-base">Generating...</span>
+                      <Loader2 className="h-5 w-5 animate-spin" />
+                      <span>Generating...</span>
                     </>
                   ) : (
                     <>
-                      <Sparkles className="h-4 w-4 sm:h-5 sm:w-5" />
-                      <span className="text-sm sm:text-base">Generate</span>
+                      <Zap className="h-5 w-5" />
+                      <span>Generate AI Formula</span>
                     </>
                   )}
                 </Button>
               </div>
 
               {generatedFormulas.length > 0 && (
-                <div className="space-y-2 md:space-y-3 mt-3 md:mt-4">
-                  <h3 className="font-semibold text-sm sm:text-base">Generated Formulas:</h3>
+                <div className="space-y-3 mt-4 p-4 bg-muted/50 rounded-lg border border-border">
+                  <div className="flex items-center gap-2">
+                    <Check className="h-5 w-5 text-primary" />
+                    <h3 className="font-bold text-base">Generated Formulas:</h3>
+                  </div>
                   {generatedFormulas.map((formula, index) => (
                     <div
                       key={index}
-                      className="flex items-start sm:items-center gap-2 bg-muted p-2 sm:p-3 rounded-lg group border border-border hover:border-accent/50 transition-all duration-200"
+                      className="flex items-start sm:items-center gap-2 bg-background p-3 rounded-lg group border-2 border-border hover:border-primary/50 transition-all duration-200 shadow-sm"
                     >
-                      <code className="text-xs sm:text-sm flex-1 font-mono break-all">{formula}</code>
+                      <code className="text-sm flex-1 font-mono break-all font-semibold text-primary">{formula}</code>
                       <Button
                         size="sm"
                         variant="ghost"
                         onClick={() => copyFormula(formula, index)}
-                        className="shrink-0"
+                        className="shrink-0 hover:bg-primary/10"
                       >
                         {copiedIndex === index ? (
-                          <Check className="h-3 w-3 sm:h-4 sm:w-4 text-accent" />
+                          <Check className="h-4 w-4 text-primary" />
                         ) : (
-                          <Copy className="h-3 w-3 sm:h-4 sm:w-4" />
+                          <Copy className="h-4 w-4" />
                         )}
                       </Button>
                     </div>
@@ -207,10 +221,30 @@ const Index = () => {
         </div>
       </section>
 
+      {/* AI Tools Directory */}
+      <section className="py-12 sm:py-16 px-4 bg-background">
+        <div className="container mx-auto max-w-7xl">
+          <div className="text-center mb-10 animate-fade-in">
+            <p className="text-sm text-primary font-bold mb-2 uppercase tracking-wider">// AI-POWERED TOOLS //</p>
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold mb-4">Our AI Apps & Tools</h2>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              Discover our suite of powerful AI tools designed to supercharge your Excel and data workflows
+            </p>
+          </div>
+          <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+            {tools.map((tool, index) => (
+              <div key={tool.id} className="animate-fade-in" style={{ animationDelay: `${index * 50}ms` }}>
+                <ToolCard tool={tool} />
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Categories Grid */}
-      <section className="py-8 sm:py-12 px-4 bg-background">
+      <section className="py-8 sm:py-12 px-4 bg-muted/30">
         <div className="container mx-auto">
-          <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-6 sm:mb-8 text-center animate-fade-in">Browse by Category</h2>
+          <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-6 sm:mb-8 text-center animate-fade-in">Browse Formulas by Category</h2>
           <div className="grid gap-3 sm:gap-4 md:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 max-w-6xl mx-auto">
             {categories.map((category, index) => (
               <div key={category.id} className="animate-fade-in" style={{ animationDelay: `${index * 50}ms` }}>
