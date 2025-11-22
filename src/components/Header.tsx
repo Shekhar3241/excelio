@@ -50,12 +50,6 @@ export function Header() {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuItem asChild>
-                <Link to="/file-analyzer" className="cursor-pointer">File Analyzer</Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link to="/data-visualization" className="cursor-pointer">Data Visualization</Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
                 <Link to="/vba-generator" className="cursor-pointer">VBA Generator</Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
