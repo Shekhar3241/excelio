@@ -115,10 +115,10 @@ export default function AIFormulaGenerator() {
               <Sparkles className="h-5 w-5 text-primary" />
               <span className="text-sm font-semibold text-primary">AI-Powered</span>
             </div>
-            <h1 className="text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-primary to-primary-light bg-clip-text text-transparent">
-              Formula Generator
+            <h1 className="text-5xl md:text-6xl font-bold mb-6 text-white">
+              AI Formula Generator
             </h1>
-            <p className="text-xl text-muted-foreground mb-8">
+            <p className="text-xl text-white/80 mb-8">
               Describe what you want to calculate in plain English, and let AI generate the Excel formula for you.
             </p>
           </div>
@@ -127,7 +127,7 @@ export default function AIFormulaGenerator() {
           <Card className="p-6 mb-8 border-2 border-primary/20 shadow-xl">
             <div className="space-y-4">
               <div>
-                <label className="text-sm font-medium mb-2 block">
+                <label className="text-sm font-medium mb-2 block text-foreground">
                   What do you want to calculate?
                 </label>
                 <Input
@@ -166,10 +166,10 @@ export default function AIFormulaGenerator() {
 
           {/* Results Section */}
           {generatedFormulas.length > 0 && (
-            <Card className="p-6 border-2 border-green-500/20 bg-green-50/5">
+            <Card className="p-6 border-2 border-accent/30 bg-card">
               <div className="mb-4 flex items-center gap-2">
-                <Sparkles className="h-5 w-5 text-green-500" />
-                <h2 className="text-xl font-bold">Generated Formulas</h2>
+                <Sparkles className="h-5 w-5 text-accent" />
+                <h2 className="text-xl font-bold text-foreground">Generated Formulas</h2>
               </div>
               <div className="space-y-3">
                 {generatedFormulas.map((formula, index) => (
@@ -177,7 +177,7 @@ export default function AIFormulaGenerator() {
                     key={index}
                     className="flex items-center gap-3 p-4 bg-background rounded-lg border-2 border-border hover:border-primary/50 transition-colors"
                   >
-                    <code className="flex-1 text-base font-mono bg-accent/50 px-4 py-3 rounded border">
+                    <code className="flex-1 text-base font-mono bg-muted px-4 py-3 rounded border text-foreground">
                       {formula}
                     </code>
                     <Button
@@ -205,17 +205,17 @@ export default function AIFormulaGenerator() {
           )}
 
           {/* Examples Section */}
-          <Card className="mt-8 p-6 bg-accent/30">
+          <Card className="mt-8 p-6 bg-card">
             <div className="mb-4 flex items-center gap-2">
-              <Lightbulb className="h-5 w-5 text-primary" />
-              <h3 className="font-semibold">Try these examples:</h3>
+              <Lightbulb className="h-5 w-5 text-accent" />
+              <h3 className="font-semibold text-foreground">Try these examples:</h3>
             </div>
             <div className="grid gap-2">
               {examples.map((example, index) => (
                 <button
                   key={index}
                   onClick={() => setQuery(example)}
-                  className="text-left p-3 bg-background rounded-md hover:bg-accent transition-colors text-sm border border-border hover:border-primary/50"
+                  className="text-left p-3 bg-background rounded-md hover:bg-accent/20 transition-colors text-sm border border-border hover:border-accent text-foreground"
                 >
                   {example}
                 </button>

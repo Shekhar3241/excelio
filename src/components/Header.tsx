@@ -12,12 +12,12 @@ import {
 export function Header() {
   return (
     <header className="sticky top-0 z-50 w-full bg-black border-b border-border/30 shadow-lg backdrop-blur-sm animate-fade-in">
-      <div className="container mx-auto px-2 sm:px-4 h-16 flex items-center justify-between gap-2">
+      <div className="container mx-auto px-2 sm:px-4 h-16 flex items-center justify-center gap-4">
         <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-all duration-300 hover:scale-105">
           <img src="/logo.png" alt="SkillBI's Hub" className="h-8 w-auto sm:h-10 animate-scale-in" />
           <span className="font-bold text-base sm:text-xl text-white">SkillBI</span>
         </Link>
-        <nav className="flex items-center gap-2 sm:gap-4 overflow-x-auto">
+        <nav className="flex items-center gap-2 sm:gap-4">
           <Link to="/" className="text-sm font-medium text-white/70 hover:text-white transition-all duration-300 hover:scale-105">
             Home
           </Link>
