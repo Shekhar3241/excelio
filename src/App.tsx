@@ -23,17 +23,11 @@ import ExcelErrors from "./pages/ExcelErrors";
 import Glossary from "./pages/Glossary";
 import Resources from "./pages/Resources";
 import VBAGenerator from "./pages/VBAGenerator";
-import ExcelToPdf from "./pages/ExcelToPdf";
 import AdminResourceSetup from "./pages/AdminResourceSetup";
 import PremiumBudgetDownload from "./pages/PremiumBudgetDownload";
 import SentimentAnalysis from "./pages/SentimentAnalysis";
 import SQLGenerator from "./pages/SQLGenerator";
-import MergePdf from "./pages/MergePdf";
-import CompressPdf from "./pages/CompressPdf";
-
-import PdfConverter from "./pages/PdfConverter";
-import ImageToPdf from "./pages/ImageToPdf";
-import WordToPdf from "./pages/WordToPdf";
+import UnifiedConverter from "./pages/UnifiedConverter";
 
 const queryClient = new QueryClient();
 
@@ -63,19 +57,22 @@ const App = () => (
             <Route path="/functions" element={<Functions />} />
             <Route path="/excel-errors" element={<ExcelErrors />} />
             <Route path="/glossary" element={<Glossary />} />
-            <Route path="/excel-to-pdf" element={<ExcelToPdf />} />
             <Route path="/vba-generator" element={<VBAGenerator />} />
             <Route path="/premium-budget" element={<PremiumBudgetDownload />} />
             <Route path="/admin/resource-setup" element={<AdminResourceSetup />} />
-            <Route path="/merge-pdf" element={<MergePdf />} />
-            <Route path="/compress-pdf" element={<CompressPdf />} />
             
-            <Route path="/pdf-converter" element={<PdfConverter />} />
-            <Route path="/image-to-pdf" element={<ImageToPdf />} />
-            <Route path="/word-to-pdf" element={<WordToPdf />} />
-            {/* Redirects for old routes */}
-            <Route path="/pdf-to-word" element={<PdfConverter />} />
-            <Route path="/pdf-to-powerpoint" element={<PdfConverter />} />
+            {/* Unified AI Converter */}
+            <Route path="/converter" element={<UnifiedConverter />} />
+            
+            {/* Redirects for old conversion routes */}
+            <Route path="/excel-to-pdf" element={<UnifiedConverter />} />
+            <Route path="/pdf-converter" element={<UnifiedConverter />} />
+            <Route path="/image-to-pdf" element={<UnifiedConverter />} />
+            <Route path="/word-to-pdf" element={<UnifiedConverter />} />
+            <Route path="/merge-pdf" element={<UnifiedConverter />} />
+            <Route path="/compress-pdf" element={<UnifiedConverter />} />
+            <Route path="/pdf-to-word" element={<UnifiedConverter />} />
+            <Route path="/pdf-to-powerpoint" element={<UnifiedConverter />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

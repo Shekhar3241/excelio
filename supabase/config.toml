@@ -11,3 +11,6 @@ verify_jwt = false
 
 [functions.word-to-pdf]
 verify_jwt = false
+
+[functions.ai-file-convert]
+verify_jwt = false

@@ -27,12 +27,12 @@ export const tools: Tool[] = [
     path: "/sentiment-analysis"
   },
   {
-    id: "pdf-to-excel",
-    name: "PDF to Excel AI Converter",
-    description: "Convert your PDF into an Excel file in seconds.",
+    id: "ai-file-converter",
+    name: "AI File Converter",
+    description: "Convert any file to any format using AI. PDF↔Excel↔Word, Images to PDF, and more - all in one intelligent tool.",
     icon: FileText,
-    iconColor: "hsl(0, 75%, 60%)",
-    path: "/excel-to-pdf"
+    iconColor: "hsl(280, 75%, 60%)",
+    path: "/converter"
   },
   {
     id: "sql-query-generator",
@@ -49,45 +49,5 @@ export const tools: Tool[] = [
     icon: Code2,
     iconColor: "hsl(15, 75%, 60%)",
     path: "/vba-generator"
-  },
-  {
-    id: "merge-pdf",
-    name: "Merge PDF Files",
-    description: "Combine multiple PDF files into a single document with ease.",
-    icon: FileText,
-    iconColor: "hsl(280, 75%, 60%)",
-    path: "/merge-pdf"
-  },
-  {
-    id: "compress-pdf",
-    name: "Compress PDF",
-    description: "Reduce PDF file size while maintaining quality.",
-    icon: Hash,
-    iconColor: "hsl(320, 75%, 60%)",
-    path: "/compress-pdf"
-  },
-  {
-    id: "pdf-converter",
-    name: "AI PDF Converter",
-    description: "Convert PDF to Word, Markdown, HTML & more using AI.",
-    icon: FileCode,
-    iconColor: "hsl(280, 75%, 60%)",
-    path: "/pdf-converter"
-  },
-  {
-    id: "image-to-pdf",
-    name: "Image to PDF",
-    description: "Convert and combine images into PDF documents.",
-    icon: FileImage,
-    iconColor: "hsl(340, 75%, 60%)",
-    path: "/image-to-pdf"
-  },
-  {
-    id: "word-to-pdf",
-    name: "Word to PDF",
-    description: "Convert Word documents to PDF format.",
-    icon: FileText,
-    iconColor: "hsl(210, 75%, 60%)",
-    path: "/word-to-pdf"
   }
 ];
