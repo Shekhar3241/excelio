@@ -19,9 +19,9 @@ export const tools: Tool[] = [
     path: "/simulator"
   },
   {
-    id: "ai-image-generator",
-    name: "AI Image Generator",
-    description: "Generate stunning images from text descriptions using advanced AI. Create illustrations, photos, and artwork instantly.",
+    id: "ai-data-chat",
+    name: "AI Data Chat",
+    description: "Upload your files and chat with AI to analyze data, get insights, and interact with Excel, PDF, and other documents.",
     icon: FileSpreadsheet,
     iconColor: "hsl(145, 63%, 49%)",
     path: "/ai-generator"
