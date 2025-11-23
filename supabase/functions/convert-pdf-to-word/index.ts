@@ -11,36 +11,25 @@ serve(async (req) => {
   }
 
   try {
-    const { pdfText, fileName } = await req.json();
+    const { pdfContent, fileName } = await req.json();
 
-    if (!pdfText) {
-      throw new Error("No PDF text provided");
+    if (!pdfContent) {
+      throw new Error("No PDF content provided");
     }
 
     console.log("Converting PDF to Word:", fileName);
 
-    // Create a simple DOCX-compatible format (Office Open XML)
-    const docxContent = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
-  <w:body>
-    ${pdfText.split('\n\n').map((paragraph: string) => `
-    <w:p>
-      <w:r>
-        <w:t>${paragraph.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</w:t>
-      </w:r>
-    </w:p>
-    `).join('')}
-  </w:body>
-</w:document>`;
-
-    // Convert to base64
-    const base64Content = btoa(unescape(encodeURIComponent(docxContent)));
+    // Return the content as formatted text
+    const formattedContent = pdfContent
+      .split('\n\n')
+      .map((paragraph: string) => paragraph.trim())
+      .filter((p: string) => p.length > 0)
+      .join('\n\n');
 
     return new Response(
       JSON.stringify({
-        content: base64Content,
-        fileName: fileName.replace('.pdf', '.docx'),
-        mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+        content: formattedContent,
+        fileName: fileName.replace('.pdf', '.docx')
       }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
