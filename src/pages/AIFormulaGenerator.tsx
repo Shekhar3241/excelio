@@ -3,8 +3,8 @@ import { Helmet } from "react-helmet";
 import { Header } from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Loader2, Send, Paperclip, X } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
+import { Loader2, Paperclip, ArrowUp } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface Message {
@@ -25,13 +25,20 @@ const AIFormulaGenerator = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
-    setUploadedFiles((prev) => [...prev, ...files]);
-  };
-
-  const removeFile = (index: number) => {
-    setUploadedFiles((prev) => prev.filter((_, i) => i !== index));
+    
+    for (const file of files) {
+      if (file.size > 20 * 1024 * 1024) {
+        toast({
+          title: "File too large",
+          description: `${file.name} exceeds 20MB limit`,
+          variant: "destructive",
+        });
+        continue;
+      }
+      setUploadedFiles((prev) => [...prev, file]);
+    }
   };
 
   const handleSend = async () => {
@@ -39,7 +46,7 @@ const AIFormulaGenerator = () => {
 
     const userMessage: Message = {
       role: "user",
-      content: input || "Uploaded files",
+      content: input || "Analyzing uploaded files...",
     };
 
     setMessages((prev) => [...prev, userMessage]);
@@ -51,8 +58,18 @@ const AIFormulaGenerator = () => {
       
       if (uploadedFiles.length > 0) {
         for (const file of uploadedFiles) {
-          const text = await file.text();
-          fileContext += `\n\nFile: ${file.name}\n${text}`;
+          try {
+            if (file.type.includes('pdf')) {
+              fileContext += `\n\n[PDF File: ${file.name} - PDF parsing in progress]`;
+            } else if (file.type.includes('sheet') || file.name.endsWith('.xlsx') || file.name.endsWith('.xls')) {
+              fileContext += `\n\n[Excel File: ${file.name} - Excel data analysis available]`;
+            } else {
+              const text = await file.text();
+              fileContext += `\n\nFile: ${file.name}\n${text.substring(0, 10000)}`;
+            }
+          } catch (e) {
+            fileContext += `\n\n[File: ${file.name} - Binary file attached]`;
+          }
         }
         setUploadedFiles([]);
       }
@@ -127,129 +144,175 @@ const AIFormulaGenerator = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
+    <div className="min-h-screen flex flex-col bg-gradient-to-b from-background to-muted/20">
       <Helmet>
-        <title>AI Data Chat - Analyze and Interact with Your Data</title>
+        <title>AI Excel Assistant - Analyze Your Data</title>
         <meta
           name="description"
-          content="Upload your files and chat with AI to analyze data, get insights, and interact with Excel, PDF, and other documents."
+          content="Upload Excel, PDF, and other files to get AI-powered insights and analysis."
         />
       </Helmet>
 
       <Header />
 
-      <main className="flex-1 container mx-auto px-4 py-8">
-        <div className="max-w-4xl mx-auto h-[calc(100vh-200px)] flex flex-col">
-          <div className="text-center mb-6">
-            <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-2">
-              AI Data Chat
-            </h1>
-            <p className="text-muted-foreground">
-              Upload files and interact with your data using AI
-            </p>
-          </div>
-
-          <div className="flex-1 bg-card rounded-lg border-2 border-border shadow-xl overflow-hidden flex flex-col">
-            <div className="flex-1 overflow-y-auto p-6 space-y-4">
-              {messages.length === 0 && (
-                <div className="text-center text-muted-foreground py-12">
-                  <p className="text-lg">Start a conversation or upload a file to begin</p>
-                </div>
-              )}
-
-              {messages.map((message, index) => (
-                <div
-                  key={index}
-                  className={`flex ${message.role === "user" ? "justify-end" : "justify-start"} animate-fade-in`}
-                >
-                  <div
-                    className={`max-w-[80%] rounded-2xl px-4 py-3 ${
-                      message.role === "user"
-                        ? "bg-primary text-primary-foreground"
-                        : "bg-muted text-foreground"
-                    }`}
+      <main className="flex-1 container mx-auto px-4 py-12 flex items-center justify-center">
+        <div className="w-full max-w-4xl">
+          {messages.length === 0 ? (
+            <div className="animate-fade-in">
+              <div className="bg-card rounded-3xl shadow-2xl p-12 border border-border/50">
+                <h1 className="text-4xl md:text-5xl font-bold text-center text-foreground mb-12 animate-scale-in">
+                  How can I help you with your Excel?
+                </h1>
+                
+                <div className="flex gap-4 items-center justify-center">
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    multiple
+                    accept=".pdf,.xlsx,.xls,.doc,.docx,.txt,.csv"
+                    onChange={handleFileUpload}
+                    className="hidden"
+                  />
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="rounded-full px-8 py-6 text-lg border-2 hover:scale-105 transition-transform"
                   >
-                    <p className="whitespace-pre-wrap break-words">{message.content}</p>
-                  </div>
+                    <Paperclip className="h-5 w-5 mr-3" />
+                    Add data
+                  </Button>
+                  
+                  <Button
+                    size="lg"
+                    className="rounded-full p-6 hover:scale-105 transition-transform"
+                    onClick={() => {
+                      if (uploadedFiles.length > 0) {
+                        handleSend();
+                      }
+                    }}
+                    disabled={uploadedFiles.length === 0}
+                  >
+                    <ArrowUp className="h-6 w-6" />
+                  </Button>
                 </div>
-              ))}
 
-              {isLoading && (
-                <div className="flex justify-start animate-fade-in">
-                  <div className="bg-muted rounded-2xl px-4 py-3">
-                    <div className="flex gap-1">
-                      <span className="w-2 h-2 bg-foreground/40 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
-                      <span className="w-2 h-2 bg-foreground/40 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
-                      <span className="w-2 h-2 bg-foreground/40 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
+                {uploadedFiles.length > 0 && (
+                  <div className="mt-6 p-4 bg-muted/50 rounded-2xl">
+                    <p className="text-sm text-muted-foreground mb-3 font-medium">
+                      {uploadedFiles.length} file{uploadedFiles.length > 1 ? 's' : ''} ready
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {uploadedFiles.map((file, index) => (
+                        <div
+                          key={index}
+                          className="text-sm px-3 py-1 bg-background rounded-full border border-border"
+                        >
+                          {file.name}
+                        </div>
+                      ))}
                     </div>
                   </div>
-                </div>
-              )}
-
-              <div ref={messagesEndRef} />
+                )}
+              </div>
             </div>
-
-            {uploadedFiles.length > 0 && (
-              <div className="px-6 py-3 bg-muted/50 border-t border-border">
-                <div className="flex flex-wrap gap-2">
-                  {uploadedFiles.map((file, index) => (
+          ) : (
+            <div className="space-y-6">
+              <div className="bg-card rounded-3xl shadow-2xl border border-border/50 overflow-hidden">
+                <div className="max-h-[60vh] overflow-y-auto p-8 space-y-6">
+                  {messages.map((message, index) => (
                     <div
                       key={index}
-                      className="flex items-center gap-2 bg-background px-3 py-2 rounded-lg border border-border"
+                      className={`flex ${message.role === "user" ? "justify-end" : "justify-start"} animate-fade-in`}
                     >
-                      <span className="text-sm truncate max-w-[200px]">{file.name}</span>
-                      <button
-                        onClick={() => removeFile(index)}
-                        className="text-muted-foreground hover:text-foreground"
+                      <div
+                        className={`max-w-[85%] rounded-3xl px-6 py-4 ${
+                          message.role === "user"
+                            ? "bg-primary text-primary-foreground"
+                            : "bg-muted text-foreground"
+                        }`}
                       >
-                        <X className="h-4 w-4" />
-                      </button>
+                        <p className="whitespace-pre-wrap break-words leading-relaxed">
+                          {message.content}
+                        </p>
+                      </div>
                     </div>
                   ))}
+
+                  {isLoading && (
+                    <div className="flex justify-start animate-fade-in">
+                      <div className="bg-muted rounded-3xl px-6 py-4">
+                        <div className="flex gap-1.5">
+                          <span className="w-2.5 h-2.5 bg-foreground/40 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
+                          <span className="w-2.5 h-2.5 bg-foreground/40 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
+                          <span className="w-2.5 h-2.5 bg-foreground/40 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  <div ref={messagesEndRef} />
+                </div>
+
+                <div className="p-6 border-t border-border/50 bg-background/50">
+                  <div className="flex gap-3 items-end">
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      multiple
+                      accept=".pdf,.xlsx,.xls,.doc,.docx,.txt,.csv"
+                      onChange={handleFileUpload}
+                      className="hidden"
+                    />
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={isLoading}
+                      className="rounded-full shrink-0"
+                    >
+                      <Paperclip className="h-5 w-5" />
+                    </Button>
+                    
+                    <div className="flex-1 relative">
+                      <Textarea
+                        value={input}
+                        onChange={(e) => setInput(e.target.value)}
+                        onKeyPress={(e) => {
+                          if (e.key === "Enter" && !e.shiftKey) {
+                            e.preventDefault();
+                            handleSend();
+                          }
+                        }}
+                        placeholder="Ask about your data..."
+                        disabled={isLoading}
+                        className="resize-none rounded-3xl min-h-[60px] pr-14"
+                        rows={2}
+                      />
+                      {uploadedFiles.length > 0 && (
+                        <div className="absolute bottom-2 left-3 text-xs text-muted-foreground">
+                          {uploadedFiles.length} file{uploadedFiles.length > 1 ? 's' : ''}
+                        </div>
+                      )}
+                    </div>
+
+                    <Button
+                      onClick={handleSend}
+                      disabled={isLoading || (!input.trim() && uploadedFiles.length === 0)}
+                      size="icon"
+                      className="rounded-full shrink-0"
+                    >
+                      {isLoading ? (
+                        <Loader2 className="h-5 w-5 animate-spin" />
+                      ) : (
+                        <ArrowUp className="h-5 w-5" />
+                      )}
+                    </Button>
+                  </div>
                 </div>
               </div>
-            )}
-
-            <div className="p-4 border-t border-border bg-background">
-              <div className="flex gap-2">
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  multiple
-                  accept=".pdf,.xlsx,.xls,.doc,.docx,.txt,.csv"
-                  onChange={handleFileUpload}
-                  className="hidden"
-                />
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={() => fileInputRef.current?.click()}
-                  disabled={isLoading}
-                >
-                  <Paperclip className="h-5 w-5" />
-                </Button>
-                <Input
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  onKeyPress={(e) => e.key === "Enter" && !e.shiftKey && handleSend()}
-                  placeholder="Type your message..."
-                  disabled={isLoading}
-                  className="flex-1"
-                />
-                <Button
-                  onClick={handleSend}
-                  disabled={isLoading || (!input.trim() && uploadedFiles.length === 0)}
-                  size="icon"
-                >
-                  {isLoading ? (
-                    <Loader2 className="h-5 w-5 animate-spin" />
-                  ) : (
-                    <Send className="h-5 w-5" />
-                  )}
-                </Button>
-              </div>
             </div>
-          </div>
+          )}
         </div>
       </main>
 

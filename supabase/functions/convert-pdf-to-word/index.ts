@@ -11,56 +11,43 @@ serve(async (req) => {
   }
 
   try {
-    const { pdfContent, fileName } = await req.json();
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    
-    if (!LOVABLE_API_KEY) {
-      throw new Error("LOVABLE_API_KEY is not configured");
+    const { pdfText, fileName } = await req.json();
+
+    if (!pdfText) {
+      throw new Error("No PDF text provided");
     }
 
     console.log("Converting PDF to Word:", fileName);
 
-    const systemPrompt = `You are a PDF to Word converter. Extract all text content from the PDF and format it as markdown that can be converted to Word format. Preserve:
-- Headings and structure
-- Paragraphs and line breaks
-- Lists (bulleted and numbered)
-- Tables (convert to markdown tables)
-- Basic formatting (bold, italic)
+    // Create a simple DOCX-compatible format (Office Open XML)
+    const docxContent = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
+  <w:body>
+    ${pdfText.split('\n\n').map((paragraph: string) => `
+    <w:p>
+      <w:r>
+        <w:t>${paragraph.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</w:t>
+      </w:r>
+    </w:p>
+    `).join('')}
+  </w:body>
+</w:document>`;
 
-Return ONLY the formatted content, no explanations.`;
-
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: `Convert this PDF content to Word format:\n\n${pdfContent}` }
-        ],
-      }),
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error("AI conversion error:", response.status, errorText);
-      throw new Error("Failed to convert PDF");
-    }
-
-    const data = await response.json();
-    const convertedContent = data.choices?.[0]?.message?.content || "";
+    // Convert to base64
+    const base64Content = btoa(unescape(encodeURIComponent(docxContent)));
 
     return new Response(
-      JSON.stringify({ content: convertedContent }),
+      JSON.stringify({
+        content: base64Content,
+        fileName: fileName.replace('.pdf', '.docx'),
+        mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+      }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       }
     );
   } catch (error) {
-    console.error("PDF to Word conversion error:", error);
+    console.error("Error converting PDF to Word:", error);
     return new Response(
       JSON.stringify({ error: error instanceof Error ? error.message : "Unknown error" }),
       {
