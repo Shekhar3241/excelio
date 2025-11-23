@@ -11,59 +11,33 @@ serve(async (req) => {
   }
 
   try {
-    const { pdfText, fileName } = await req.json();
+    const { pdfContent, fileName } = await req.json();
 
-    if (!pdfText) {
-      throw new Error("No PDF text provided");
+    if (!pdfContent) {
+      throw new Error("No PDF content provided");
     }
 
     console.log("Converting PDF to PowerPoint:", fileName);
 
-    // Split content into slides (every 3 paragraphs = 1 slide)
-    const paragraphs = pdfText.split('\n\n').filter((p: string) => p.trim());
-    const slides: string[] = [];
+    // Split content into slides (every 5 paragraphs or section = 1 slide)
+    const paragraphs = pdfContent.split('\n\n').filter((p: string) => p.trim().length > 0);
+    const slidesData: { title: string; content: string[] }[] = [];
     
-    for (let i = 0; i < paragraphs.length; i += 3) {
-      const slideContent = paragraphs.slice(i, i + 3).join('\n\n');
-      slides.push(slideContent);
+    for (let i = 0; i < paragraphs.length; i += 5) {
+      const slideParas = paragraphs.slice(i, i + 5);
+      const title = slideParas[0]?.substring(0, 50) || `Slide ${slidesData.length + 1}`;
+      const content = slideParas.slice(1).map((p: string) => p.substring(0, 100));
+      
+      slidesData.push({
+        title,
+        content: content.length > 0 ? content : ['Content from PDF']
+      });
     }
-
-    // Create a simple PPTX-compatible format (Office Open XML)
-    const pptxContent = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<p:presentation xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main">
-  <p:sldIdLst>
-    ${slides.map((slide, index) => `
-    <p:sldId id="${index + 256}" r:id="rId${index + 2}"/>
-    `).join('')}
-  </p:sldIdLst>
-  ${slides.map((slide, index) => `
-  <p:sld>
-    <p:cSld>
-      <p:spTree>
-        <p:sp>
-          <p:txBody>
-            <a:p>
-              <a:r>
-                <a:t>${slide.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</a:t>
-              </a:r>
-            </a:p>
-          </p:txBody>
-        </p:sp>
-      </p:spTree>
-    </p:cSld>
-  </p:sld>
-  `).join('')}
-</p:presentation>`;
-
-    // Convert to base64
-    const base64Content = btoa(unescape(encodeURIComponent(pptxContent)));
 
     return new Response(
       JSON.stringify({
-        content: base64Content,
-        fileName: fileName.replace('.pdf', '.pptx'),
-        mimeType: 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-        slideCount: slides.length
+        slides: slidesData,
+        fileName: fileName.replace('.pdf', '.pptx')
       }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
