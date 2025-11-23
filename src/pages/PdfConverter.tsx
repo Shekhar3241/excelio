@@ -8,8 +8,11 @@ import { Upload, FileText, Download, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import * as pdfjsLib from "pdfjs-dist";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+// @ts-ignore - Vite will inline this as a URL string
+import pdfjsWorker from 'pdfjs-dist/legacy/build/pdf.worker.min?url';
 
-pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
+// Set up PDF.js worker
+pdfjsLib.GlobalWorkerOptions.workerSrc = pdfjsWorker as any;
 
 const PdfConverter = () => {
   const { toast } = useToast();
