@@ -1,4 +1,4 @@
-import { Database, FileSpreadsheet, Smile, FileText, Code2, Hash, FileCode, Table } from "lucide-react";
+import { Database, FileSpreadsheet, Smile, FileText, Code2, Hash, FileCode, Table, FileImage } from "lucide-react";
 
 export interface Tool {
   id: string;
@@ -73,5 +73,21 @@ export const tools: Tool[] = [
     icon: FileCode,
     iconColor: "hsl(280, 75%, 60%)",
     path: "/pdf-converter"
+  },
+  {
+    id: "image-to-pdf",
+    name: "Image to PDF",
+    description: "Convert and combine images into PDF documents.",
+    icon: FileImage,
+    iconColor: "hsl(340, 75%, 60%)",
+    path: "/image-to-pdf"
+  },
+  {
+    id: "word-to-pdf",
+    name: "Word to PDF",
+    description: "Convert Word documents to PDF format.",
+    icon: FileText,
+    iconColor: "hsl(210, 75%, 60%)",
+    path: "/word-to-pdf"
   }
 ];
