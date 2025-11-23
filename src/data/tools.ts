@@ -19,9 +19,9 @@ export const tools: Tool[] = [
     path: "/simulator"
   },
   {
-    id: "ai-formula-generator",
-    name: "AI Excel Formula Generator",
-    description: "Convert your text instructions into formulas or input a formula to have it explained with our Excel AI Formula Generator.",
+    id: "ai-image-generator",
+    name: "AI Image Generator",
+    description: "Generate stunning images from text descriptions using advanced AI. Create illustrations, photos, and artwork instantly.",
     icon: FileSpreadsheet,
     iconColor: "hsl(145, 63%, 49%)",
     path: "/ai-generator"
