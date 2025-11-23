@@ -1,229 +1,360 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Helmet } from "react-helmet";
 import { Header } from "@/components/Header";
-import { Input } from "@/components/ui/input";
+import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Sparkles, Loader2, Copy, Check, Lightbulb } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Textarea } from "@/components/ui/textarea";
+import { Send, Paperclip, X, Loader2 } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import * as XLSX from "xlsx";
 
-export default function AIFormulaGenerator() {
-  const [query, setQuery] = useState("");
+interface Message {
+  role: "user" | "assistant";
+  content: string;
+}
+
+interface FileContext {
+  fileName: string;
+  fileType: string;
+  content: string;
+}
+
+const AIFormulaGenerator = () => {
+  const { toast } = useToast();
+  const [messages, setMessages] = useState<Message[]>([
+    {
+      role: "assistant",
+      content: "Hello! I'm your AI data assistant. Upload any file (Excel, PDF, images, documents) and I'll help you analyze and understand your data. You can also ask me questions!",
+    },
+  ]);
+  const [inputMessage, setInputMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [generatedFormulas, setGeneratedFormulas] = useState<string[]>([]);
-  const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
+  const [uploadedFile, setUploadedFile] = useState<FileContext | null>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleGenerate = async () => {
-    if (!query.trim()) {
-      toast.error("Please describe what you want to calculate");
-      return;
-    }
-    
-    setIsLoading(true);
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
     try {
-      const { data, error } = await supabase.functions.invoke("ai-search", {
-        body: { query }
+      let fileContent = "";
+      const fileType = file.type;
+
+      if (file.name.endsWith(".xlsx") || file.name.endsWith(".xls")) {
+        const data = await file.arrayBuffer();
+        const workbook = XLSX.read(data);
+        const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+        fileContent = XLSX.utils.sheet_to_csv(firstSheet);
+      } else if (file.type.startsWith("text/") || file.name.endsWith(".csv")) {
+        fileContent = await file.text();
+      } else if (file.type.startsWith("image/")) {
+        fileContent = "Image file uploaded. AI can analyze the image content.";
+      } else {
+        fileContent = "File uploaded successfully. Content type: " + fileType;
+      }
+
+      const context: FileContext = {
+        fileName: file.name,
+        fileType: fileType,
+        content: fileContent,
+      };
+
+      setUploadedFile(context);
+      toast({
+        title: "File uploaded",
+        description: `${file.name} has been uploaded successfully!`,
       });
 
-      if (error) throw error;
+      const userMessage: Message = {
+        role: "user",
+        content: `I've uploaded a file: ${file.name}`,
+      };
+      setMessages((prev) => [...prev, userMessage]);
 
-      console.log("AI Response data:", data);
+      await sendMessage([userMessage], context);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to process the uploaded file",
+        variant: "destructive",
+      });
+    }
+  };
 
-      // Use the formulas array directly - no fallback conversion
-      const formulas = Array.isArray(data?.formulas) ? data.formulas : [];
+  const sendMessage = async (messagesToSend: Message[], fileContext?: FileContext) => {
+    setIsLoading(true);
+    
+    try {
+      const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/conversational-ai`;
+      const response = await fetch(CHAT_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+        },
+        body: JSON.stringify({
+          messages: messagesToSend,
+          fileContext: fileContext || uploadedFile,
+        }),
+      });
 
-      setGeneratedFormulas(formulas);
-      
-      if (formulas.length === 0) {
-        toast.error("No formulas generated. Please try rephrasing your request.");
+      if (!response.ok || !response.body) {
+        throw new Error("Failed to get AI response");
+      }
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let textBuffer = "";
+      let streamDone = false;
+      let assistantMessage = "";
+
+      setMessages((prev) => [...prev, { role: "assistant", content: "" }]);
+
+      while (!streamDone) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        textBuffer += decoder.decode(value, { stream: true });
+
+        let newlineIndex: number;
+        while ((newlineIndex = textBuffer.indexOf("\n")) !== -1) {
+          let line = textBuffer.slice(0, newlineIndex);
+          textBuffer = textBuffer.slice(newlineIndex + 1);
+
+          if (line.endsWith("\r")) line = line.slice(0, -1);
+          if (line.startsWith(":") || line.trim() === "") continue;
+          if (!line.startsWith("data: ")) continue;
+
+          const jsonStr = line.slice(6).trim();
+          if (jsonStr === "[DONE]") {
+            streamDone = true;
+            break;
+          }
+
+          try {
+            const parsed = JSON.parse(jsonStr);
+            const content = parsed.choices?.[0]?.delta?.content as string | undefined;
+            if (content) {
+              assistantMessage += content;
+              setMessages((prev) => {
+                const newMessages = [...prev];
+                newMessages[newMessages.length - 1] = {
+                  role: "assistant",
+                  content: assistantMessage,
+                };
+                return newMessages;
+              });
+            }
+          } catch {
+            textBuffer = line + "\n" + textBuffer;
+            break;
+          }
+        }
       }
     } catch (error) {
-      console.error("AI formula generation error:", error);
-      toast.error("AI formula generation failed. Please try again.");
+      toast({
+        title: "Error",
+        description: "Failed to get AI response. Please try again.",
+        variant: "destructive",
+      });
+      setMessages((prev) => prev.slice(0, -1));
     } finally {
       setIsLoading(false);
     }
   };
 
-  const copyFormula = async (formula: string, index: number) => {
-    try {
-      await navigator.clipboard.writeText(formula);
-      setCopiedIndex(index);
-      toast.success("Formula copied to clipboard!");
-      setTimeout(() => setCopiedIndex(null), 2000);
-    } catch (error) {
-      toast.error("Failed to copy formula");
+  const handleSendMessage = async () => {
+    if (!inputMessage.trim()) return;
+
+    const userMessage: Message = {
+      role: "user",
+      content: inputMessage,
+    };
+
+    setMessages((prev) => [...prev, userMessage]);
+    setInputMessage("");
+
+    await sendMessage([...messages, userMessage]);
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleSendMessage();
     }
   };
 
-  const examples = [
-    "Add numbers in column A from row 1 to 10",
-    "Calculate average of values in B2 to B20",
-    "Count non-empty cells in range C1 to C50",
-    "If A1 is greater than 100, show 'High', else show 'Low'",
-    "Join text from cells D1 and D2 with a space",
-    "Find the maximum value in range E1 to E15"
-  ];
+  const removeFile = () => {
+    setUploadedFile(null);
+    toast({
+      title: "File removed",
+      description: "The uploaded file context has been cleared",
+    });
+  };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen flex flex-col bg-background">
       <Helmet>
-        <title>AI Excel Formula Generator - Create Formulas from Plain English | SkillBI</title>
+        <title>AI Data Assistant - Chat with Your Data</title>
         <meta
           name="description"
-          content="Generate Excel formulas instantly using AI. Describe what you want in plain English and get accurate Excel formulas. Free AI-powered formula generator for SUM, VLOOKUP, IF, and more."
+          content="Upload and interact with your data using AI. Analyze Excel, PDF, images, and documents through natural conversation."
         />
-        <meta
-          name="keywords"
-          content="AI Excel formula generator, Excel formula creator, automatic formula generator, Excel AI assistant, create Excel formulas, formula builder, Excel automation"
-        />
-        <link rel="canonical" href="https://skillbi.in/ai-generator" />
-        <meta property="og:title" content="AI Excel Formula Generator - Create Formulas from Plain English" />
-        <meta
-          property="og:description"
-          content="Generate Excel formulas instantly using AI. Describe what you want in plain English and get accurate formulas."
-        />
-        <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://skillbi.in/ai-generator" />
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="AI Excel Formula Generator - SkillBI" />
-        <meta name="twitter:description" content="Generate Excel formulas from plain English using AI" />
-        <script type="application/ld+json">
-          {JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "WebApplication",
-            "name": "AI Excel Formula Generator",
-            "description": "Generate Excel formulas instantly from plain English descriptions using AI",
-            "url": "https://skillbi.in/ai-generator",
-            "applicationCategory": "BusinessApplication",
-            "operatingSystem": "Web Browser",
-            "offers": {
-              "@type": "Offer",
-              "price": "0",
-              "priceCurrency": "USD"
-            }
-          })}
-        </script>
       </Helmet>
+
       <Header />
-      
-      <section className="py-16 px-4" style={{ background: 'var(--gradient-hero)' }}>
-        <div className="container mx-auto max-w-4xl">
-          <div className="text-center mb-12">
-            <div className="inline-flex items-center gap-2 mb-4 px-4 py-2 bg-primary/10 rounded-full">
-              <Sparkles className="h-5 w-5 text-primary" />
-              <span className="text-sm font-semibold text-primary">AI-Powered</span>
-            </div>
-            <h1 className="text-5xl md:text-6xl font-bold mb-6 text-white">
-              AI Formula Generator
+
+      <main className="flex-1 container mx-auto px-4 py-8">
+        <div className="max-w-4xl mx-auto space-y-6">
+          <div className="text-center space-y-4 animate-fade-in">
+            <h1 className="text-4xl md:text-5xl font-bold text-foreground">
+              AI Data Assistant
             </h1>
-            <p className="text-xl text-white/80 mb-8">
-              Describe what you want to calculate in plain English, and let AI generate the Excel formula for you.
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              Upload files and chat with your data using AI
             </p>
           </div>
 
-          {/* Input Section */}
-          <Card className="p-6 mb-8 border-2 border-primary/20 shadow-xl">
-            <div className="space-y-4">
-              <div>
-                <label className="text-sm font-medium mb-2 block text-foreground">
-                  What do you want to calculate?
-                </label>
-                <Input
-                  type="text"
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" && !isLoading) {
-                      handleGenerate();
-                    }
-                  }}
-                  placeholder="e.g., Add numbers in column A from row 1 to 10"
-                  className="text-lg py-6"
+          <Card className="border-border bg-card">
+            <CardHeader>
+              <CardTitle>Chat Interface</CardTitle>
+              <CardDescription>
+                Upload files and ask questions about your data
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex gap-2">
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  onChange={handleFileUpload}
+                  className="hidden"
+                  accept=".xlsx,.xls,.csv,.pdf,.txt,.png,.jpg,.jpeg,.webp,.doc,.docx"
                 />
-              </div>
-              <Button
-                onClick={handleGenerate}
-                disabled={isLoading || !query.trim()}
-                size="lg"
-                className="w-full"
-              >
-                {isLoading ? (
-                  <>
-                    <Loader2 className="h-5 w-5 mr-2 animate-spin" />
-                    Generating...
-                  </>
-                ) : (
-                  <>
-                    <Sparkles className="h-5 w-5 mr-2" />
-                    Generate Formula
-                  </>
-                )}
-              </Button>
-            </div>
-          </Card>
-
-          {/* Results Section */}
-          {generatedFormulas.length > 0 && (
-            <Card className="p-6 border-2 border-accent/30 bg-card">
-              <div className="mb-4 flex items-center gap-2">
-                <Sparkles className="h-5 w-5 text-accent" />
-                <h2 className="text-xl font-bold text-foreground">Generated Formulas</h2>
-              </div>
-              <div className="space-y-3">
-                {generatedFormulas.map((formula, index) => (
-                  <div
-                    key={index}
-                    className="flex items-center gap-3 p-4 bg-background rounded-lg border-2 border-border hover:border-primary/50 transition-colors"
-                  >
-                    <code className="flex-1 text-base font-mono bg-muted px-4 py-3 rounded border text-foreground">
-                      {formula}
-                    </code>
+                <Button
+                  onClick={() => fileInputRef.current?.click()}
+                  variant="outline"
+                  className="gap-2"
+                >
+                  <Paperclip className="h-4 w-4" />
+                  Attach File
+                </Button>
+                {uploadedFile && (
+                  <div className="flex items-center gap-2 px-3 py-2 bg-secondary rounded-lg flex-1">
+                    <span className="text-sm text-foreground truncate">
+                      {uploadedFile.fileName}
+                    </span>
                     <Button
+                      onClick={removeFile}
+                      variant="ghost"
                       size="sm"
-                      variant="outline"
-                      onClick={() => copyFormula(formula, index)}
-                      className="shrink-0"
+                      className="h-6 w-6 p-0"
                     >
-                      {copiedIndex === index ? (
-                        <>
-                          <Check className="h-4 w-4 mr-2 text-green-500" />
-                          Copied!
-                        </>
-                      ) : (
-                        <>
-                          <Copy className="h-4 w-4 mr-2" />
-                          Copy
-                        </>
-                      )}
+                      <X className="h-4 w-4" />
                     </Button>
                   </div>
-                ))}
+                )}
               </div>
-            </Card>
-          )}
 
-          {/* Examples Section */}
-          <Card className="mt-8 p-6 bg-card">
-            <div className="mb-4 flex items-center gap-2">
-              <Lightbulb className="h-5 w-5 text-accent" />
-              <h3 className="font-semibold text-foreground">Try these examples:</h3>
-            </div>
-            <div className="grid gap-2">
-              {examples.map((example, index) => (
-                <button
-                  key={index}
-                  onClick={() => setQuery(example)}
-                  className="text-left p-3 bg-background rounded-md hover:bg-accent/20 transition-colors text-sm border border-border hover:border-accent text-foreground"
+              <div className="h-[500px] overflow-y-auto space-y-4 p-4 bg-secondary/20 rounded-lg">
+                {messages.map((message, index) => (
+                  <div
+                    key={index}
+                    className={`flex ${
+                      message.role === "user" ? "justify-end" : "justify-start"
+                    }`}
+                  >
+                    <div
+                      className={`max-w-[80%] px-4 py-3 rounded-lg ${
+                        message.role === "user"
+                          ? "bg-primary text-primary-foreground"
+                          : "bg-card text-foreground border border-border"
+                      }`}
+                    >
+                      <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                    </div>
+                  </div>
+                ))}
+                {isLoading && (
+                  <div className="flex justify-start">
+                    <div className="bg-card text-foreground border border-border px-4 py-3 rounded-lg">
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    </div>
+                  </div>
+                )}
+                <div ref={messagesEndRef} />
+              </div>
+
+              <div className="flex gap-2">
+                <Textarea
+                  value={inputMessage}
+                  onChange={(e) => setInputMessage(e.target.value)}
+                  onKeyPress={handleKeyPress}
+                  placeholder="Type your message here... (Press Enter to send)"
+                  className="flex-1 min-h-[80px]"
+                  disabled={isLoading}
+                />
+                <Button
+                  onClick={handleSendMessage}
+                  disabled={!inputMessage.trim() || isLoading}
+                  className="gap-2"
                 >
-                  {example}
-                </button>
-              ))}
-            </div>
+                  <Send className="h-4 w-4" />
+                  Send
+                </Button>
+              </div>
+            </CardContent>
           </Card>
+
+          <div className="grid md:grid-cols-3 gap-6">
+            <Card className="border-border bg-card">
+              <CardHeader>
+                <CardTitle className="text-lg">Multi-Format Support</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground">
+                  Upload Excel, PDF, CSV, images, and text documents
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="border-border bg-card">
+              <CardHeader>
+                <CardTitle className="text-lg">Smart Analysis</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground">
+                  AI-powered insights and answers about your data
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="border-border bg-card">
+              <CardHeader>
+                <CardTitle className="text-lg">Natural Conversation</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground">
+                  Ask questions in plain language and get clear answers
+                </p>
+              </CardContent>
+            </Card>
+          </div>
         </div>
-      </section>
+      </main>
+
+      <Footer />
     </div>
   );
-}
+};
+
+export default AIFormulaGenerator;
