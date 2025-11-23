@@ -9,6 +9,11 @@ import { useToast } from "@/hooks/use-toast";
 import * as XLSX from 'xlsx';
 import * as pdfjsLib from 'pdfjs-dist';
 import ReactMarkdown from 'react-markdown';
+// @ts-ignore - Vite will inline this as a URL string
+import pdfjsWorker from 'pdfjs-dist/legacy/build/pdf.worker.min?url';
+
+// Set up PDF.js worker
+pdfjsLib.GlobalWorkerOptions.workerSrc = pdfjsWorker as any;
 
 interface Message {
   role: "user" | "assistant";
@@ -23,10 +28,6 @@ const AIFormulaGenerator = () => {
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
-  }, []);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
