@@ -16,12 +16,43 @@ const UnifiedConverter = () => {
   const { toast } = useToast();
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    console.log("File input triggered");
     const file = event.target.files?.[0];
+    console.log("Selected file:", file);
+    
     if (file) {
+      console.log("File details:", {
+        name: file.name,
+        size: file.size,
+        type: file.type
+      });
+      
+      // Check file size (max 10MB)
+      const maxSize = 10 * 1024 * 1024; // 10MB
+      if (file.size > maxSize) {
+        toast({
+          title: "File too large",
+          description: "Please select a file smaller than 10MB",
+          variant: "destructive",
+        });
+        event.target.value = ""; // Reset input
+        return;
+      }
+      
       setSelectedFile(file);
       toast({
-        title: "File selected",
-        description: `${file.name} is ready for conversion`,
+        title: "✓ File selected",
+        description: `${file.name} (${(file.size / 1024).toFixed(2)} KB) is ready for conversion`,
+      });
+      
+      // Reset input to allow selecting same file again
+      event.target.value = "";
+    } else {
+      console.log("No file selected");
+      toast({
+        title: "No file selected",
+        description: "Please try selecting a file again",
+        variant: "destructive",
       });
     }
   };
@@ -166,36 +197,43 @@ const UnifiedConverter = () => {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
-            <div className="border-2 border-dashed border-primary/40 rounded-lg p-8 text-center hover:border-primary/60 transition-colors">
+            <div className="border-2 border-dashed border-primary/40 rounded-lg p-8 text-center hover:border-primary/60 hover:bg-primary/5 transition-all duration-200">
               <input
                 type="file"
                 onChange={handleFileSelect}
                 className="hidden"
                 id="file-upload"
                 accept="*/*"
+                key={selectedFile?.name || 'empty'}
               />
               <label
                 htmlFor="file-upload"
-                className="cursor-pointer flex flex-col items-center gap-3"
+                className="cursor-pointer flex flex-col items-center gap-3 w-full"
               >
-                <FileText className="w-12 h-12 text-primary/60" />
+                <div className="p-3 rounded-full bg-primary/10">
+                  <FileText className="w-12 h-12 text-primary" />
+                </div>
                 <div>
-                  <p className="text-sm font-medium">Click to upload any file</p>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    PDF, Excel, Word, Images, Text files supported
+                  <p className="text-base font-semibold text-primary">Click here to upload your file</p>
+                  <p className="text-xs text-muted-foreground mt-2">
+                    PDF, Excel, Word, Images, Text files supported (max 10MB)
                   </p>
                 </div>
               </label>
             </div>
 
             {selectedFile && (
-              <div className="space-y-4">
-                <div className="p-4 bg-secondary/50 rounded-lg">
-                  <p className="text-sm font-medium">Selected file:</p>
-                  <p className="text-sm text-muted-foreground">{selectedFile.name}</p>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {(selectedFile.size / 1024).toFixed(2)} KB
-                  </p>
+              <div className="space-y-4 animate-in fade-in slide-in-from-top-4 duration-300">
+                <div className="p-4 bg-primary/5 border border-primary/20 rounded-lg">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-primary">✓ File ready for conversion</p>
+                      <p className="text-sm font-semibold mt-1">{selectedFile.name}</p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Size: {(selectedFile.size / 1024).toFixed(2)} KB | Type: {selectedFile.type || 'Unknown'}
+                      </p>
+                    </div>
+                  </div>
                 </div>
 
                 <div className="space-y-2">
@@ -236,8 +274,13 @@ const UnifiedConverter = () => {
                   <Button
                     variant="outline"
                     onClick={() => {
+                      console.log("Resetting file selection");
                       setSelectedFile(null);
                       setTargetFormat("");
+                      toast({
+                        title: "Reset complete",
+                        description: "You can now select a new file",
+                      });
                     }}
                     disabled={isProcessing}
                   >
