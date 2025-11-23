@@ -30,8 +30,8 @@ import SentimentAnalysis from "./pages/SentimentAnalysis";
 import SQLGenerator from "./pages/SQLGenerator";
 import MergePdf from "./pages/MergePdf";
 import CompressPdf from "./pages/CompressPdf";
-import PdfToWord from "./pages/PdfToWord";
-import PdfToPowerPoint from "./pages/PdfToPowerPoint";
+
+import PdfConverter from "./pages/PdfConverter";
 
 const queryClient = new QueryClient();
 
@@ -67,8 +67,8 @@ const App = () => (
             <Route path="/admin/resource-setup" element={<AdminResourceSetup />} />
             <Route path="/merge-pdf" element={<MergePdf />} />
             <Route path="/compress-pdf" element={<CompressPdf />} />
-            <Route path="/pdf-to-word" element={<PdfToWord />} />
-            <Route path="/pdf-to-powerpoint" element={<PdfToPowerPoint />} />
+            
+            <Route path="/pdf-converter" element={<PdfConverter />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

@@ -7,19 +7,19 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Upload, FileText, Download, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import * as pdfjsLib from "pdfjs-dist";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
 
-const PdfToWord = () => {
+const PdfConverter = () => {
   const { toast } = useToast();
   const [file, setFile] = useState<File | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [convertedContent, setConvertedContent] = useState<string | null>(null);
+  const [convertTo, setConvertTo] = useState<string>("word");
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       setFile(e.target.files[0]);
-      setConvertedContent(null);
     }
   };
 
@@ -48,7 +48,7 @@ const PdfToWord = () => {
       }
 
       const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/convert-pdf-to-word`,
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-pdf-convert`,
         {
           method: "POST",
           headers: {
@@ -57,26 +57,21 @@ const PdfToWord = () => {
           },
           body: JSON.stringify({
             pdfContent: textContent,
+            convertTo,
             fileName: file.name,
           }),
         }
       );
 
       if (!response.ok) {
-        throw new Error("Conversion failed");
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Conversion failed");
       }
 
       const data = await response.json();
       
-      // Download the DOCX file immediately
-      const byteCharacters = atob(data.content);
-      const byteNumbers = new Array(byteCharacters.length);
-      for (let i = 0; i < byteCharacters.length; i++) {
-        byteNumbers[i] = byteCharacters.charCodeAt(i);
-      }
-      const byteArray = new Uint8Array(byteNumbers);
-      const blob = new Blob([byteArray], { type: data.mimeType });
-      
+      // Download the converted file
+      const blob = new Blob([data.content], { type: data.mimeType });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
@@ -88,15 +83,15 @@ const PdfToWord = () => {
 
       toast({
         title: "Success",
-        description: "Word file created and downloaded!",
+        description: `File converted to ${convertTo.toUpperCase()} and downloaded!`,
       });
       
-      // Reset after download
       setFile(null);
     } catch (error) {
+      console.error('Conversion error:', error);
       toast({
         title: "Error",
-        description: "Failed to convert PDF file",
+        description: error instanceof Error ? error.message : "Failed to convert PDF file",
         variant: "destructive",
       });
     } finally {
@@ -104,28 +99,15 @@ const PdfToWord = () => {
     }
   };
 
-  const handleDownload = () => {
-    if (!convertedContent) return;
-
-    const blob = new Blob([convertedContent], { type: "text/plain" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = file?.name.replace(".pdf", ".txt") || "converted.txt";
-    a.click();
-    URL.revokeObjectURL(url);
-  };
-
   const handleReset = () => {
     setFile(null);
-    setConvertedContent(null);
   };
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Helmet>
-        <title>PDF to Word Converter - Convert PDF to DOCX Online</title>
-        <meta name="description" content="Convert PDF documents to editable Word files online. Free PDF to DOCX converter with high accuracy." />
+        <title>AI PDF Converter - Convert PDF to Word, Markdown, HTML & More</title>
+        <meta name="description" content="Convert PDF files to multiple formats using AI. Support for Word, Markdown, HTML, and plain text conversion." />
       </Helmet>
 
       <Header />
@@ -134,10 +116,10 @@ const PdfToWord = () => {
         <div className="max-w-4xl mx-auto space-y-8">
           <div className="text-center space-y-4 animate-fade-in">
             <h1 className="text-4xl md:text-5xl font-bold text-foreground">
-              PDF to Word Converter
+              AI-Powered PDF Converter
             </h1>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Convert PDF documents to editable text format
+              Convert PDF documents to multiple formats using advanced AI
             </p>
           </div>
 
@@ -147,7 +129,7 @@ const PdfToWord = () => {
                 <FileText className="h-5 w-5" />
                 Upload PDF to Convert
               </CardTitle>
-              <CardDescription>Select a PDF file to convert to Word format</CardDescription>
+              <CardDescription>Select a PDF file and choose your desired output format</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="border-2 border-dashed border-border rounded-lg p-8 text-center hover:border-accent transition-colors">
@@ -175,6 +157,21 @@ const PdfToWord = () => {
                 </div>
               )}
 
+              <div className="space-y-2">
+                <p className="font-medium text-foreground">Convert to:</p>
+                <Select value={convertTo} onValueChange={setConvertTo}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="word">Word Document (.docx)</SelectItem>
+                    <SelectItem value="markdown">Markdown (.md)</SelectItem>
+                    <SelectItem value="html">HTML (.html)</SelectItem>
+                    <SelectItem value="text">Plain Text (.txt)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
               <div className="flex gap-4">
                 <Button
                   onClick={handleConvert}
@@ -184,12 +181,12 @@ const PdfToWord = () => {
                   {isProcessing ? (
                     <>
                       <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      Converting & Downloading...
+                      Converting with AI...
                     </>
                   ) : (
                     <>
                       <Download className="h-4 w-4 mr-2" />
-                      Convert & Download DOCX
+                      Convert & Download
                     </>
                   )}
                 </Button>
@@ -202,36 +199,47 @@ const PdfToWord = () => {
             </CardContent>
           </Card>
 
-          <div className="grid md:grid-cols-3 gap-6">
+          <div className="grid md:grid-cols-4 gap-6">
             <Card className="border-border bg-card">
               <CardHeader>
-                <CardTitle className="text-lg">High Accuracy</CardTitle>
+                <CardTitle className="text-lg">AI-Powered</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-sm text-muted-foreground">
-                  AI-powered conversion preserves content and structure
+                  Uses advanced AI for intelligent format conversion
                 </p>
               </CardContent>
             </Card>
 
             <Card className="border-border bg-card">
               <CardHeader>
-                <CardTitle className="text-lg">Secure</CardTitle>
+                <CardTitle className="text-lg">Multiple Formats</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-sm text-muted-foreground">
-                  Your files are processed securely and not stored
+                  Convert to Word, Markdown, HTML, and plain text
                 </p>
               </CardContent>
             </Card>
 
             <Card className="border-border bg-card">
               <CardHeader>
-                <CardTitle className="text-lg">Fast</CardTitle>
+                <CardTitle className="text-lg">Smart Formatting</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-sm text-muted-foreground">
-                  Quick conversion with instant download
+                  Preserves structure and applies proper formatting
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="border-border bg-card">
+              <CardHeader>
+                <CardTitle className="text-lg">Instant Download</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground">
+                  Get your converted file immediately after processing
                 </p>
               </CardContent>
             </Card>
@@ -244,4 +252,4 @@ const PdfToWord = () => {
   );
 };
 
-export default PdfToWord;
+export default PdfConverter;
