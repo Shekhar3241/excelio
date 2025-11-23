@@ -11,7 +11,7 @@ import FormulaDetail from "./pages/FormulaDetail";
 import Favorites from "./pages/Favorites";
 import Recent from "./pages/Recent";
 import AIFormulaGenerator from "./pages/AIFormulaGenerator";
-import Simulator from "./pages/Simulator";
+
 import Contact from "./pages/Contact";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsConditions from "./pages/TermsConditions";
@@ -48,7 +48,7 @@ const App = () => (
             <Route path="/blog" element={<Blog />} />
             <Route path="/blog/:blogId" element={<BlogPost />} />
             <Route path="/ai-generator" element={<AIFormulaGenerator />} />
-            <Route path="/simulator" element={<Simulator />} />
+            <Route path="/simulator" element={<AIFormulaGenerator />} />
             <Route path="/sentiment-analysis" element={<SentimentAnalysis />} />
             <Route path="/sql-generator" element={<SQLGenerator />} />
             <Route path="/favorites" element={<Favorites />} />
