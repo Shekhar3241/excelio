@@ -67,19 +67,11 @@ export const tools: Tool[] = [
     path: "/compress-pdf"
   },
   {
-    id: "pdf-to-word",
-    name: "PDF to Word Converter",
-    description: "Convert PDF documents to editable Word files instantly.",
+    id: "pdf-converter",
+    name: "AI PDF Converter",
+    description: "Convert PDF to Word, Markdown, HTML & more using AI.",
     icon: FileCode,
-    iconColor: "hsl(210, 75%, 60%)",
-    path: "/pdf-to-word"
-  },
-  {
-    id: "pdf-to-powerpoint",
-    name: "PDF to PowerPoint Converter",
-    description: "Transform PDF files into PowerPoint presentations.",
-    icon: Table,
-    iconColor: "hsl(25, 75%, 60%)",
-    path: "/pdf-to-powerpoint"
+    iconColor: "hsl(280, 75%, 60%)",
+    path: "/pdf-converter"
   }
 ];
