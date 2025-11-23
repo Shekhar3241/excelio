@@ -1,205 +1,254 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Helmet } from "react-helmet";
 import { Header } from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Textarea } from "@/components/ui/textarea";
-import { Loader2, Sparkles, Download, Image as ImageIcon } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Loader2, Send, Paperclip, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+
+interface Message {
+  role: "user" | "assistant";
+  content: string;
+}
 
 const AIFormulaGenerator = () => {
   const { toast } = useToast();
-  const [prompt, setPrompt] = useState("");
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [generatedImage, setGeneratedImage] = useState<string | null>(null);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [input, setInput] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const handleGenerate = async () => {
-    if (!prompt.trim()) {
-      toast({
-        title: "Error",
-        description: "Please enter a description for your image",
-        variant: "destructive",
-      });
-      return;
-    }
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
 
-    setIsGenerating(true);
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    setUploadedFiles((prev) => [...prev, ...files]);
+  };
+
+  const removeFile = (index: number) => {
+    setUploadedFiles((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const handleSend = async () => {
+    if (!input.trim() && uploadedFiles.length === 0) return;
+
+    const userMessage: Message = {
+      role: "user",
+      content: input || "Uploaded files",
+    };
+
+    setMessages((prev) => [...prev, userMessage]);
+    setInput("");
+    setIsLoading(true);
+
     try {
+      let fileContext = "";
+      
+      if (uploadedFiles.length > 0) {
+        for (const file of uploadedFiles) {
+          const text = await file.text();
+          fileContext += `\n\nFile: ${file.name}\n${text}`;
+        }
+        setUploadedFiles([]);
+      }
+
       const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-image`,
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/conversational-ai`,
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
           },
-          body: JSON.stringify({ prompt }),
+          body: JSON.stringify({
+            messages: [...messages, userMessage],
+            fileContext,
+          }),
         }
       );
 
-      if (!response.ok) {
-        throw new Error("Failed to generate image");
+      if (!response.ok) throw new Error("Failed to get response");
+
+      const reader = response.body?.getReader();
+      const decoder = new TextDecoder();
+      let aiResponse = "";
+
+      if (reader) {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          
+          const chunk = decoder.decode(value);
+          const lines = chunk.split("\n");
+          
+          for (const line of lines) {
+            if (line.startsWith("data: ")) {
+              const data = line.slice(6);
+              if (data === "[DONE]") continue;
+              
+              try {
+                const parsed = JSON.parse(data);
+                const content = parsed.choices?.[0]?.delta?.content;
+                if (content) {
+                  aiResponse += content;
+                  setMessages((prev) => {
+                    const newMessages = [...prev];
+                    if (newMessages[newMessages.length - 1]?.role === "assistant") {
+                      newMessages[newMessages.length - 1].content = aiResponse;
+                    } else {
+                      newMessages.push({ role: "assistant", content: aiResponse });
+                    }
+                    return newMessages;
+                  });
+                }
+              } catch (e) {
+                // Skip invalid JSON
+              }
+            }
+          }
+        }
       }
 
-      const data = await response.json();
-      const imageUrl = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
-
-      if (imageUrl) {
-        setGeneratedImage(imageUrl);
-        toast({
-          title: "Success",
-          description: "Image generated successfully!",
-        });
-      } else {
-        throw new Error("No image in response");
-      }
+      scrollToBottom();
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to generate image. Please try again.",
+        description: "Failed to get response. Please try again.",
         variant: "destructive",
       });
     } finally {
-      setIsGenerating(false);
+      setIsLoading(false);
     }
   };
-
-  const handleDownload = () => {
-    if (!generatedImage) return;
-    
-    const link = document.createElement("a");
-    link.href = generatedImage;
-    link.download = "ai-generated-image.png";
-    link.click();
-  };
-
-  const examplePrompts = [
-    "A futuristic city with flying cars at sunset",
-    "A cute robot reading a book in a cozy library",
-    "Mountain landscape with aurora borealis in the night sky",
-    "Abstract art with vibrant colors and geometric shapes",
-    "A magical forest with glowing mushrooms and fireflies",
-  ];
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Helmet>
-        <title>AI Image Generator - Create Stunning Images from Text</title>
+        <title>AI Data Chat - Analyze and Interact with Your Data</title>
         <meta
           name="description"
-          content="Generate beautiful images from text descriptions using AI. Create illustrations, photos, and artwork instantly."
+          content="Upload your files and chat with AI to analyze data, get insights, and interact with Excel, PDF, and other documents."
         />
       </Helmet>
 
       <Header />
 
       <main className="flex-1 container mx-auto px-4 py-8">
-        <div className="max-w-5xl mx-auto space-y-8">
-          <div className="text-center space-y-4 animate-fade-in">
-            <div className="inline-flex items-center gap-2 mb-3 px-4 py-2 bg-accent/20 rounded-full animate-scale-in">
-              <Sparkles className="h-5 w-5 text-accent animate-pulse" />
-              <span className="text-sm font-semibold text-accent">AI-Powered</span>
-            </div>
-            <h1 className="text-5xl md:text-6xl font-bold text-foreground">
-              AI Image Generator
+        <div className="max-w-4xl mx-auto h-[calc(100vh-200px)] flex flex-col">
+          <div className="text-center mb-6">
+            <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-2">
+              AI Data Chat
             </h1>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Transform your ideas into stunning visuals with AI
+            <p className="text-muted-foreground">
+              Upload files and interact with your data using AI
             </p>
           </div>
 
-          <Card className="p-6 border-2 border-border shadow-xl animate-scale-in">
-            <div className="space-y-4">
-              <div>
-                <label className="text-sm font-medium mb-2 block text-foreground">
-                  Describe the image you want to create
-                </label>
-                <Textarea
-                  value={prompt}
-                  onChange={(e) => setPrompt(e.target.value)}
-                  placeholder="e.g., A serene beach at sunset with palm trees..."
-                  className="min-h-[100px] text-base"
-                />
-              </div>
-              <Button
-                onClick={handleGenerate}
-                disabled={isGenerating || !prompt.trim()}
-                size="lg"
-                className="w-full"
-              >
-                {isGenerating ? (
-                  <>
-                    <Loader2 className="h-5 w-5 mr-2 animate-spin" />
-                    Generating Image...
-                  </>
-                ) : (
-                  <>
-                    <Sparkles className="h-5 w-5 mr-2" />
-                    Generate Image
-                  </>
-                )}
-              </Button>
-            </div>
-          </Card>
-
-          {generatedImage && (
-            <Card className="p-6 border-2 border-accent/30 bg-card animate-fade-in">
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-xl font-bold text-foreground flex items-center gap-2">
-                    <ImageIcon className="h-5 w-5 text-accent" />
-                    Generated Image
-                  </h2>
-                  <Button onClick={handleDownload} variant="outline" size="sm">
-                    <Download className="h-4 w-4 mr-2" />
-                    Download
-                  </Button>
+          <div className="flex-1 bg-card rounded-lg border-2 border-border shadow-xl overflow-hidden flex flex-col">
+            <div className="flex-1 overflow-y-auto p-6 space-y-4">
+              {messages.length === 0 && (
+                <div className="text-center text-muted-foreground py-12">
+                  <p className="text-lg">Start a conversation or upload a file to begin</p>
                 </div>
-                <div className="rounded-lg overflow-hidden border-2 border-border">
-                  <img
-                    src={generatedImage}
-                    alt="AI Generated"
-                    className="w-full h-auto"
-                  />
-                </div>
-              </div>
-            </Card>
-          )}
+              )}
 
-          <Card className="p-6 bg-card animate-fade-in">
-            <h3 className="font-semibold text-foreground mb-4 flex items-center gap-2">
-              <Sparkles className="h-5 w-5 text-accent" />
-              Try these example prompts:
-            </h3>
-            <div className="grid gap-2">
-              {examplePrompts.map((example, index) => (
-                <button
+              {messages.map((message, index) => (
+                <div
                   key={index}
-                  onClick={() => setPrompt(example)}
-                  className="text-left p-3 bg-background rounded-md hover:bg-accent/20 transition-all duration-300 hover:scale-[1.02] text-sm border border-border hover:border-accent text-foreground"
+                  className={`flex ${message.role === "user" ? "justify-end" : "justify-start"} animate-fade-in`}
                 >
-                  {example}
-                </button>
+                  <div
+                    className={`max-w-[80%] rounded-2xl px-4 py-3 ${
+                      message.role === "user"
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-muted text-foreground"
+                    }`}
+                  >
+                    <p className="whitespace-pre-wrap break-words">{message.content}</p>
+                  </div>
+                </div>
               ))}
-            </div>
-          </Card>
 
-          <div className="grid md:grid-cols-3 gap-6">
-            {[
-              { title: "High Quality", desc: "AI-generated images in high resolution" },
-              { title: "Unlimited Ideas", desc: "Create as many images as you want" },
-              { title: "Instant Results", desc: "Get your images in seconds" },
-            ].map((feature, i) => (
-              <Card
-                key={i}
-                className="p-4 border-border bg-card hover:border-accent transition-all duration-300 hover:scale-105 animate-fade-in"
-                style={{ animationDelay: `${i * 0.1}s` }}
-              >
-                <h3 className="font-semibold text-foreground mb-1">{feature.title}</h3>
-                <p className="text-xs text-muted-foreground">{feature.desc}</p>
-              </Card>
-            ))}
+              {isLoading && (
+                <div className="flex justify-start animate-fade-in">
+                  <div className="bg-muted rounded-2xl px-4 py-3">
+                    <div className="flex gap-1">
+                      <span className="w-2 h-2 bg-foreground/40 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
+                      <span className="w-2 h-2 bg-foreground/40 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
+                      <span className="w-2 h-2 bg-foreground/40 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <div ref={messagesEndRef} />
+            </div>
+
+            {uploadedFiles.length > 0 && (
+              <div className="px-6 py-3 bg-muted/50 border-t border-border">
+                <div className="flex flex-wrap gap-2">
+                  {uploadedFiles.map((file, index) => (
+                    <div
+                      key={index}
+                      className="flex items-center gap-2 bg-background px-3 py-2 rounded-lg border border-border"
+                    >
+                      <span className="text-sm truncate max-w-[200px]">{file.name}</span>
+                      <button
+                        onClick={() => removeFile(index)}
+                        className="text-muted-foreground hover:text-foreground"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="p-4 border-t border-border bg-background">
+              <div className="flex gap-2">
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  multiple
+                  accept=".pdf,.xlsx,.xls,.doc,.docx,.txt,.csv"
+                  onChange={handleFileUpload}
+                  className="hidden"
+                />
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={isLoading}
+                >
+                  <Paperclip className="h-5 w-5" />
+                </Button>
+                <Input
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  onKeyPress={(e) => e.key === "Enter" && !e.shiftKey && handleSend()}
+                  placeholder="Type your message..."
+                  disabled={isLoading}
+                  className="flex-1"
+                />
+                <Button
+                  onClick={handleSend}
+                  disabled={isLoading || (!input.trim() && uploadedFiles.length === 0)}
+                  size="icon"
+                >
+                  {isLoading ? (
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                  ) : (
+                    <Send className="h-5 w-5" />
+                  )}
+                </Button>
+              </div>
+            </div>
           </div>
         </div>
       </main>
