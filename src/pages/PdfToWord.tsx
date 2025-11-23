@@ -67,12 +67,32 @@ const PdfToWord = () => {
       }
 
       const data = await response.json();
-      setConvertedContent(data.content);
+      
+      // Download the DOCX file immediately
+      const byteCharacters = atob(data.content);
+      const byteNumbers = new Array(byteCharacters.length);
+      for (let i = 0; i < byteCharacters.length; i++) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i);
+      }
+      const byteArray = new Uint8Array(byteNumbers);
+      const blob = new Blob([byteArray], { type: data.mimeType });
+      
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = data.fileName;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
 
       toast({
         title: "Success",
-        description: "PDF converted successfully!",
+        description: "Word file created and downloaded!",
       });
+      
+      // Reset after download
+      setFile(null);
     } catch (error) {
       toast({
         title: "Error",
@@ -155,47 +175,30 @@ const PdfToWord = () => {
                 </div>
               )}
 
-              {!convertedContent ? (
-                <div className="flex gap-4">
-                  <Button
-                    onClick={handleConvert}
-                    disabled={!file || isProcessing}
-                    className="flex-1"
-                  >
-                    {isProcessing ? (
-                      <>
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                        Converting...
-                      </>
-                    ) : (
-                      "Convert to Word"
-                    )}
-                  </Button>
-                  {file && (
-                    <Button onClick={handleReset} variant="outline">
-                      Reset
-                    </Button>
-                  )}
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  <div className="p-4 bg-secondary rounded-lg">
-                    <p className="text-foreground font-medium mb-2">PDF Converted Successfully!</p>
-                    <div className="max-h-64 overflow-y-auto p-3 bg-background rounded border text-sm text-foreground whitespace-pre-wrap">
-                      {convertedContent}
-                    </div>
-                  </div>
-                  <div className="flex gap-4">
-                    <Button onClick={handleDownload} className="flex-1">
+              <div className="flex gap-4">
+                <Button
+                  onClick={handleConvert}
+                  disabled={!file || isProcessing}
+                  className="flex-1"
+                >
+                  {isProcessing ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Converting & Downloading...
+                    </>
+                  ) : (
+                    <>
                       <Download className="h-4 w-4 mr-2" />
-                      Download as Text
-                    </Button>
-                    <Button onClick={handleReset} variant="outline">
-                      Convert More
-                    </Button>
-                  </div>
-                </div>
-              )}
+                      Convert & Download DOCX
+                    </>
+                  )}
+                </Button>
+                {file && (
+                  <Button onClick={handleReset} variant="outline">
+                    Reset
+                  </Button>
+                )}
+              </div>
             </CardContent>
           </Card>
 
