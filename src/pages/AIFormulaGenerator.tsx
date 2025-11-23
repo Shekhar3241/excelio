@@ -30,7 +30,14 @@ const AIFormulaGenerator = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    // Only scroll if user is near the bottom (within 100px)
+    const container = messagesEndRef.current?.parentElement;
+    if (container) {
+      const isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 100;
+      if (isNearBottom) {
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+      }
+    }
   };
 
   const parseExcelFile = async (file: File): Promise<string> => {
@@ -206,7 +213,7 @@ const AIFormulaGenerator = () => {
                     }
                     return updated;
                   });
-                  setTimeout(scrollToBottom, 0);
+                  // Removed auto-scroll during streaming to prevent jumping
                 }
               } catch (e) {
                 // Skip invalid JSON
@@ -216,7 +223,8 @@ const AIFormulaGenerator = () => {
         }
       }
 
-      scrollToBottom();
+      // Scroll only at the end of response
+      setTimeout(scrollToBottom, 100);
     } catch (error) {
       toast({
         title: "Error",
