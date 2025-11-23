@@ -20,17 +20,16 @@ serve(async (req) => {
 
     console.log("Processing conversational AI request with", messages.length, "messages");
     if (fileContext) {
-      console.log("File context provided:", fileContext.fileName);
+      console.log("File context length:", fileContext.length, "characters");
     }
 
     const systemPrompt = fileContext 
-      ? `You are a helpful AI assistant that can analyze and answer questions about uploaded data. 
-         The user has uploaded a file: ${fileContext.fileName}
-         File type: ${fileContext.fileType}
-         ${fileContext.content ? `File content preview:\n${fileContext.content.substring(0, 2000)}` : ''}
-         
-         Help the user understand and work with their data. Provide insights, answer questions, and suggest actions they can take.`
-      : "You are a helpful AI assistant that can analyze data from Excel, PDF, images, and other documents. Ask the user to upload a file to get started, or answer their general questions.";
+      ? `You are a helpful AI assistant specializing in data analysis. The user has uploaded files and here is the ACTUAL CONTENT from those files:
+
+${fileContext}
+
+You can see and analyze the complete file content above. This is real data from the user's files. Analyze it thoroughly and provide specific insights, patterns, statistics, and recommendations based on what you can see in the data above. Answer questions directly about this data.`
+      : "You are a helpful AI assistant that can analyze data from Excel, PDF, and other documents. When users upload files, you'll receive the actual file content to analyze. Ask the user to upload a file to get started.";
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
