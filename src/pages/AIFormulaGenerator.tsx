@@ -8,6 +8,7 @@ import { Loader2, Paperclip, ArrowUp } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import * as XLSX from 'xlsx';
 import * as pdfjsLib from 'pdfjs-dist';
+import ReactMarkdown from 'react-markdown';
 
 interface Message {
   role: "user" | "assistant";
@@ -220,16 +221,16 @@ const AIFormulaGenerator = () => {
 
       <Header />
 
-      <main className="flex-1 container mx-auto px-4 py-12 flex items-center justify-center">
+      <main className="flex-1 container mx-auto px-2 sm:px-4 py-4 sm:py-8 md:py-12 flex items-center justify-center">
         <div className="w-full max-w-4xl">
           {messages.length === 0 ? (
             <div className="animate-fade-in">
-              <div className="bg-card rounded-3xl shadow-2xl p-12 border border-border/50">
-                <h1 className="text-4xl md:text-5xl font-bold text-center text-foreground mb-12 animate-scale-in">
-                  How can I help you with your Excel?
+              <div className="bg-card rounded-2xl sm:rounded-3xl shadow-2xl p-6 sm:p-8 md:p-12 border border-border/50">
+                <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-center text-foreground mb-6 sm:mb-8 md:mb-12 animate-scale-in">
+                  Analyse Your Data
                 </h1>
                 
-                <div className="flex gap-4 items-center justify-center">
+                <div className="flex gap-2 sm:gap-4 items-center justify-center">
                   <input
                     ref={fileInputRef}
                     type="file"
@@ -242,15 +243,15 @@ const AIFormulaGenerator = () => {
                     variant="outline"
                     size="lg"
                     onClick={() => fileInputRef.current?.click()}
-                    className="rounded-full px-8 py-6 text-lg border-2 hover:scale-105 transition-transform"
+                    className="rounded-full px-4 sm:px-6 md:px-8 py-4 sm:py-5 md:py-6 text-sm sm:text-base md:text-lg border-2 hover:scale-105 transition-transform"
                   >
-                    <Paperclip className="h-5 w-5 mr-3" />
+                    <Paperclip className="h-4 w-4 sm:h-5 sm:w-5 mr-2 sm:mr-3" />
                     Add data
                   </Button>
                   
                   <Button
                     size="lg"
-                    className="rounded-full p-6 hover:scale-105 transition-transform"
+                    className="rounded-full p-4 sm:p-5 md:p-6 hover:scale-105 transition-transform"
                     onClick={() => {
                       if (uploadedFiles.length > 0) {
                         handleSend();
@@ -258,7 +259,7 @@ const AIFormulaGenerator = () => {
                     }}
                     disabled={uploadedFiles.length === 0}
                   >
-                    <ArrowUp className="h-6 w-6" />
+                    <ArrowUp className="h-5 w-5 sm:h-6 sm:w-6" />
                   </Button>
                 </div>
 
@@ -282,35 +283,56 @@ const AIFormulaGenerator = () => {
               </div>
             </div>
           ) : (
-            <div className="space-y-6">
-              <div className="bg-card rounded-3xl shadow-2xl border border-border/50 overflow-hidden">
-                <div className="max-h-[60vh] overflow-y-auto p-8 space-y-6">
+            <div className="space-y-4 sm:space-y-6">
+              <div className="bg-card rounded-2xl sm:rounded-3xl shadow-2xl border border-border/50 overflow-hidden">
+                <div className="max-h-[65vh] sm:max-h-[60vh] overflow-y-auto p-4 sm:p-6 md:p-8 space-y-4 sm:space-y-6">
                   {messages.map((message, index) => (
                     <div
                       key={index}
                       className={`flex ${message.role === "user" ? "justify-end" : "justify-start"} animate-fade-in`}
                     >
                       <div
-                        className={`max-w-[85%] rounded-3xl px-6 py-4 ${
+                        className={`max-w-[90%] sm:max-w-[85%] rounded-2xl sm:rounded-3xl px-4 sm:px-5 md:px-6 py-3 sm:py-4 ${
                           message.role === "user"
                             ? "bg-primary text-primary-foreground"
                             : "bg-muted text-foreground"
                         }`}
                       >
-                        <p className="whitespace-pre-wrap break-words leading-relaxed">
-                          {message.content}
-                        </p>
+                        {message.role === "assistant" ? (
+                          <div className="prose prose-sm sm:prose dark:prose-invert max-w-none">
+                            <ReactMarkdown
+                              components={{
+                                p: ({children}) => <p className="mb-2 leading-relaxed text-sm sm:text-base">{children}</p>,
+                                ul: ({children}) => <ul className="list-disc pl-4 mb-2 space-y-1">{children}</ul>,
+                                ol: ({children}) => <ol className="list-decimal pl-4 mb-2 space-y-1">{children}</ol>,
+                                li: ({children}) => <li className="text-sm sm:text-base">{children}</li>,
+                                code: ({children}) => <code className="bg-background/50 px-1.5 py-0.5 rounded text-xs sm:text-sm">{children}</code>,
+                                pre: ({children}) => <pre className="bg-background/50 p-2 sm:p-3 rounded-lg overflow-x-auto text-xs sm:text-sm my-2">{children}</pre>,
+                                h1: ({children}) => <h1 className="text-lg sm:text-xl font-bold mb-2">{children}</h1>,
+                                h2: ({children}) => <h2 className="text-base sm:text-lg font-bold mb-2">{children}</h2>,
+                                h3: ({children}) => <h3 className="text-sm sm:text-base font-bold mb-1">{children}</h3>,
+                                strong: ({children}) => <strong className="font-semibold">{children}</strong>,
+                              }}
+                            >
+                              {message.content}
+                            </ReactMarkdown>
+                          </div>
+                        ) : (
+                          <p className="whitespace-pre-wrap break-words leading-relaxed text-sm sm:text-base">
+                            {message.content}
+                          </p>
+                        )}
                       </div>
                     </div>
                   ))}
 
                   {isLoading && (
                     <div className="flex justify-start animate-fade-in">
-                      <div className="bg-muted rounded-3xl px-6 py-4">
+                      <div className="bg-muted rounded-2xl sm:rounded-3xl px-4 sm:px-6 py-3 sm:py-4">
                         <div className="flex gap-1.5">
-                          <span className="w-2.5 h-2.5 bg-foreground/40 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
-                          <span className="w-2.5 h-2.5 bg-foreground/40 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
-                          <span className="w-2.5 h-2.5 bg-foreground/40 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
+                          <span className="w-2 h-2 sm:w-2.5 sm:h-2.5 bg-foreground/40 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
+                          <span className="w-2 h-2 sm:w-2.5 sm:h-2.5 bg-foreground/40 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
+                          <span className="w-2 h-2 sm:w-2.5 sm:h-2.5 bg-foreground/40 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
                         </div>
                       </div>
                     </div>
@@ -319,8 +341,8 @@ const AIFormulaGenerator = () => {
                   <div ref={messagesEndRef} />
                 </div>
 
-                <div className="p-6 border-t border-border/50 bg-background/50">
-                  <div className="flex gap-3 items-end">
+                <div className="p-3 sm:p-4 md:p-6 border-t border-border/50 bg-background/50">
+                  <div className="flex gap-2 sm:gap-3 items-end">
                     <input
                       ref={fileInputRef}
                       type="file"
@@ -334,9 +356,9 @@ const AIFormulaGenerator = () => {
                       size="icon"
                       onClick={() => fileInputRef.current?.click()}
                       disabled={isLoading}
-                      className="rounded-full shrink-0"
+                      className="rounded-full shrink-0 h-9 w-9 sm:h-10 sm:w-10"
                     >
-                      <Paperclip className="h-5 w-5" />
+                      <Paperclip className="h-4 w-4 sm:h-5 sm:w-5" />
                     </Button>
                     
                     <div className="flex-1 relative">
@@ -351,7 +373,7 @@ const AIFormulaGenerator = () => {
                         }}
                         placeholder="Ask about your data..."
                         disabled={isLoading}
-                        className="resize-none rounded-3xl min-h-[60px] pr-14"
+                        className="resize-none rounded-2xl sm:rounded-3xl min-h-[50px] sm:min-h-[60px] pr-12 sm:pr-14 text-sm sm:text-base"
                         rows={2}
                       />
                       {uploadedFiles.length > 0 && (
@@ -365,12 +387,12 @@ const AIFormulaGenerator = () => {
                       onClick={handleSend}
                       disabled={isLoading || (!input.trim() && uploadedFiles.length === 0)}
                       size="icon"
-                      className="rounded-full shrink-0"
+                      className="rounded-full shrink-0 h-9 w-9 sm:h-10 sm:w-10"
                     >
                       {isLoading ? (
-                        <Loader2 className="h-5 w-5 animate-spin" />
+                        <Loader2 className="h-4 w-4 sm:h-5 sm:w-5 animate-spin" />
                       ) : (
-                        <ArrowUp className="h-5 w-5" />
+                        <ArrowUp className="h-4 w-4 sm:h-5 sm:w-5" />
                       )}
                     </Button>
                   </div>
