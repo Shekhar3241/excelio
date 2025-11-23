@@ -19,17 +19,23 @@ serve(async (req) => {
 
     console.log("Converting PDF to Word:", fileName);
 
-    // Return the content as formatted text
-    const formattedContent = pdfContent
+    // Split content into paragraphs
+    const paragraphs = pdfContent
       .split('\n\n')
-      .map((paragraph: string) => paragraph.trim())
-      .filter((p: string) => p.length > 0)
-      .join('\n\n');
+      .map((p: string) => p.trim())
+      .filter((p: string) => p.length > 0);
+
+    // Create DOCX XML structure
+    const docxXml = createDOCXStructure(paragraphs);
+    
+    // Convert to base64
+    const base64Content = btoa(unescape(encodeURIComponent(docxXml)));
 
     return new Response(
       JSON.stringify({
-        content: formattedContent,
-        fileName: fileName.replace('.pdf', '.docx')
+        content: base64Content,
+        fileName: fileName.replace('.pdf', '.docx'),
+        mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
       }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -46,3 +52,57 @@ serve(async (req) => {
     );
   }
 });
+
+function createDOCXStructure(paragraphs: string[]): string {
+  const paragraphsXml = paragraphs.map((text, index) => {
+    const isHeading = text.length < 100 && !text.includes('.') && index === 0;
+    const escapedText = escapeXml(text);
+    
+    if (isHeading) {
+      return `
+        <w:p>
+          <w:pPr>
+            <w:pStyle w:val="Heading1"/>
+          </w:pPr>
+          <w:r>
+            <w:rPr>
+              <w:b/>
+              <w:sz w:val="32"/>
+            </w:rPr>
+            <w:t>${escapedText}</w:t>
+          </w:r>
+        </w:p>`;
+    }
+    
+    return `
+      <w:p>
+        <w:r>
+          <w:rPr>
+            <w:sz w:val="24"/>
+          </w:rPr>
+          <w:t xml:space="preserve">${escapedText}</w:t>
+        </w:r>
+      </w:p>`;
+  }).join('');
+
+  return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"
+            xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
+  <w:body>
+    ${paragraphsXml}
+    <w:sectPr>
+      <w:pgSz w:w="12240" w:h="15840"/>
+      <w:pgMar w:top="1440" w:right="1440" w:bottom="1440" w:left="1440"/>
+    </w:sectPr>
+  </w:body>
+</w:document>`;
+}
+
+function escapeXml(text: string): string {
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&apos;');
+}
