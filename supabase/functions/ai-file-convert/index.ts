@@ -11,9 +11,9 @@ serve(async (req) => {
   }
 
   try {
-    const { fileContent, fileName, sourceType, targetFormat } = await req.json();
+    const { fileBase64, fileName, fileType, targetFormat } = await req.json();
 
-    if (!fileContent || !targetFormat) {
+    if (!fileBase64 || !targetFormat) {
       throw new Error("Missing required parameters");
     }
 
@@ -22,55 +22,60 @@ serve(async (req) => {
       throw new Error("LOVABLE_API_KEY not configured");
     }
 
-    console.log(`Converting ${fileName} to ${targetFormat}`);
+    console.log(`Converting ${fileName} (${fileType}) to ${targetFormat}`);
 
-    // Build conversion prompt based on source and target formats
-    let systemPrompt = "";
-    let userPrompt = "";
+    // Decode base64 to get file content description
+    const fileExtension = fileName.split('.').pop()?.toLowerCase() || '';
+    const fileSize = Math.round((fileBase64.length * 3) / 4 / 1024); // Approximate size in KB
 
+    // Build conversion prompt
+    let systemPrompt = `You are an expert file converter. You will convert files from one format to another with high accuracy and proper structure.`;
+    
+    let userPrompt = `I have a ${fileType} file named "${fileName}" (approximately ${fileSize} KB).
+I need to convert it to ${targetFormat} format.
+
+Please generate the converted content in ${targetFormat} format with proper structure, formatting, and all data preserved.
+
+Source file type: ${fileExtension}
+Target format: ${targetFormat}
+
+Instructions:
+- Maintain data integrity and structure
+- Use appropriate formatting for the target format
+- Include headers, proper spacing, and organization
+- For tabular data, preserve rows and columns
+- For documents, preserve headings and paragraphs
+- For images, provide detailed descriptions if converting to text
+
+Please provide ONLY the converted content, without any explanations or additional text.`;
+
+    // Add format-specific instructions
     switch (targetFormat) {
       case "excel":
       case "csv":
-        systemPrompt = "You are a file converter assistant. Convert the provided content into a CSV format with proper structure, headers, and data rows. Preserve all data accurately.";
-        userPrompt = `Convert this content to CSV format:\n\n${fileContent}`;
+        userPrompt += "\n\nFormat as CSV with comma-separated values, proper headers, and data rows.";
         break;
-      
       case "word":
       case "docx":
-        systemPrompt = "You are a file converter assistant. Convert the provided content into a well-formatted Word document structure with proper headings, paragraphs, and formatting.";
-        userPrompt = `Convert this content to a Word document format:\n\n${fileContent}`;
+        userPrompt += "\n\nFormat as a Word document with proper headings, paragraphs, and structure.";
         break;
-      
       case "pdf":
-        systemPrompt = "You are a file converter assistant. Convert the provided content into a text format suitable for PDF creation with proper structure, headings, and paragraphs.";
-        userPrompt = `Convert this content to PDF-ready text format:\n\n${fileContent}`;
+        userPrompt += "\n\nFormat as text suitable for PDF with proper sections, headings, and paragraphs.";
         break;
-      
       case "markdown":
       case "md":
-        systemPrompt = "You are a file converter assistant. Convert the provided content into clean, well-structured Markdown format with proper headings, lists, and formatting.";
-        userPrompt = `Convert this content to Markdown:\n\n${fileContent}`;
+        userPrompt += "\n\nFormat as Markdown with proper syntax: # for headings, ** for bold, * for lists, etc.";
         break;
-      
       case "html":
-        systemPrompt = "You are a file converter assistant. Convert the provided content into semantic, well-structured HTML with proper tags, headings, and formatting.";
-        userPrompt = `Convert this content to HTML:\n\n${fileContent}`;
+        userPrompt += "\n\nFormat as semantic HTML with <!DOCTYPE html>, proper tags, headings, and structure.";
         break;
-      
       case "text":
       case "txt":
-        systemPrompt = "You are a file converter assistant. Extract and clean up the text content, removing any formatting artifacts while preserving the essential information.";
-        userPrompt = `Convert this content to plain text:\n\n${fileContent}`;
+        userPrompt += "\n\nFormat as clean plain text, removing any formatting artifacts.";
         break;
-
       case "text-description":
-        systemPrompt = "You are an image description assistant. Provide a detailed textual description of the image content.";
-        userPrompt = `Describe the following image file in detail:\n\n${fileContent}`;
+        userPrompt += "\n\nProvide a detailed textual description of the file content.";
         break;
-      
-      default:
-        systemPrompt = `You are a file converter assistant. Convert the provided content to ${targetFormat} format with proper structure and formatting.`;
-        userPrompt = `Convert this content to ${targetFormat}:\n\n${fileContent}`;
     }
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
@@ -85,6 +90,7 @@ serve(async (req) => {
           { role: "system", content: systemPrompt },
           { role: "user", content: userPrompt }
         ],
+        temperature: 0.3,
       }),
     });
 
@@ -101,6 +107,8 @@ serve(async (req) => {
           { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
+      const errorText = await response.text();
+      console.error("AI API error:", response.status, errorText);
       throw new Error(`AI API error: ${response.status}`);
     }
 
@@ -128,6 +136,8 @@ serve(async (req) => {
     const { ext, mime } = getFileDetails(targetFormat);
     const outputFileName = fileName.replace(/\.[^.]+$/, ext);
 
+    console.log(`Conversion successful: ${outputFileName}`);
+
     return new Response(
       JSON.stringify({
         content: convertedContent,
@@ -141,7 +151,9 @@ serve(async (req) => {
   } catch (error) {
     console.error("Error in AI file conversion:", error);
     return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : "Unknown error" }),
+      JSON.stringify({ 
+        error: error instanceof Error ? error.message : "Unknown error occurred during conversion" 
+      }),
       {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },

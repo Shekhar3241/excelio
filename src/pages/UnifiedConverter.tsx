@@ -8,10 +8,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Upload, Download, FileText, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import * as XLSX from 'xlsx';
-import * as pdfjsLib from 'pdfjs-dist';
-
-pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
 
 const UnifiedConverter = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -30,54 +26,18 @@ const UnifiedConverter = () => {
     }
   };
 
-  const extractFileContent = async (file: File): Promise<string> => {
-    const fileType = file.type;
-    const fileName = file.name.toLowerCase();
-
-    // PDF
-    if (fileType === 'application/pdf' || fileName.endsWith('.pdf')) {
-      const arrayBuffer = await file.arrayBuffer();
-      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-      let fullText = '';
-      
-      for (let i = 1; i <= pdf.numPages; i++) {
-        const page = await pdf.getPage(i);
-        const textContent = await page.getTextContent();
-        const pageText = textContent.items.map((item: any) => item.str).join(' ');
-        fullText += pageText + '\n\n';
-      }
-      return fullText;
-    }
-
-    // Excel
-    if (fileType.includes('spreadsheet') || fileName.endsWith('.xlsx') || fileName.endsWith('.xls')) {
-      const arrayBuffer = await file.arrayBuffer();
-      const workbook = XLSX.read(arrayBuffer);
-      let content = '';
-      
-      workbook.SheetNames.forEach(sheetName => {
-        const sheet = workbook.Sheets[sheetName];
-        content += `Sheet: ${sheetName}\n${XLSX.utils.sheet_to_csv(sheet)}\n\n`;
-      });
-      return content;
-    }
-
-    // Word (basic text extraction)
-    if (fileType.includes('word') || fileName.endsWith('.docx') || fileName.endsWith('.doc')) {
-      return await file.text();
-    }
-
-    // Images (return metadata)
-    if (fileType.startsWith('image/')) {
-      return `Image file: ${file.name}, Size: ${(file.size / 1024).toFixed(2)} KB, Type: ${fileType}`;
-    }
-
-    // Text files
-    if (fileType.startsWith('text/') || fileName.endsWith('.txt') || fileName.endsWith('.csv')) {
-      return await file.text();
-    }
-
-    return `File: ${file.name}, Type: ${fileType}, Size: ${(file.size / 1024).toFixed(2)} KB`;
+  const fileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => {
+        const base64String = reader.result as string;
+        // Remove the data URL prefix (e.g., "data:application/pdf;base64,")
+        const base64Content = base64String.split(',')[1];
+        resolve(base64Content);
+      };
+      reader.onerror = error => reject(error);
+    });
   };
 
   const handleConvert = async () => {
@@ -93,13 +53,14 @@ const UnifiedConverter = () => {
     setIsProcessing(true);
 
     try {
-      const fileContent = await extractFileContent(selectedFile);
+      // Convert file to base64
+      const fileBase64 = await fileToBase64(selectedFile);
       
       const { data, error } = await supabase.functions.invoke('ai-file-convert', {
         body: {
-          fileContent,
+          fileBase64,
           fileName: selectedFile.name,
-          sourceType: selectedFile.type,
+          fileType: selectedFile.type,
           targetFormat,
         }
       });
