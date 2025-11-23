@@ -13,17 +13,9 @@ export const tools: Tool[] = [
   {
     id: "ai-data-analysis",
     name: "AI Data Analysis Chat",
-    description: "Chat with your data to generate visualizations, spreadsheets, insights, advanced analysis & more.",
+    description: "Upload your files and chat with AI to analyze data, get insights, and interact with Excel, PDF, and other documents.",
     icon: Database,
     iconColor: "hsl(270, 60%, 60%)",
-    path: "/simulator"
-  },
-  {
-    id: "ai-data-chat",
-    name: "AI Data Chat",
-    description: "Upload your files and chat with AI to analyze data, get insights, and interact with Excel, PDF, and other documents.",
-    icon: FileSpreadsheet,
-    iconColor: "hsl(145, 63%, 49%)",
     path: "/ai-generator"
   },
   {
