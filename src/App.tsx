@@ -32,6 +32,8 @@ import MergePdf from "./pages/MergePdf";
 import CompressPdf from "./pages/CompressPdf";
 
 import PdfConverter from "./pages/PdfConverter";
+import ImageToPdf from "./pages/ImageToPdf";
+import WordToPdf from "./pages/WordToPdf";
 
 const queryClient = new QueryClient();
 
@@ -69,6 +71,11 @@ const App = () => (
             <Route path="/compress-pdf" element={<CompressPdf />} />
             
             <Route path="/pdf-converter" element={<PdfConverter />} />
+            <Route path="/image-to-pdf" element={<ImageToPdf />} />
+            <Route path="/word-to-pdf" element={<WordToPdf />} />
+            {/* Redirects for old routes */}
+            <Route path="/pdf-to-word" element={<PdfConverter />} />
+            <Route path="/pdf-to-powerpoint" element={<PdfConverter />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
