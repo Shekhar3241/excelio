@@ -72,12 +72,32 @@ const PdfToPowerPoint = () => {
       }
 
       const data = await response.json();
-      setSlides(data.slides || []);
+      
+      // Download the PPTX file immediately
+      const byteCharacters = atob(data.content);
+      const byteNumbers = new Array(byteCharacters.length);
+      for (let i = 0; i < byteCharacters.length; i++) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i);
+      }
+      const byteArray = new Uint8Array(byteNumbers);
+      const blob = new Blob([byteArray], { type: data.mimeType });
+      
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = data.fileName;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
 
       toast({
         title: "Success",
-        description: "PDF converted to presentation format!",
+        description: "PowerPoint file created and downloaded!",
       });
+      
+      // Reset after download
+      setFile(null);
     } catch (error) {
       toast({
         title: "Error",
@@ -164,60 +184,30 @@ const PdfToPowerPoint = () => {
                 </div>
               )}
 
-              {slides.length === 0 ? (
-                <div className="flex gap-4">
-                  <Button
-                    onClick={handleConvert}
-                    disabled={!file || isProcessing}
-                    className="flex-1"
-                  >
-                    {isProcessing ? (
-                      <>
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                        Converting...
-                      </>
-                    ) : (
-                      "Convert to PowerPoint"
-                    )}
-                  </Button>
-                  {file && (
-                    <Button onClick={handleReset} variant="outline">
-                      Reset
-                    </Button>
-                  )}
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  <div className="p-4 bg-secondary rounded-lg">
-                    <p className="text-foreground font-medium mb-4">
-                      Converted to {slides.length} slides
-                    </p>
-                    <div className="space-y-3 max-h-96 overflow-y-auto">
-                      {slides.map((slide, index) => (
-                        <div key={index} className="p-3 bg-background rounded border">
-                          <h3 className="font-semibold text-foreground mb-2">
-                            Slide {index + 1}: {slide.title}
-                          </h3>
-                          <ul className="text-sm text-muted-foreground space-y-1">
-                            {slide.content.map((point, i) => (
-                              <li key={i}>• {point}</li>
-                            ))}
-                          </ul>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                  <div className="flex gap-4">
-                    <Button onClick={handleDownload} className="flex-1">
+              <div className="flex gap-4">
+                <Button
+                  onClick={handleConvert}
+                  disabled={!file || isProcessing}
+                  className="flex-1"
+                >
+                  {isProcessing ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Converting & Downloading...
+                    </>
+                  ) : (
+                    <>
                       <Download className="h-4 w-4 mr-2" />
-                      Download Slides as Text
-                    </Button>
-                    <Button onClick={handleReset} variant="outline">
-                      Convert More
-                    </Button>
-                  </div>
-                </div>
-              )}
+                      Convert & Download PPTX
+                    </>
+                  )}
+                </Button>
+                {file && (
+                  <Button onClick={handleReset} variant="outline">
+                    Reset
+                  </Button>
+                )}
+              </div>
             </CardContent>
           </Card>
 
