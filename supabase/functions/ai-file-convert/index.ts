@@ -5,6 +5,34 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+// Helper function to convert base64 to Uint8Array
+function base64ToUint8Array(base64: string): Uint8Array {
+  const binaryString = atob(base64);
+  const bytes = new Uint8Array(binaryString.length);
+  for (let i = 0; i < binaryString.length; i++) {
+    bytes[i] = binaryString.charCodeAt(i);
+  }
+  return bytes;
+}
+
+// Helper function to extract text from binary data
+async function extractTextContent(bytes: Uint8Array, fileType: string, fileName: string): Promise<string> {
+  const decoder = new TextDecoder();
+  
+  // For text-based files, try to decode directly
+  if (fileType.startsWith('text/') || 
+      fileName.endsWith('.txt') || 
+      fileName.endsWith('.csv') || 
+      fileName.endsWith('.md') ||
+      fileName.endsWith('.html')) {
+    return decoder.decode(bytes);
+  }
+  
+  // For other files, return a representation
+  const fileSize = (bytes.length / 1024).toFixed(2);
+  return `File: ${fileName}\nType: ${fileType}\nSize: ${fileSize} KB\n\nNote: This is a binary file. AI will intelligently convert based on file type and target format.`;
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -24,58 +52,60 @@ serve(async (req) => {
 
     console.log(`Converting ${fileName} (${fileType}) to ${targetFormat}`);
 
-    // Decode base64 to get file content description
-    const fileExtension = fileName.split('.').pop()?.toLowerCase() || '';
-    const fileSize = Math.round((fileBase64.length * 3) / 4 / 1024); // Approximate size in KB
-
-    // Build conversion prompt
-    let systemPrompt = `You are an expert file converter. You will convert files from one format to another with high accuracy and proper structure.`;
+    // Decode base64 to bytes
+    const fileBytes = base64ToUint8Array(fileBase64);
+    const fileSize = (fileBytes.length / 1024).toFixed(2);
     
-    let userPrompt = `I have a ${fileType} file named "${fileName}" (approximately ${fileSize} KB).
-I need to convert it to ${targetFormat} format.
+    // Extract text content from file
+    const fileContent = await extractTextContent(fileBytes, fileType, fileName);
 
-Please generate the converted content in ${targetFormat} format with proper structure, formatting, and all data preserved.
+    // Build conversion prompt based on actual file content
+    let systemPrompt = "";
+    let userPrompt = "";
 
-Source file type: ${fileExtension}
-Target format: ${targetFormat}
-
-Instructions:
-- Maintain data integrity and structure
-- Use appropriate formatting for the target format
-- Include headers, proper spacing, and organization
-- For tabular data, preserve rows and columns
-- For documents, preserve headings and paragraphs
-- For images, provide detailed descriptions if converting to text
-
-Please provide ONLY the converted content, without any explanations or additional text.`;
-
-    // Add format-specific instructions
     switch (targetFormat) {
       case "excel":
       case "csv":
-        userPrompt += "\n\nFormat as CSV with comma-separated values, proper headers, and data rows.";
+        systemPrompt = "You are a file converter. Convert the provided content into CSV format with proper structure. Use commas to separate values, include headers in the first row, and ensure all data is properly formatted.";
+        userPrompt = `Convert this file content to CSV format:\n\nFile: ${fileName}\nSize: ${fileSize} KB\n\n${fileContent}\n\nProvide ONLY the CSV content with proper headers and data rows. No explanations.`;
         break;
+      
       case "word":
       case "docx":
-        userPrompt += "\n\nFormat as a Word document with proper headings, paragraphs, and structure.";
+        systemPrompt = "You are a file converter. Convert the provided content into a well-formatted document structure suitable for Word with proper headings, paragraphs, and formatting.";
+        userPrompt = `Convert this file content to a Word document format:\n\nFile: ${fileName}\n\n${fileContent}\n\nProvide the content with clear headings, paragraphs, and structure. No explanations.`;
         break;
+      
       case "pdf":
-        userPrompt += "\n\nFormat as text suitable for PDF with proper sections, headings, and paragraphs.";
+        systemPrompt = "You are a file converter. Convert the provided content into well-structured text suitable for PDF with proper headings, sections, and formatting.";
+        userPrompt = `Convert this file content to PDF-ready text:\n\nFile: ${fileName}\n\n${fileContent}\n\nProvide well-organized text with headings, sections, and proper formatting. No explanations.`;
         break;
+      
       case "markdown":
       case "md":
-        userPrompt += "\n\nFormat as Markdown with proper syntax: # for headings, ** for bold, * for lists, etc.";
+        systemPrompt = "You are a file converter. Convert the provided content into clean Markdown format using proper syntax (# for headings, ** for bold, * for lists, etc.).";
+        userPrompt = `Convert this file content to Markdown:\n\nFile: ${fileName}\n\n${fileContent}\n\nProvide ONLY the Markdown formatted content. No explanations.`;
         break;
+      
       case "html":
-        userPrompt += "\n\nFormat as semantic HTML with <!DOCTYPE html>, proper tags, headings, and structure.";
+        systemPrompt = "You are a file converter. Convert the provided content into semantic HTML with proper structure, tags, and formatting.";
+        userPrompt = `Convert this file content to HTML:\n\nFile: ${fileName}\n\n${fileContent}\n\nProvide a complete HTML document with <!DOCTYPE html>, proper structure, and semantic tags. No explanations.`;
         break;
+      
       case "text":
       case "txt":
-        userPrompt += "\n\nFormat as clean plain text, removing any formatting artifacts.";
+        systemPrompt = "You are a file converter. Extract and clean up the text content, preserving essential information while removing formatting artifacts.";
+        userPrompt = `Convert this file content to clean plain text:\n\nFile: ${fileName}\n\n${fileContent}\n\nProvide ONLY the clean text content. No explanations.`;
         break;
+
       case "text-description":
-        userPrompt += "\n\nProvide a detailed textual description of the file content.";
+        systemPrompt = "You are a file content analyzer. Provide a detailed description of what the file contains.";
+        userPrompt = `Analyze and describe this file content:\n\nFile: ${fileName}\nType: ${fileType}\n\n${fileContent}\n\nProvide a detailed description of the content, structure, and any notable information.`;
         break;
+      
+      default:
+        systemPrompt = `You are a file converter. Convert the provided content to ${targetFormat} format with proper structure and formatting.`;
+        userPrompt = `Convert this file content to ${targetFormat}:\n\nFile: ${fileName}\n\n${fileContent}\n\nProvide ONLY the converted content. No explanations.`;
     }
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
@@ -90,7 +120,7 @@ Please provide ONLY the converted content, without any explanations or additiona
           { role: "system", content: systemPrompt },
           { role: "user", content: userPrompt }
         ],
-        temperature: 0.3,
+        temperature: 0.2,
       }),
     });
 
@@ -113,7 +143,15 @@ Please provide ONLY the converted content, without any explanations or additiona
     }
 
     const data = await response.json();
-    const convertedContent = data.choices[0].message.content;
+    let convertedContent = data.choices[0].message.content;
+
+    // Clean up the content - remove markdown code blocks if present
+    if (convertedContent.startsWith('```')) {
+      // Remove opening code block
+      convertedContent = convertedContent.replace(/^```[\w]*\n/, '');
+      // Remove closing code block
+      convertedContent = convertedContent.replace(/\n```$/, '');
+    }
 
     // Determine file extension and MIME type
     const getFileDetails = (format: string) => {
@@ -136,7 +174,7 @@ Please provide ONLY the converted content, without any explanations or additiona
     const { ext, mime } = getFileDetails(targetFormat);
     const outputFileName = fileName.replace(/\.[^.]+$/, ext);
 
-    console.log(`Conversion successful: ${outputFileName}`);
+    console.log(`Conversion successful: ${outputFileName} (${convertedContent.length} characters)`);
 
     return new Response(
       JSON.stringify({
