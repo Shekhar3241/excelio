@@ -4,18 +4,27 @@ import { Header } from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Upload, FileText, Download, AlertCircle } from "lucide-react";
+import { Upload, FileText, Download, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import * as pdfjsLib from "pdfjs-dist";
+
+pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
+
+interface Slide {
+  title: string;
+  content: string[];
+}
 
 const PdfToPowerPoint = () => {
   const { toast } = useToast();
   const [file, setFile] = useState<File | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [slides, setSlides] = useState<Slide[]>([]);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       setFile(e.target.files[0]);
+      setSlides([]);
     }
   };
 
@@ -31,22 +40,74 @@ const PdfToPowerPoint = () => {
 
     setIsProcessing(true);
     
-    toast({
-      title: "Processing",
-      description: "PDF to PowerPoint conversion is being processed...",
-    });
+    try {
+      const arrayBuffer = await file.arrayBuffer();
+      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+      let textContent = "";
 
-    setTimeout(() => {
-      setIsProcessing(false);
+      for (let i = 1; i <= pdf.numPages; i++) {
+        const page = await pdf.getPage(i);
+        const text = await page.getTextContent();
+        const pageText = text.items.map((item: any) => item.str).join(" ");
+        textContent += pageText + "\n\n";
+      }
+
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/convert-pdf-to-ppt`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          },
+          body: JSON.stringify({
+            pdfContent: textContent,
+            fileName: file.name,
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Conversion failed");
+      }
+
+      const data = await response.json();
+      setSlides(data.slides || []);
+
       toast({
-        title: "Info",
-        description: "Advanced conversion features coming soon!",
+        title: "Success",
+        description: "PDF converted to presentation format!",
       });
-    }, 2000);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to convert PDF file",
+        variant: "destructive",
+      });
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleDownload = () => {
+    if (slides.length === 0) return;
+
+    const content = slides.map((slide, index) => 
+      `Slide ${index + 1}: ${slide.title}\n\n${slide.content.join("\n")}\n\n---\n\n`
+    ).join("");
+
+    const blob = new Blob([content], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = file?.name.replace(".pdf", "-slides.txt") || "slides.txt";
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
   const handleReset = () => {
     setFile(null);
+    setSlides([]);
   };
 
   return (
@@ -65,16 +126,9 @@ const PdfToPowerPoint = () => {
               PDF to PowerPoint Converter
             </h1>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Transform PDF files into PowerPoint presentations
+              Transform PDF files into presentation slides
             </p>
           </div>
-
-          <Alert className="border-accent/50 bg-accent/10">
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription className="text-foreground">
-              Advanced PDF to PowerPoint conversion with slide optimization coming soon!
-            </AlertDescription>
-          </Alert>
 
           <Card className="border-border bg-card">
             <CardHeader>
@@ -110,20 +164,60 @@ const PdfToPowerPoint = () => {
                 </div>
               )}
 
-              <div className="flex gap-4">
-                <Button
-                  onClick={handleConvert}
-                  disabled={!file || isProcessing}
-                  className="flex-1"
-                >
-                  {isProcessing ? "Converting..." : "Convert to PowerPoint"}
-                </Button>
-                {file && (
-                  <Button onClick={handleReset} variant="outline">
-                    Reset
+              {slides.length === 0 ? (
+                <div className="flex gap-4">
+                  <Button
+                    onClick={handleConvert}
+                    disabled={!file || isProcessing}
+                    className="flex-1"
+                  >
+                    {isProcessing ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Converting...
+                      </>
+                    ) : (
+                      "Convert to PowerPoint"
+                    )}
                   </Button>
-                )}
-              </div>
+                  {file && (
+                    <Button onClick={handleReset} variant="outline">
+                      Reset
+                    </Button>
+                  )}
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <div className="p-4 bg-secondary rounded-lg">
+                    <p className="text-foreground font-medium mb-4">
+                      Converted to {slides.length} slides
+                    </p>
+                    <div className="space-y-3 max-h-96 overflow-y-auto">
+                      {slides.map((slide, index) => (
+                        <div key={index} className="p-3 bg-background rounded border">
+                          <h3 className="font-semibold text-foreground mb-2">
+                            Slide {index + 1}: {slide.title}
+                          </h3>
+                          <ul className="text-sm text-muted-foreground space-y-1">
+                            {slide.content.map((point, i) => (
+                              <li key={i}>• {point}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="flex gap-4">
+                    <Button onClick={handleDownload} className="flex-1">
+                      <Download className="h-4 w-4 mr-2" />
+                      Download Slides as Text
+                    </Button>
+                    <Button onClick={handleReset} variant="outline">
+                      Convert More
+                    </Button>
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
 
@@ -134,18 +228,18 @@ const PdfToPowerPoint = () => {
               </CardHeader>
               <CardContent>
                 <p className="text-sm text-muted-foreground">
-                  Each PDF page converts to an individual PowerPoint slide
+                  AI structures content into logical presentation slides
                 </p>
               </CardContent>
             </Card>
 
             <Card className="border-border bg-card">
               <CardHeader>
-                <CardTitle className="text-lg">Editable</CardTitle>
+                <CardTitle className="text-lg">Smart Formatting</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-sm text-muted-foreground">
-                  Get fully editable PowerPoint files ready for customization
+                  Content organized with titles and bullet points
                 </p>
               </CardContent>
             </Card>
@@ -156,7 +250,7 @@ const PdfToPowerPoint = () => {
               </CardHeader>
               <CardContent>
                 <p className="text-sm text-muted-foreground">
-                  Maintain image quality and text formatting in conversion
+                  Maintain content quality and readability in conversion
                 </p>
               </CardContent>
             </Card>

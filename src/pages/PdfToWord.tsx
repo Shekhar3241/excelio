@@ -4,18 +4,22 @@ import { Header } from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Upload, FileText, Download, AlertCircle } from "lucide-react";
+import { Upload, FileText, Download, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import * as pdfjsLib from "pdfjs-dist";
+
+pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
 
 const PdfToWord = () => {
   const { toast } = useToast();
   const [file, setFile] = useState<File | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [convertedContent, setConvertedContent] = useState<string | null>(null);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       setFile(e.target.files[0]);
+      setConvertedContent(null);
     }
   };
 
@@ -31,22 +35,70 @@ const PdfToWord = () => {
 
     setIsProcessing(true);
     
-    toast({
-      title: "Processing",
-      description: "PDF to Word conversion is being processed...",
-    });
+    try {
+      const arrayBuffer = await file.arrayBuffer();
+      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+      let textContent = "";
 
-    setTimeout(() => {
-      setIsProcessing(false);
+      for (let i = 1; i <= pdf.numPages; i++) {
+        const page = await pdf.getPage(i);
+        const text = await page.getTextContent();
+        const pageText = text.items.map((item: any) => item.str).join(" ");
+        textContent += pageText + "\n\n";
+      }
+
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/convert-pdf-to-word`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          },
+          body: JSON.stringify({
+            pdfContent: textContent,
+            fileName: file.name,
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Conversion failed");
+      }
+
+      const data = await response.json();
+      setConvertedContent(data.content);
+
       toast({
-        title: "Info",
-        description: "Advanced conversion features coming soon!",
+        title: "Success",
+        description: "PDF converted successfully!",
       });
-    }, 2000);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to convert PDF file",
+        variant: "destructive",
+      });
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleDownload = () => {
+    if (!convertedContent) return;
+
+    const blob = new Blob([convertedContent], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = file?.name.replace(".pdf", ".txt") || "converted.txt";
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
   const handleReset = () => {
     setFile(null);
+    setConvertedContent(null);
   };
 
   return (
@@ -65,16 +117,9 @@ const PdfToWord = () => {
               PDF to Word Converter
             </h1>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Convert PDF documents to editable Word files instantly
+              Convert PDF documents to editable text format
             </p>
           </div>
-
-          <Alert className="border-accent/50 bg-accent/10">
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription className="text-foreground">
-              Advanced PDF to Word conversion with layout preservation coming soon!
-            </AlertDescription>
-          </Alert>
 
           <Card className="border-border bg-card">
             <CardHeader>
@@ -110,20 +155,47 @@ const PdfToWord = () => {
                 </div>
               )}
 
-              <div className="flex gap-4">
-                <Button
-                  onClick={handleConvert}
-                  disabled={!file || isProcessing}
-                  className="flex-1"
-                >
-                  {isProcessing ? "Converting..." : "Convert to Word"}
-                </Button>
-                {file && (
-                  <Button onClick={handleReset} variant="outline">
-                    Reset
+              {!convertedContent ? (
+                <div className="flex gap-4">
+                  <Button
+                    onClick={handleConvert}
+                    disabled={!file || isProcessing}
+                    className="flex-1"
+                  >
+                    {isProcessing ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Converting...
+                      </>
+                    ) : (
+                      "Convert to Word"
+                    )}
                   </Button>
-                )}
-              </div>
+                  {file && (
+                    <Button onClick={handleReset} variant="outline">
+                      Reset
+                    </Button>
+                  )}
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <div className="p-4 bg-secondary rounded-lg">
+                    <p className="text-foreground font-medium mb-2">PDF Converted Successfully!</p>
+                    <div className="max-h-64 overflow-y-auto p-3 bg-background rounded border text-sm text-foreground whitespace-pre-wrap">
+                      {convertedContent}
+                    </div>
+                  </div>
+                  <div className="flex gap-4">
+                    <Button onClick={handleDownload} className="flex-1">
+                      <Download className="h-4 w-4 mr-2" />
+                      Download as Text
+                    </Button>
+                    <Button onClick={handleReset} variant="outline">
+                      Convert More
+                    </Button>
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
 
@@ -134,7 +206,7 @@ const PdfToWord = () => {
               </CardHeader>
               <CardContent>
                 <p className="text-sm text-muted-foreground">
-                  Preserve formatting, fonts, and layout during conversion
+                  AI-powered conversion preserves content and structure
                 </p>
               </CardContent>
             </Card>
@@ -145,7 +217,7 @@ const PdfToWord = () => {
               </CardHeader>
               <CardContent>
                 <p className="text-sm text-muted-foreground">
-                  Your files are processed securely and deleted after conversion
+                  Your files are processed securely and not stored
                 </p>
               </CardContent>
             </Card>
@@ -156,7 +228,7 @@ const PdfToWord = () => {
               </CardHeader>
               <CardContent>
                 <p className="text-sm text-muted-foreground">
-                  Quick conversion with instant download of your Word file
+                  Quick conversion with instant download
                 </p>
               </CardContent>
             </Card>
