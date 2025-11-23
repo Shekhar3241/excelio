@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Helmet } from "react-helmet";
 import { Header } from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Loader2, Paperclip, ArrowUp } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import * as XLSX from 'xlsx';
+import * as pdfjsLib from 'pdfjs-dist';
 
 interface Message {
   role: "user" | "assistant";
@@ -21,8 +23,64 @@ const AIFormulaGenerator = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
+  useEffect(() => {
+    pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
+  }, []);
+
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  const parseExcelFile = async (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const data = new Uint8Array(e.target?.result as ArrayBuffer);
+          const workbook = XLSX.read(data, { type: 'array' });
+          let result = `Excel File: ${file.name}\n\n`;
+          
+          workbook.SheetNames.forEach(sheetName => {
+            const worksheet = workbook.Sheets[sheetName];
+            const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+            result += `Sheet: ${sheetName}\n`;
+            result += JSON.stringify(jsonData.slice(0, 100), null, 2) + '\n\n';
+          });
+          
+          resolve(result);
+        } catch (error) {
+          reject(error);
+        }
+      };
+      reader.onerror = reject;
+      reader.readAsArrayBuffer(file);
+    });
+  };
+
+  const parsePdfFile = async (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        try {
+          const typedArray = new Uint8Array(e.target?.result as ArrayBuffer);
+          const pdf = await pdfjsLib.getDocument(typedArray).promise;
+          let fullText = `PDF File: ${file.name}\n\n`;
+          
+          for (let i = 1; i <= Math.min(pdf.numPages, 10); i++) {
+            const page = await pdf.getPage(i);
+            const textContent = await page.getTextContent();
+            const pageText = textContent.items.map((item: any) => item.str).join(' ');
+            fullText += `Page ${i}:\n${pageText}\n\n`;
+          }
+          
+          resolve(fullText);
+        } catch (error) {
+          reject(error);
+        }
+      };
+      reader.onerror = reject;
+      reader.readAsArrayBuffer(file);
+    });
   };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -49,7 +107,8 @@ const AIFormulaGenerator = () => {
       content: input || "Analyzing uploaded files...",
     };
 
-    setMessages((prev) => [...prev, userMessage]);
+    const newMessages = [...messages, userMessage];
+    setMessages(newMessages);
     setInput("");
     setIsLoading(true);
 
@@ -59,16 +118,21 @@ const AIFormulaGenerator = () => {
       if (uploadedFiles.length > 0) {
         for (const file of uploadedFiles) {
           try {
-            if (file.type.includes('pdf')) {
-              fileContext += `\n\n[PDF File: ${file.name} - PDF parsing in progress]`;
-            } else if (file.type.includes('sheet') || file.name.endsWith('.xlsx') || file.name.endsWith('.xls')) {
-              fileContext += `\n\n[Excel File: ${file.name} - Excel data analysis available]`;
-            } else {
+            if (file.name.endsWith('.xlsx') || file.name.endsWith('.xls')) {
+              const excelData = await parseExcelFile(file);
+              fileContext += `\n\n${excelData}`;
+            } else if (file.type === 'application/pdf' || file.name.endsWith('.pdf')) {
+              const pdfText = await parsePdfFile(file);
+              fileContext += `\n\n${pdfText}`;
+            } else if (file.type.startsWith('text/') || file.name.endsWith('.txt') || file.name.endsWith('.csv')) {
               const text = await file.text();
               fileContext += `\n\nFile: ${file.name}\n${text.substring(0, 10000)}`;
+            } else {
+              fileContext += `\n\n[File: ${file.name} - Binary file, type: ${file.type}]`;
             }
           } catch (e) {
-            fileContext += `\n\n[File: ${file.name} - Binary file attached]`;
+            console.error('Error parsing file:', e);
+            fileContext += `\n\n[File: ${file.name} - Error parsing file]`;
           }
         }
         setUploadedFiles([]);
@@ -83,7 +147,7 @@ const AIFormulaGenerator = () => {
             Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
           },
           body: JSON.stringify({
-            messages: [...messages, userMessage],
+            messages: newMessages,
             fileContext,
           }),
         }
@@ -114,14 +178,15 @@ const AIFormulaGenerator = () => {
                 if (content) {
                   aiResponse += content;
                   setMessages((prev) => {
-                    const newMessages = [...prev];
-                    if (newMessages[newMessages.length - 1]?.role === "assistant") {
-                      newMessages[newMessages.length - 1].content = aiResponse;
+                    const updated = [...prev];
+                    if (updated[updated.length - 1]?.role === "assistant") {
+                      updated[updated.length - 1].content = aiResponse;
                     } else {
-                      newMessages.push({ role: "assistant", content: aiResponse });
+                      updated.push({ role: "assistant", content: aiResponse });
                     }
-                    return newMessages;
+                    return updated;
                   });
+                  setTimeout(scrollToBottom, 0);
                 }
               } catch (e) {
                 // Skip invalid JSON
