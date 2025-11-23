@@ -43,6 +43,27 @@ const ImageToPdf = () => {
           image = await pdfDoc.embedJpg(arrayBuffer);
         } else if (file.type === 'image/png') {
           image = await pdfDoc.embedPng(arrayBuffer);
+        } else if (file.type === 'image/webp') {
+          // Convert WebP to PNG first
+          const blob = new Blob([arrayBuffer], { type: 'image/webp' });
+          const url = URL.createObjectURL(blob);
+          const img = new Image();
+          await new Promise((resolve, reject) => {
+            img.onload = resolve;
+            img.onerror = reject;
+            img.src = url;
+          });
+          const canvas = document.createElement('canvas');
+          canvas.width = img.width;
+          canvas.height = img.height;
+          const ctx = canvas.getContext('2d');
+          ctx?.drawImage(img, 0, 0);
+          const pngBlob = await new Promise<Blob>((resolve) => {
+            canvas.toBlob((blob) => resolve(blob!), 'image/png');
+          });
+          const pngArrayBuffer = await pngBlob.arrayBuffer();
+          image = await pdfDoc.embedPng(pngArrayBuffer);
+          URL.revokeObjectURL(url);
         } else {
           continue; // Skip unsupported formats
         }
@@ -122,7 +143,7 @@ const ImageToPdf = () => {
               <div className="border-2 border-dashed border-border rounded-lg p-8 text-center hover:border-accent transition-colors">
                 <input
                   type="file"
-                  accept="image/jpeg,image/jpg,image/png"
+                  accept="image/jpeg,image/jpg,image/png,image/webp"
                   multiple
                   onChange={handleFileSelect}
                   className="hidden"
@@ -131,7 +152,7 @@ const ImageToPdf = () => {
                 <label htmlFor="image-upload" className="cursor-pointer">
                   <Upload className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
                   <p className="text-foreground font-medium mb-2">Click to upload images</p>
-                  <p className="text-sm text-muted-foreground">or drag and drop (JPG, PNG)</p>
+                  <p className="text-sm text-muted-foreground">or drag and drop (JPG, PNG, WebP)</p>
                 </label>
               </div>
 

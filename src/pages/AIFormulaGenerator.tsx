@@ -59,6 +59,19 @@ const AIFormulaGenerator = () => {
     });
   };
 
+  const parseWordFile = async (file: File): Promise<string> => {
+    return new Promise(async (resolve, reject) => {
+      try {
+        const mammoth = await import('mammoth/mammoth.browser');
+        const arrayBuffer = await file.arrayBuffer();
+        const result = await mammoth.extractRawText({ arrayBuffer });
+        resolve(`Word Document: ${file.name}\n\n${result.value}`);
+      } catch (error) {
+        reject(error);
+      }
+    });
+  };
+
   const parsePdfFile = async (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -126,9 +139,14 @@ const AIFormulaGenerator = () => {
             } else if (file.type === 'application/pdf' || file.name.endsWith('.pdf')) {
               const pdfText = await parsePdfFile(file);
               fileContext += `\n\n${pdfText}`;
-            } else if (file.type.startsWith('text/') || file.name.endsWith('.txt') || file.name.endsWith('.csv')) {
+            } else if (file.name.endsWith('.docx') || file.name.endsWith('.doc')) {
+              const wordText = await parseWordFile(file);
+              fileContext += `\n\n${wordText}`;
+            } else if (file.type.startsWith('text/') || file.name.endsWith('.txt') || file.name.endsWith('.csv') || file.name.endsWith('.json')) {
               const text = await file.text();
               fileContext += `\n\nFile: ${file.name}\n${text.substring(0, 10000)}`;
+            } else if (file.type.startsWith('image/')) {
+              fileContext += `\n\n[File: ${file.name} - Image file uploaded for visual analysis]`;
             } else {
               fileContext += `\n\n[File: ${file.name} - Binary file, type: ${file.type}]`;
             }
@@ -236,7 +254,7 @@ const AIFormulaGenerator = () => {
                     ref={fileInputRef}
                     type="file"
                     multiple
-                    accept=".pdf,.xlsx,.xls,.doc,.docx,.txt,.csv"
+                    accept=".pdf,.xlsx,.xls,.doc,.docx,.txt,.csv,.json,image/*"
                     onChange={handleFileUpload}
                     className="hidden"
                   />
@@ -348,7 +366,7 @@ const AIFormulaGenerator = () => {
                       ref={fileInputRef}
                       type="file"
                       multiple
-                      accept=".pdf,.xlsx,.xls,.doc,.docx,.txt,.csv"
+                      accept=".pdf,.xlsx,.xls,.doc,.docx,.txt,.csv,.json,image/*"
                       onChange={handleFileUpload}
                       className="hidden"
                     />
