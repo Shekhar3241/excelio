@@ -48,8 +48,19 @@ const CompressPdf = () => {
       const arrayBuffer = await file.arrayBuffer();
       const pdfDoc = await PDFDocument.load(arrayBuffer);
       
+      // Remove metadata to reduce size
+      pdfDoc.setTitle('');
+      pdfDoc.setAuthor('');
+      pdfDoc.setSubject('');
+      pdfDoc.setKeywords([]);
+      pdfDoc.setProducer('');
+      pdfDoc.setCreator('');
+      
+      // Save with compression options
       const compressedPdfBytes = await pdfDoc.save({
-        useObjectStreams: false,
+        useObjectStreams: true, // Enable object streams for better compression
+        addDefaultPage: false,
+        objectsPerTick: 50,
       });
 
       const blob = new Blob([compressedPdfBytes as any], { type: "application/pdf" });
@@ -57,11 +68,19 @@ const CompressPdf = () => {
       setCompressedPdfUrl(url);
       setCompressedSize(blob.size);
 
-      toast({
-        title: "Success",
-        description: "PDF compressed successfully!",
-      });
+      if (blob.size >= file.size) {
+        toast({
+          title: "Notice",
+          description: "This PDF is already optimized. File size may not reduce significantly.",
+        });
+      } else {
+        toast({
+          title: "Success",
+          description: "PDF compressed successfully!",
+        });
+      }
     } catch (error) {
+      console.error('Compression error:', error);
       toast({
         title: "Error",
         description: "Failed to compress PDF file",
