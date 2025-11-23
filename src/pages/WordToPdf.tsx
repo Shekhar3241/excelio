@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Upload, FileText, Download, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
 
 const WordToPdf = () => {
   const { toast } = useToast();
@@ -32,37 +31,73 @@ const WordToPdf = () => {
     setIsProcessing(true);
     
     try {
-      // Read file content
-      const arrayBuffer = await file.arrayBuffer();
-      const base64 = btoa(
-        new Uint8Array(arrayBuffer).reduce(
-          (data, byte) => data + String.fromCharCode(byte),
-          ''
-        )
-      );
+      // Import required libraries dynamically
+      const mammoth = await import('mammoth/mammoth.browser');
+      const { default: jsPDF } = await import('jspdf');
 
-      const { data, error } = await supabase.functions.invoke('word-to-pdf', {
-        body: {
-          fileContent: base64,
-          fileName: file.name,
+      // Read the Word file
+      const arrayBuffer = await file.arrayBuffer();
+      
+      // Convert Word to HTML
+      const result = await mammoth.convertToHtml({ arrayBuffer });
+      const html = result.value;
+
+      // Create PDF from HTML content
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      const margin = 15;
+      const maxWidth = pageWidth - (margin * 2);
+
+      // Simple HTML to PDF conversion
+      const tempDiv = document.createElement('div');
+      tempDiv.innerHTML = html;
+      tempDiv.style.width = `${maxWidth * 3.78}px`; // Convert mm to px (approx)
+      document.body.appendChild(tempDiv);
+
+      let yPosition = margin;
+      const lineHeight = 7;
+
+      // Extract text from HTML
+      const elements = tempDiv.querySelectorAll('p, h1, h2, h3, h4, h5, h6, li');
+      
+      elements.forEach((element) => {
+        const text = element.textContent || '';
+        const tag = element.tagName.toLowerCase();
+        
+        // Set font based on element type
+        if (tag.startsWith('h')) {
+          const size = tag === 'h1' ? 16 : tag === 'h2' ? 14 : 12;
+          pdf.setFontSize(size);
+          pdf.setFont(undefined, 'bold');
+        } else {
+          pdf.setFontSize(10);
+          pdf.setFont(undefined, 'normal');
         }
+
+        // Split text to fit width
+        const lines = pdf.splitTextToSize(text, maxWidth);
+        
+        lines.forEach((line: string) => {
+          if (yPosition + lineHeight > pageHeight - margin) {
+            pdf.addPage();
+            yPosition = margin;
+          }
+          pdf.text(line, margin, yPosition);
+          yPosition += lineHeight;
+        });
+
+        yPosition += 3; // Add spacing between elements
       });
 
-      if (error) throw error;
+      document.body.removeChild(tempDiv);
 
       // Download the PDF
-      const byteCharacters = atob(data.content);
-      const byteNumbers = new Array(byteCharacters.length);
-      for (let i = 0; i < byteCharacters.length; i++) {
-        byteNumbers[i] = byteCharacters.charCodeAt(i);
-      }
-      const byteArray = new Uint8Array(byteNumbers);
-      const blob = new Blob([byteArray], { type: 'application/pdf' });
-      
-      const url = URL.createObjectURL(blob);
+      const pdfBlob = pdf.output('blob');
+      const url = URL.createObjectURL(pdfBlob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = data.fileName;
+      a.download = file.name.replace(/\.(docx?|doc)$/i, '.pdf');
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -70,7 +105,7 @@ const WordToPdf = () => {
 
       toast({
         title: "Success",
-        description: "Word document converted to PDF!",
+        description: "Word document converted to PDF successfully!",
       });
       
       setFile(null);
@@ -78,7 +113,7 @@ const WordToPdf = () => {
       console.error('Conversion error:', error);
       toast({
         title: "Error",
-        description: "Failed to convert Word document. Feature coming soon!",
+        description: error instanceof Error ? error.message : "Failed to convert Word document",
         variant: "destructive",
       });
     } finally {
