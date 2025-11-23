@@ -4,7 +4,6 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "@/hooks/use-theme";
-import { ChatBot } from "@/components/ChatBot";
 import Index from "./pages/Index";
 import About from "./pages/About";
 import Category from "./pages/Category";
@@ -42,7 +41,6 @@ const App = () => (
       <TooltipProvider>
         <Toaster />
         <Sonner />
-        <ChatBot />
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Index />} />
