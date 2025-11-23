@@ -57,5 +57,37 @@ export const tools: Tool[] = [
     icon: Code2,
     iconColor: "hsl(15, 75%, 60%)",
     path: "/vba-generator"
+  },
+  {
+    id: "merge-pdf",
+    name: "Merge PDF Files",
+    description: "Combine multiple PDF files into a single document with ease.",
+    icon: FileText,
+    iconColor: "hsl(280, 75%, 60%)",
+    path: "/merge-pdf"
+  },
+  {
+    id: "compress-pdf",
+    name: "Compress PDF",
+    description: "Reduce PDF file size while maintaining quality.",
+    icon: Hash,
+    iconColor: "hsl(320, 75%, 60%)",
+    path: "/compress-pdf"
+  },
+  {
+    id: "pdf-to-word",
+    name: "PDF to Word Converter",
+    description: "Convert PDF documents to editable Word files instantly.",
+    icon: FileCode,
+    iconColor: "hsl(210, 75%, 60%)",
+    path: "/pdf-to-word"
+  },
+  {
+    id: "pdf-to-powerpoint",
+    name: "PDF to PowerPoint Converter",
+    description: "Transform PDF files into PowerPoint presentations.",
+    icon: Table,
+    iconColor: "hsl(25, 75%, 60%)",
+    path: "/pdf-to-powerpoint"
   }
 ];
