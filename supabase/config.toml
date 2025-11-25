@@ -14,3 +14,6 @@ verify_jwt = false
 
 [functions.ai-file-convert]
 verify_jwt = false
+
+[functions.cloudconvert-file]
+verify_jwt = false
