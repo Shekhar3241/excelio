@@ -149,11 +149,10 @@ const UnifiedConverter = () => {
 
       const fileBase64 = await fileToBase64(selectedFile);
       
-      const { data, error } = await supabase.functions.invoke('ai-file-convert', {
+      const { data, error } = await supabase.functions.invoke('cloudconvert-file', {
         body: {
           fileBase64,
           fileName: selectedFile.name,
-          fileType: selectedFile.type,
           targetFormat: selectedTool.targetFormat,
         }
       });
@@ -163,7 +162,20 @@ const UnifiedConverter = () => {
 
       if (error) throw error;
 
-      const blob = new Blob([data.content], { type: data.mimeType || 'application/octet-stream' });
+      // Handle base64 response
+      let blobData;
+      if (data.isBase64) {
+        const binaryString = atob(data.content);
+        const bytes = new Uint8Array(binaryString.length);
+        for (let i = 0; i < binaryString.length; i++) {
+          bytes[i] = binaryString.charCodeAt(i);
+        }
+        blobData = bytes;
+      } else {
+        blobData = data.content;
+      }
+
+      const blob = new Blob([blobData], { type: data.mimeType || 'application/octet-stream' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
