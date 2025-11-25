@@ -130,14 +130,28 @@ const UnifiedConverter = () => {
       reader.onload = () => {
         const base64String = reader.result as string;
         const base64Content = base64String.split(',')[1];
+        console.log('File read successfully:', file.name, 'Size:', file.size, 'Base64 length:', base64Content.length);
         resolve(base64Content);
       };
-      reader.onerror = error => reject(error);
+      reader.onerror = error => {
+        console.error('FileReader error:', error);
+        reject(error);
+      };
     });
   };
 
   const handleConvert = async () => {
     if (!selectedFile || !selectedTool) return;
+
+    // Validate file size
+    if (selectedFile.size < 100) {
+      toast({
+        title: "Invalid file",
+        description: "The file appears to be empty or corrupted. Please select a valid file.",
+        variant: "destructive",
+      });
+      return;
+    }
 
     setIsProcessing(true);
     setProgress(0);
@@ -147,6 +161,7 @@ const UnifiedConverter = () => {
         setProgress((prev) => (prev >= 90 ? 90 : prev + 10));
       }, 300);
 
+      console.log('Converting file:', selectedFile.name, 'Type:', selectedFile.type, 'Size:', selectedFile.size);
       const fileBase64 = await fileToBase64(selectedFile);
       
       const { data, error } = await supabase.functions.invoke('cloudconvert-file', {
@@ -160,7 +175,15 @@ const UnifiedConverter = () => {
       clearInterval(progressInterval);
       setProgress(100);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase function error:', error);
+        throw error;
+      }
+
+      if (data?.error) {
+        console.error('CloudConvert error:', data.error);
+        throw new Error(data.error);
+      }
 
       // Handle base64 response
       let blobData;
@@ -195,9 +218,22 @@ const UnifiedConverter = () => {
       }, 1000);
     } catch (error) {
       console.error('Conversion error:', error);
+      
+      let errorMessage = "An error occurred during conversion";
+      if (error instanceof Error) {
+        // Extract meaningful error from CloudConvert response
+        if (error.message.includes('INVALID_FILE_EXTENSION')) {
+          errorMessage = "The file format is not valid or is corrupted. Please check your file and try again.";
+        } else if (error.message.includes('INPUT_TASK_FAILED')) {
+          errorMessage = "Failed to process the file. Please ensure the file is not corrupted.";
+        } else {
+          errorMessage = error.message;
+        }
+      }
+      
       toast({
         title: "Conversion failed",
-        description: error instanceof Error ? error.message : "An error occurred during conversion",
+        description: errorMessage,
         variant: "destructive",
       });
       setProgress(0);
