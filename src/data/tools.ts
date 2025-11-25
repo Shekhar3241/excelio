@@ -27,9 +27,9 @@ export const tools: Tool[] = [
     path: "/sentiment-analysis"
   },
   {
-    id: "ai-file-converter",
-    name: "AI File Converter",
-    description: "Convert any file to any format using AI. PDF↔Excel↔Word, Images to PDF, and more - all in one intelligent tool.",
+    id: "one-page-tools",
+    name: "One Page Tools",
+    description: "27 free PDF tools for managing, editing, and converting PDF files directly in your browser.",
     icon: FileText,
     iconColor: "hsl(280, 75%, 60%)",
     path: "/converter"
