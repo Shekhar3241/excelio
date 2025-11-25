@@ -27,8 +27,8 @@ export const tools: Tool[] = [
     path: "/sentiment-analysis"
   },
   {
-    id: "one-page-tools",
-    name: "One Page Tools",
+    id: "convertx",
+    name: "ConvertX",
     description: "27 free PDF tools for managing, editing, and converting PDF files directly in your browser.",
     icon: FileText,
     iconColor: "hsl(280, 75%, 60%)",
