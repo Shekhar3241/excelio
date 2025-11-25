@@ -96,7 +96,14 @@ serve(async (req) => {
       console.log(`Job status (attempt ${attempts}):`, jobStatus);
 
       if (jobStatus === 'error' || jobStatus === 'failed') {
-        throw new Error(`Conversion failed: ${JSON.stringify(statusData.data.tasks)}`);
+        const errorTasks = Object.values(statusData.data.tasks).filter(
+          (task: any) => task.status === 'error'
+        );
+        const errorDetails = errorTasks.map((task: any) => 
+          `${task.name}: ${task.message || task.code}`
+        ).join('; ');
+        console.error('Conversion failed:', errorDetails);
+        throw new Error(`Conversion failed: ${errorDetails}`);
       }
 
       if (jobStatus === 'finished') {
