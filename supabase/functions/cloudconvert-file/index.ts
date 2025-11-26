@@ -108,16 +108,16 @@ serve(async (req) => {
       }
 
       if (jobStatus === 'finished') {
-        // Get export task by name to avoid circular reference issues
+        // Tasks are returned as an array, find the export task by name
         const tasks = statusData.data.tasks;
-        console.log('Available tasks:', Object.keys(tasks));
+        console.log('Available tasks:', tasks.map((t: any) => t.name).join(', '));
         
-        const exportTask = tasks['export-file'];
+        const exportTask = tasks.find((task: any) => task.name === 'export-file');
         console.log('Export task status:', exportTask?.status);
         console.log('Export task operation:', exportTask?.operation);
 
         if (!exportTask) {
-          console.error('Export task not found in tasks');
+          console.error('Export task not found in tasks:', tasks.map((t: any) => t.name));
           throw new Error('Export task not found');
         }
 
