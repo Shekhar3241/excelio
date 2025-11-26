@@ -108,29 +108,24 @@ serve(async (req) => {
       }
 
       if (jobStatus === 'finished') {
-        // Find the export task and get the download URL
-        const exportTask = Object.values(statusData.data.tasks).find(
-          (task: any) => task.operation === 'export/url' && task.status === 'finished'
-        ) as any;
+        // Get export task by name to avoid circular reference issues
+        const tasks = statusData.data.tasks;
+        const exportTask = tasks['export-file'];
 
-        if (!exportTask) {
-          console.error('No export task found in completed job');
-          throw new Error('No export task found in completed job');
+        if (!exportTask || exportTask.status !== 'finished') {
+          console.error('Export task not finished');
+          throw new Error('Export task not completed');
         }
 
-        if (!exportTask.result || !exportTask.result.files || !Array.isArray(exportTask.result.files) || exportTask.result.files.length === 0) {
-          console.error('No files found in export task result');
-          throw new Error('No files found in export task result');
+        const downloadUrl = exportTask.result?.files?.[0]?.url;
+        const outputFileName = exportTask.result?.files?.[0]?.filename;
+        
+        if (!downloadUrl || !outputFileName) {
+          console.error('Missing download URL or filename');
+          throw new Error('No download URL found in export result');
         }
 
-        const fileInfo = exportTask.result.files[0];
-        if (!fileInfo || !fileInfo.url) {
-          console.error('No download URL found in file info');
-          throw new Error('No download URL found in file info');
-        }
-
-        const downloadUrl = fileInfo.url;
-        const outputFileName = fileInfo.filename;
+        console.log('Download URL retrieved:', outputFileName);
 
         // Download the converted file
         const fileResponse = await fetch(downloadUrl);
