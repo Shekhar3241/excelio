@@ -15,11 +15,11 @@ export function ToolCard({ tool }: ToolCardProps) {
       <Card className="h-full transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 border-border/50 bg-card cursor-pointer group rounded-3xl overflow-hidden backdrop-blur-sm hover:border-primary/30">
         <CardHeader className="space-y-4 p-6">
           {tool.customLogo ? (
-            <div className="w-16 h-16 flex items-center justify-center transition-all duration-300 group-hover:scale-110">
+            <div className="w-full h-24 flex items-center justify-center transition-all duration-300 group-hover:scale-110 group-hover:drop-shadow-[0_0_20px_rgba(0,212,255,0.6)]">
               <img 
                 src={tool.customLogo} 
                 alt={tool.name} 
-                className="w-full h-full object-contain"
+                className="w-auto h-full object-contain"
               />
             </div>
           ) : (

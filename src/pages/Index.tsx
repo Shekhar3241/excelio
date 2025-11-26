@@ -226,14 +226,6 @@ const Index = () => {
       <section className="py-12 sm:py-16 px-4 bg-background">
         <div className="container mx-auto max-w-7xl">
           <div className="text-center mb-10 animate-fade-in">
-            {/* ConvertX Logo */}
-            <div className="flex justify-center mb-6">
-              <img 
-                src={convertxLogo} 
-                alt="ConvertX" 
-                className="h-32 sm:h-40 md:h-48 w-auto animate-scale-in"
-              />
-            </div>
             <p className="text-sm text-primary font-bold mb-2 uppercase tracking-wider">// AI-POWERED TOOLS //</p>
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold mb-4">Our AI Apps & Tools</h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
