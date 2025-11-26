@@ -86,29 +86,51 @@ const AIFormulaGenerator = () => {
 
   const exportToWord = async (content: string, index: number) => {
     try {
-      const htmlDocx = await import('html-docx-js/dist/html-docx');
+      const { Document, Packer, Paragraph, TextRun, HeadingLevel } = await import('docx');
       
-      const htmlContent = `
-        <!DOCTYPE html>
-        <html>
-          <head>
-            <meta charset="UTF-8">
-            <style>
-              body { font-family: Arial, sans-serif; font-size: 11pt; line-height: 1.6; }
-              h1 { font-size: 16pt; font-weight: bold; margin-bottom: 10pt; }
-              p { margin-bottom: 8pt; }
-              code { background-color: #f4f4f4; padding: 2px 4px; font-family: 'Courier New', monospace; }
-              pre { background-color: #f4f4f4; padding: 10px; border-radius: 4px; overflow-x: auto; }
-            </style>
-          </head>
-          <body>
-            <h1>Analysis Results</h1>
-            <div>${content.replace(/\n/g, '<br>')}</div>
-          </body>
-        </html>
-      `;
+      // Split content into lines and create paragraphs
+      const lines = content.split('\n');
+      const paragraphs = lines.map(line => {
+        // Check if line is a heading
+        if (line.startsWith('# ')) {
+          return new Paragraph({
+            text: line.substring(2),
+            heading: HeadingLevel.HEADING_1,
+          });
+        } else if (line.startsWith('## ')) {
+          return new Paragraph({
+            text: line.substring(3),
+            heading: HeadingLevel.HEADING_2,
+          });
+        } else if (line.startsWith('### ')) {
+          return new Paragraph({
+            text: line.substring(4),
+            heading: HeadingLevel.HEADING_3,
+          });
+        } else if (line.trim() === '') {
+          return new Paragraph({ text: '' });
+        } else {
+          // Regular paragraph
+          return new Paragraph({
+            children: [new TextRun({ text: line })],
+          });
+        }
+      });
       
-      const blob = htmlDocx.asBlob(htmlContent);
+      const doc = new Document({
+        sections: [{
+          properties: {},
+          children: [
+            new Paragraph({
+              text: "Analysis Results",
+              heading: HeadingLevel.TITLE,
+            }),
+            ...paragraphs,
+          ],
+        }],
+      });
+      
+      const blob = await Packer.toBlob(doc);
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
