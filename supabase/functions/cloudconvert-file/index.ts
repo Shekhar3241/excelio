@@ -110,18 +110,27 @@ serve(async (req) => {
       if (jobStatus === 'finished') {
         // Get export task by name to avoid circular reference issues
         const tasks = statusData.data.tasks;
+        console.log('Available tasks:', Object.keys(tasks));
+        
         const exportTask = tasks['export-file'];
+        console.log('Export task status:', exportTask?.status);
+        console.log('Export task operation:', exportTask?.operation);
 
-        if (!exportTask || exportTask.status !== 'finished') {
-          console.error('Export task not finished');
-          throw new Error('Export task not completed');
+        if (!exportTask) {
+          console.error('Export task not found in tasks');
+          throw new Error('Export task not found');
+        }
+
+        if (exportTask.status !== 'finished') {
+          console.error('Export task status:', exportTask.status);
+          throw new Error(`Export task not completed: ${exportTask.status}`);
         }
 
         const downloadUrl = exportTask.result?.files?.[0]?.url;
         const outputFileName = exportTask.result?.files?.[0]?.filename;
         
         if (!downloadUrl || !outputFileName) {
-          console.error('Missing download URL or filename');
+          console.error('Export task result:', exportTask.result);
           throw new Error('No download URL found in export result');
         }
 
