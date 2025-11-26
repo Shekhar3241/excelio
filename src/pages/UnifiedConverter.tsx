@@ -207,7 +207,7 @@ const UnifiedConverter = () => {
               <img 
                 src={convertxLogo} 
                 alt="ConvertX" 
-                className="h-24 w-auto animate-fade-in"
+                className="h-32 sm:h-40 md:h-48 lg:h-56 w-auto animate-fade-in"
               />
             </div>
             
