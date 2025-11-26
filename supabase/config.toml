@@ -3,17 +3,17 @@ project_id = "hpdnubbqftbsaxthlagt"
 [functions.ai-search]
 verify_jwt = false
 
-[functions.ai-pdf-convert]
-verify_jwt = false
-
 [functions.chat-assistant]
 verify_jwt = false
 
-[functions.word-to-pdf]
-verify_jwt = false
-
-[functions.ai-file-convert]
-verify_jwt = false
-
 [functions.cloudconvert-file]
+verify_jwt = false
+
+[functions.analyze-sentiment]
+verify_jwt = false
+
+[functions.generate-vba]
+verify_jwt = false
+
+[functions.generate-sql]
 verify_jwt = false
