@@ -166,7 +166,7 @@ const AIFormulaGenerator = () => {
       }
 
       const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/conversational-ai`,
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/analyze-data`,
         {
           method: "POST",
           headers: {
