@@ -185,10 +185,12 @@ function getOutputFormat(targetFormat: string): string {
     'excel': 'xlsx',
     'powerpoint': 'pptx',
     'jpg': 'jpg',
+    'png': 'png',
     'pdf': 'pdf',
     'text': 'txt',
     'html': 'html',
     'markdown': 'md',
+    'csv': 'csv',
     'compressed-pdf': 'pdf',
     'merged-pdf': 'pdf',
     'split-pdf': 'pdf',
@@ -217,6 +219,7 @@ function getMimeType(format: string): string {
     'txt': 'text/plain',
     'html': 'text/html',
     'md': 'text/markdown',
+    'csv': 'text/csv',
   };
 
   return mimeTypes[format] || 'application/octet-stream';

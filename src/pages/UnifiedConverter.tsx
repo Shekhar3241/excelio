@@ -22,11 +22,11 @@ interface ConversionTool {
 
 const conversionTools: ConversionTool[] = [
   // Convert TO PDF
-  { id: "word-to-pdf", name: "Word to PDF", description: "Convert Word documents to PDF", icon: FileText, color: "#E74C3C", from: "docx", to: "pdf", category: "to-pdf" },
-  { id: "excel-to-pdf", name: "Excel to PDF", description: "Convert Excel spreadsheets to PDF", icon: Table, color: "#27AE60", from: "xlsx", to: "pdf", category: "to-pdf" },
-  { id: "ppt-to-pdf", name: "PowerPoint to PDF", description: "Convert presentations to PDF", icon: FileText, color: "#E67E22", from: "pptx", to: "pdf", category: "to-pdf" },
-  { id: "image-to-pdf", name: "Image to PDF", description: "Convert JPG, PNG images to PDF", icon: Image, color: "#9B59B6", from: "jpg", to: "pdf", category: "to-pdf" },
-  { id: "html-to-pdf", name: "HTML to PDF", description: "Convert web pages to PDF", icon: Code, color: "#3498DB", from: "html", to: "pdf", category: "to-pdf" },
+  { id: "word-to-pdf", name: "Word to PDF", description: "Convert Word documents to PDF", icon: FileText, color: "#E74C3C", from: "docx,doc", to: "pdf", category: "to-pdf" },
+  { id: "excel-to-pdf", name: "Excel to PDF", description: "Convert Excel spreadsheets to PDF", icon: Table, color: "#27AE60", from: "xlsx,xls", to: "pdf", category: "to-pdf" },
+  { id: "ppt-to-pdf", name: "PowerPoint to PDF", description: "Convert presentations to PDF", icon: FileText, color: "#E67E22", from: "pptx,ppt", to: "pdf", category: "to-pdf" },
+  { id: "image-to-pdf", name: "Image to PDF", description: "Convert JPG, PNG images to PDF", icon: Image, color: "#9B59B6", from: "jpg,jpeg,png", to: "pdf", category: "to-pdf" },
+  { id: "html-to-pdf", name: "HTML to PDF", description: "Convert web pages to PDF", icon: Code, color: "#3498DB", from: "html,htm", to: "pdf", category: "to-pdf" },
   
   // Convert FROM PDF
   { id: "pdf-to-word", name: "PDF to Word", description: "Convert PDF to editable Word document", icon: FileText, color: "#2980B9", from: "pdf", to: "word", category: "from-pdf" },
@@ -35,12 +35,12 @@ const conversionTools: ConversionTool[] = [
   { id: "pdf-to-jpg", name: "PDF to JPG", description: "Convert PDF pages to images", icon: Image, color: "#8E44AD", from: "pdf", to: "jpg", category: "from-pdf" },
   
   // Image conversions
-  { id: "jpg-to-png", name: "JPG to PNG", description: "Convert JPG images to PNG format", icon: Image, color: "#1ABC9C", from: "jpg", to: "png", category: "image" },
+  { id: "jpg-to-png", name: "JPG to PNG", description: "Convert JPG images to PNG format", icon: Image, color: "#1ABC9C", from: "jpg,jpeg", to: "png", category: "image" },
   { id: "png-to-jpg", name: "PNG to JPG", description: "Convert PNG images to JPG format", icon: Image, color: "#F39C12", from: "png", to: "jpg", category: "image" },
   
   // Document conversions
-  { id: "word-to-html", name: "Word to HTML", description: "Convert Word to web page", icon: Code, color: "#34495E", from: "docx", to: "html", category: "document" },
-  { id: "excel-to-csv", name: "Excel to CSV", description: "Convert Excel to CSV format", icon: FileSpreadsheet, color: "#2ECC71", from: "xlsx", to: "csv", category: "document" },
+  { id: "word-to-html", name: "Word to HTML", description: "Convert Word to web page", icon: Code, color: "#34495E", from: "docx,doc", to: "html", category: "document" },
+  { id: "excel-to-csv", name: "Excel to CSV", description: "Convert Excel to CSV format", icon: FileSpreadsheet, color: "#2ECC71", from: "xlsx,xls", to: "csv", category: "document" },
 ];
 
 const categories = [
@@ -295,7 +295,7 @@ const UnifiedConverter = () => {
                 onChange={handleFileSelect}
                 className="hidden"
                 id="file-upload-dialog"
-                accept={selectedTool ? `.${selectedTool.from}` : "*"}
+                accept={selectedTool ? selectedTool.from.split(',').map(ext => `.${ext}`).join(',') : "*"}
               />
               <label htmlFor="file-upload-dialog" className="cursor-pointer block">
                 <Upload className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
@@ -303,7 +303,7 @@ const UnifiedConverter = () => {
                   {selectedFile ? selectedFile.name : "Drop your file here or click to browse"}
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  {selectedTool && `Accepts: ${selectedTool.from.toUpperCase()} files`}
+                  {selectedTool && `Accepts: ${selectedTool.from.split(',').map(ext => ext.toUpperCase()).join(', ')} files`}
                 </p>
               </label>
             </div>
