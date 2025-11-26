@@ -118,13 +118,13 @@ serve(async (req) => {
         }
 
         if (!exportTask.result || !exportTask.result.files || !Array.isArray(exportTask.result.files) || exportTask.result.files.length === 0) {
-          console.error('Export task structure:', JSON.stringify(exportTask, null, 2));
+          console.error('No files found in export task result');
           throw new Error('No files found in export task result');
         }
 
         const fileInfo = exportTask.result.files[0];
         if (!fileInfo || !fileInfo.url) {
-          console.error('File info:', JSON.stringify(fileInfo, null, 2));
+          console.error('No download URL found in file info');
           throw new Error('No download URL found in file info');
         }
 
