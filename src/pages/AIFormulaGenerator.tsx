@@ -4,8 +4,9 @@ import { Header } from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Loader2, Paperclip, ArrowUp } from "lucide-react";
+import { Loader2, Paperclip, ArrowUp, FileDown } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import jsPDF from 'jspdf';
 import * as XLSX from 'xlsx';
 import * as pdfjsLib from 'pdfjs-dist';
 import ReactMarkdown from 'react-markdown';
@@ -38,6 +39,93 @@ const AIFormulaGenerator = () => {
       if (isNearBottom) {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
       }
+    }
+  };
+
+  const exportToPDF = (content: string, index: number) => {
+    try {
+      const doc = new jsPDF();
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
+      const margin = 15;
+      const maxWidth = pageWidth - (margin * 2);
+      
+      // Title
+      doc.setFontSize(16);
+      doc.setFont("helvetica", "bold");
+      doc.text("Analysis Results", margin, margin);
+      
+      // Content
+      doc.setFontSize(11);
+      doc.setFont("helvetica", "normal");
+      const lines = doc.splitTextToSize(content, maxWidth);
+      let yPosition = margin + 10;
+      
+      lines.forEach((line: string) => {
+        if (yPosition > pageHeight - margin) {
+          doc.addPage();
+          yPosition = margin;
+        }
+        doc.text(line, margin, yPosition);
+        yPosition += 7;
+      });
+      
+      doc.save(`analysis-result-${index + 1}.pdf`);
+      toast({
+        title: "Exported to PDF",
+        description: "Analysis has been saved as PDF",
+      });
+    } catch (error) {
+      toast({
+        title: "Export failed",
+        description: "Could not export to PDF",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const exportToWord = async (content: string, index: number) => {
+    try {
+      const htmlDocx = await import('html-docx-js/dist/html-docx');
+      
+      const htmlContent = `
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <meta charset="UTF-8">
+            <style>
+              body { font-family: Arial, sans-serif; font-size: 11pt; line-height: 1.6; }
+              h1 { font-size: 16pt; font-weight: bold; margin-bottom: 10pt; }
+              p { margin-bottom: 8pt; }
+              code { background-color: #f4f4f4; padding: 2px 4px; font-family: 'Courier New', monospace; }
+              pre { background-color: #f4f4f4; padding: 10px; border-radius: 4px; overflow-x: auto; }
+            </style>
+          </head>
+          <body>
+            <h1>Analysis Results</h1>
+            <div>${content.replace(/\n/g, '<br>')}</div>
+          </body>
+        </html>
+      `;
+      
+      const blob = htmlDocx.asBlob(htmlContent);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `analysis-result-${index + 1}.docx`;
+      a.click();
+      URL.revokeObjectURL(url);
+      
+      toast({
+        title: "Exported to Word",
+        description: "Analysis has been saved as Word document",
+      });
+    } catch (error) {
+      toast({
+        title: "Export failed",
+        description: "Could not export to Word",
+        variant: "destructive",
+      });
     }
   };
 
@@ -333,36 +421,60 @@ const AIFormulaGenerator = () => {
                       key={index}
                       className={`flex ${message.role === "user" ? "justify-end" : "justify-start"} animate-fade-in`}
                     >
-                      <div
-                        className={`max-w-[90%] sm:max-w-[85%] rounded-2xl sm:rounded-3xl px-4 sm:px-5 md:px-6 py-3 sm:py-4 ${
-                          message.role === "user"
-                            ? "bg-primary text-primary-foreground"
-                            : "bg-muted text-foreground"
-                        }`}
-                      >
-                        {message.role === "assistant" ? (
-                          <div className="prose prose-sm sm:prose dark:prose-invert max-w-none">
-                            <ReactMarkdown
-                              components={{
-                                p: ({children}) => <p className="mb-2 leading-relaxed text-sm sm:text-base">{children}</p>,
-                                ul: ({children}) => <ul className="list-disc pl-4 mb-2 space-y-1">{children}</ul>,
-                                ol: ({children}) => <ol className="list-decimal pl-4 mb-2 space-y-1">{children}</ol>,
-                                li: ({children}) => <li className="text-sm sm:text-base">{children}</li>,
-                                code: ({children}) => <code className="bg-background/50 px-1.5 py-0.5 rounded text-xs sm:text-sm">{children}</code>,
-                                pre: ({children}) => <pre className="bg-background/50 p-2 sm:p-3 rounded-lg overflow-x-auto text-xs sm:text-sm my-2">{children}</pre>,
-                                h1: ({children}) => <h1 className="text-lg sm:text-xl font-bold mb-2">{children}</h1>,
-                                h2: ({children}) => <h2 className="text-base sm:text-lg font-bold mb-2">{children}</h2>,
-                                h3: ({children}) => <h3 className="text-sm sm:text-base font-bold mb-1">{children}</h3>,
-                                strong: ({children}) => <strong className="font-semibold">{children}</strong>,
-                              }}
-                            >
+                      <div className="flex flex-col gap-2 max-w-[90%] sm:max-w-[85%]">
+                        <div
+                          className={`rounded-2xl sm:rounded-3xl px-4 sm:px-5 md:px-6 py-3 sm:py-4 ${
+                            message.role === "user"
+                              ? "bg-primary text-primary-foreground"
+                              : "bg-muted text-foreground"
+                          }`}
+                        >
+                          {message.role === "assistant" ? (
+                            <div className="prose prose-sm sm:prose dark:prose-invert max-w-none">
+                              <ReactMarkdown
+                                components={{
+                                  p: ({children}) => <p className="mb-2 leading-relaxed text-sm sm:text-base">{children}</p>,
+                                  ul: ({children}) => <ul className="list-disc pl-4 mb-2 space-y-1">{children}</ul>,
+                                  ol: ({children}) => <ol className="list-decimal pl-4 mb-2 space-y-1">{children}</ol>,
+                                  li: ({children}) => <li className="text-sm sm:text-base">{children}</li>,
+                                  code: ({children}) => <code className="bg-background/50 px-1.5 py-0.5 rounded text-xs sm:text-sm">{children}</code>,
+                                  pre: ({children}) => <pre className="bg-background/50 p-2 sm:p-3 rounded-lg overflow-x-auto text-xs sm:text-sm my-2">{children}</pre>,
+                                  h1: ({children}) => <h1 className="text-lg sm:text-xl font-bold mb-2">{children}</h1>,
+                                  h2: ({children}) => <h2 className="text-base sm:text-lg font-bold mb-2">{children}</h2>,
+                                  h3: ({children}) => <h3 className="text-sm sm:text-base font-bold mb-1">{children}</h3>,
+                                  strong: ({children}) => <strong className="font-semibold">{children}</strong>,
+                                }}
+                              >
+                                {message.content}
+                              </ReactMarkdown>
+                            </div>
+                          ) : (
+                            <p className="whitespace-pre-wrap break-words leading-relaxed text-sm sm:text-base">
                               {message.content}
-                            </ReactMarkdown>
+                            </p>
+                          )}
+                        </div>
+                        {message.role === "assistant" && (
+                          <div className="flex gap-2">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => exportToPDF(message.content, index)}
+                              className="text-xs"
+                            >
+                              <FileDown className="h-3 w-3 mr-1" />
+                              PDF
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => exportToWord(message.content, index)}
+                              className="text-xs"
+                            >
+                              <FileDown className="h-3 w-3 mr-1" />
+                              Word
+                            </Button>
                           </div>
-                        ) : (
-                          <p className="whitespace-pre-wrap break-words leading-relaxed text-sm sm:text-base">
-                            {message.content}
-                          </p>
                         )}
                       </div>
                     </div>
