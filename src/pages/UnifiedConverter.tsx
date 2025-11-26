@@ -4,10 +4,11 @@ import Footer from "@/components/Footer";
 import { Helmet } from "react-helmet";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Upload, FileText, Table, Image, Code, FileSpreadsheet } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Upload, FileText, Table, Image, Code, FileSpreadsheet, Zap, ChevronDown } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 interface ConversionTool {
   id: string;
@@ -53,20 +54,35 @@ const categories = [
 
 const UnifiedConverter = () => {
   const [selectedCategory, setSelectedCategory] = useState("all");
-  const [selectedTool, setSelectedTool] = useState<ConversionTool | null>(null);
+  const [selectedFormat, setSelectedFormat] = useState<string>("");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isConverting, setIsConverting] = useState(false);
   const [convertedFile, setConvertedFile] = useState<{ content: string; fileName: string; mimeType: string } | null>(null);
+  const [isToolsOpen, setIsToolsOpen] = useState(false);
   const { toast } = useToast();
+
+  // Available output formats
+  const outputFormats = [
+    { value: "pdf", label: "PDF Document" },
+    { value: "word", label: "Word Document" },
+    { value: "excel", label: "Excel Spreadsheet" },
+    { value: "powerpoint", label: "PowerPoint Presentation" },
+    { value: "jpg", label: "JPG Image" },
+    { value: "png", label: "PNG Image" },
+    { value: "html", label: "HTML Webpage" },
+    { value: "csv", label: "CSV Data" },
+  ];
 
   const filteredTools = selectedCategory === "all" 
     ? conversionTools 
     : conversionTools.filter(tool => tool.category === selectedCategory);
 
   const handleToolClick = (tool: ConversionTool) => {
-    setSelectedTool(tool);
+    setSelectedFormat(tool.to);
     setSelectedFile(null);
     setConvertedFile(null);
+    setIsToolsOpen(false);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -91,10 +107,10 @@ const UnifiedConverter = () => {
   };
 
   const handleConvert = async () => {
-    if (!selectedFile || !selectedTool) {
+    if (!selectedFile || !selectedFormat) {
       toast({
-        title: "Missing file",
-        description: "Please select a file to convert",
+        title: "Missing information",
+        description: "Please select a file and output format",
         variant: "destructive",
       });
       return;
@@ -108,7 +124,7 @@ const UnifiedConverter = () => {
         body: {
           fileBase64,
           fileName: selectedFile.name,
-          targetFormat: selectedTool.to,
+          targetFormat: selectedFormat,
         },
       });
 
@@ -179,114 +195,32 @@ const UnifiedConverter = () => {
         <meta name="description" content="Convert files online for free. PDF, Word, Excel, PowerPoint, Images - all formats supported. Fast and secure file conversion." />
       </Helmet>
       
-      <div className="min-h-screen flex flex-col bg-background">
+      <div className="min-h-screen flex flex-col bg-gradient-to-br from-[#0a1f1f] via-[#0d2a2a] to-[#0a1f1f]">
         <Header />
         
-        <main className="flex-1 container mx-auto px-4 py-12">
+        <main className="flex-1 container mx-auto px-4 py-16">
           {/* Hero Section */}
-          <div className="text-center mb-12">
-            <h1 className="text-5xl font-bold mb-4 bg-gradient-to-r from-primary via-purple-500 to-pink-500 bg-clip-text text-transparent">
-              ConvertX
+          <div className="text-center mb-16 max-w-4xl mx-auto">
+            {/* Lightning Badge */}
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-[#00d4ff]/30 bg-[#00d4ff]/5 mb-8 animate-pulse">
+              <Zap className="h-4 w-4 text-[#00d4ff]" />
+              <span className="text-sm font-semibold text-[#00d4ff]">Lightning Fast Conversions</span>
+            </div>
+
+            {/* Main Headline */}
+            <h1 className="text-6xl md:text-7xl font-black mb-6 leading-tight">
+              <span className="text-white">Convert Any File to</span>
+              <br />
+              <span className="text-[#00d4ff] drop-shadow-[0_0_30px_rgba(0,212,255,0.5)]">Any Format</span>
             </h1>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Convert your files online for free. Fast, secure, and easy to use.
+
+            <p className="text-xl text-gray-400 mb-12">
+              Fast, secure, and completely free. Transform your files in seconds.
             </p>
-          </div>
 
-          {/* Category Tabs */}
-          <div className="flex flex-wrap gap-2 justify-center mb-12">
-            {categories.map((category) => (
-              <Button
-                key={category.id}
-                variant={selectedCategory === category.id ? "default" : "outline"}
-                onClick={() => setSelectedCategory(category.id)}
-                className="rounded-full"
-              >
-                {category.label}
-              </Button>
-            ))}
-          </div>
-
-          {/* Tools Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
-            {filteredTools.map((tool) => {
-              const IconComponent = tool.icon;
-              return (
-                <Card
-                  key={tool.id}
-                  className="cursor-pointer transition-all duration-300 hover:shadow-xl hover:-translate-y-2 border-0 overflow-hidden group"
-                  onClick={() => handleToolClick(tool)}
-                >
-                  <CardContent className="p-6">
-                    <div
-                      className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4 transition-transform duration-300 group-hover:scale-110"
-                      style={{ backgroundColor: tool.color }}
-                    >
-                      <IconComponent className="h-8 w-8 text-white" />
-                    </div>
-                    <h3 className="text-lg font-bold mb-2 text-foreground">{tool.name}</h3>
-                    <p className="text-sm text-muted-foreground">{tool.description}</p>
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
-
-          {/* Features Section */}
-          <div className="mt-20 grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-            <div className="text-center">
-              <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
-                <FileText className="h-8 w-8 text-primary" />
-              </div>
-              <h3 className="text-xl font-bold mb-2">Fast Conversion</h3>
-              <p className="text-muted-foreground">Convert files in seconds with our powerful cloud processing</p>
-            </div>
-            <div className="text-center">
-              <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
-                <Upload className="h-8 w-8 text-primary" />
-              </div>
-              <h3 className="text-xl font-bold mb-2">Secure & Private</h3>
-              <p className="text-muted-foreground">Your files are automatically deleted after conversion</p>
-            </div>
-            <div className="text-center">
-              <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
-                <Table className="h-8 w-8 text-primary" />
-              </div>
-              <h3 className="text-xl font-bold mb-2">All Formats</h3>
-              <p className="text-muted-foreground">Support for PDF, Word, Excel, Images and more</p>
-            </div>
-          </div>
-        </main>
-
-        <Footer />
-      </div>
-
-      {/* Conversion Dialog */}
-      <Dialog open={!!selectedTool} onOpenChange={() => setSelectedTool(null)}>
-        <DialogContent className="sm:max-w-2xl">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-3">
-              {selectedTool && (
-                <>
-                  <div
-                    className="w-12 h-12 rounded-xl flex items-center justify-center"
-                    style={{ backgroundColor: selectedTool.color }}
-                  >
-                    <selectedTool.icon className="h-6 w-6 text-white" />
-                  </div>
-                  <div>
-                    <div className="text-xl">{selectedTool.name}</div>
-                    <div className="text-sm text-muted-foreground font-normal">{selectedTool.description}</div>
-                  </div>
-                </>
-              )}
-            </DialogTitle>
-          </DialogHeader>
-
-          <div className="space-y-6 mt-6">
-            {/* File Upload Area */}
-            <div
-              className="border-2 border-dashed border-border rounded-lg p-12 text-center hover:border-primary/50 transition-colors cursor-pointer"
+            {/* Main Upload Area */}
+            <div 
+              className="border-2 border-dashed border-[#00d4ff]/30 rounded-2xl p-16 bg-[#0d2a2a]/30 backdrop-blur-sm hover:border-[#00d4ff]/60 transition-all duration-300 cursor-pointer group"
               onDragOver={handleDragOver}
               onDrop={handleDrop}
             >
@@ -294,47 +228,175 @@ const UnifiedConverter = () => {
                 type="file"
                 onChange={handleFileSelect}
                 className="hidden"
-                id="file-upload-dialog"
-                accept={selectedTool ? selectedTool.from.split(',').map(ext => `.${ext}`).join(',') : "*"}
+                id="file-upload-main"
               />
-              <label htmlFor="file-upload-dialog" className="cursor-pointer block">
-                <Upload className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
-                <p className="text-lg font-medium mb-2">
-                  {selectedFile ? selectedFile.name : "Drop your file here or click to browse"}
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  {selectedTool && `Accepts: ${selectedTool.from.split(',').map(ext => ext.toUpperCase()).join(', ')} files`}
-                </p>
+              <label htmlFor="file-upload-main" className="cursor-pointer block">
+                <div className="flex flex-col items-center justify-center">
+                  <div className="w-20 h-20 rounded-full bg-[#00d4ff]/10 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                    <Upload className="h-10 w-10 text-[#00d4ff]" />
+                  </div>
+                  {!selectedFile ? (
+                    <>
+                      <p className="text-2xl font-bold text-white mb-2">
+                        Drop your file here or click to browse
+                      </p>
+                      <p className="text-gray-400">
+                        Supports all major file formats
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      <p className="text-2xl font-bold text-[#00d4ff] mb-2">
+                        {selectedFile.name}
+                      </p>
+                      <p className="text-gray-400">
+                        {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
+                      </p>
+                    </>
+                  )}
+                </div>
               </label>
             </div>
 
-            {/* Action Buttons */}
-            <div className="flex gap-3">
-              {!convertedFile ? (
-                <Button
-                  onClick={handleConvert}
-                  disabled={!selectedFile || isConverting}
-                  className="flex-1"
-                  size="lg"
-                >
-                  {isConverting ? (
-                    <>
-                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2" />
-                      Converting...
-                    </>
-                  ) : (
-                    `Convert to ${selectedTool?.to.toUpperCase()}`
-                  )}
-                </Button>
-              ) : (
-                <Button onClick={handleDownload} className="flex-1" size="lg">
-                  Download {selectedTool?.to.toUpperCase()} File
-                </Button>
-              )}
+            {/* Format Selector and Convert Button */}
+            {selectedFile && (
+              <div className="mt-8 flex flex-col sm:flex-row gap-4 max-w-2xl mx-auto animate-in fade-in slide-in-from-bottom-4">
+                <Select value={selectedFormat} onValueChange={setSelectedFormat}>
+                  <SelectTrigger className="flex-1 h-14 text-lg bg-[#0d2a2a]/50 border-[#00d4ff]/30 text-white hover:border-[#00d4ff] transition-colors">
+                    <SelectValue placeholder="Select output format" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-[#0d2a2a] border-[#00d4ff]/30">
+                    {outputFormats.map((format) => (
+                      <SelectItem 
+                        key={format.value} 
+                        value={format.value}
+                        className="text-white hover:bg-[#00d4ff]/10 hover:text-[#00d4ff] cursor-pointer"
+                      >
+                        {format.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                {!convertedFile ? (
+                  <Button
+                    onClick={handleConvert}
+                    disabled={!selectedFormat || isConverting}
+                    size="lg"
+                    className="h-14 px-8 text-lg font-bold bg-[#00d4ff] text-[#0a1f1f] hover:bg-[#00d4ff]/90 hover:shadow-[0_0_30px_rgba(0,212,255,0.4)] transition-all duration-300"
+                  >
+                    {isConverting ? (
+                      <>
+                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-[#0a1f1f] mr-2" />
+                        Converting...
+                      </>
+                    ) : (
+                      'Convert Now'
+                    )}
+                  </Button>
+                ) : (
+                  <Button 
+                    onClick={handleDownload} 
+                    size="lg"
+                    className="h-14 px-8 text-lg font-bold bg-[#00d4ff] text-[#0a1f1f] hover:bg-[#00d4ff]/90 hover:shadow-[0_0_30px_rgba(0,212,255,0.4)] transition-all duration-300"
+                  >
+                    Download File
+                  </Button>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* All Tools Section - Collapsible */}
+          <div className="max-w-7xl mx-auto mt-24">
+            <Collapsible open={isToolsOpen} onOpenChange={setIsToolsOpen}>
+              <div className="text-center mb-8">
+                <CollapsibleTrigger asChild>
+                  <Button 
+                    variant="outline" 
+                    className="text-lg font-semibold border-[#00d4ff]/30 text-[#00d4ff] hover:bg-[#00d4ff]/10 hover:border-[#00d4ff] transition-all"
+                  >
+                    Browse All Tools ({conversionTools.length})
+                    <ChevronDown className={`ml-2 h-5 w-5 transition-transform ${isToolsOpen ? 'rotate-180' : ''}`} />
+                  </Button>
+                </CollapsibleTrigger>
+              </div>
+
+              <CollapsibleContent className="space-y-8">
+                {/* Category Tabs */}
+                <div className="flex flex-wrap gap-2 justify-center">
+                  {categories.map((category) => (
+                    <Button
+                      key={category.id}
+                      variant={selectedCategory === category.id ? "default" : "outline"}
+                      onClick={() => setSelectedCategory(category.id)}
+                      className={`rounded-full ${
+                        selectedCategory === category.id 
+                          ? 'bg-[#00d4ff] text-[#0a1f1f] hover:bg-[#00d4ff]/90' 
+                          : 'border-[#00d4ff]/30 text-white hover:bg-[#00d4ff]/10 hover:border-[#00d4ff]'
+                      }`}
+                    >
+                      {category.label}
+                    </Button>
+                  ))}
+                </div>
+
+                {/* Tools Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                  {filteredTools.map((tool) => {
+                    const IconComponent = tool.icon;
+                    return (
+                      <Card
+                        key={tool.id}
+                        className="cursor-pointer transition-all duration-300 hover:shadow-xl hover:shadow-[#00d4ff]/20 hover:-translate-y-2 border-[#00d4ff]/20 bg-[#0d2a2a]/50 backdrop-blur-sm overflow-hidden group"
+                        onClick={() => handleToolClick(tool)}
+                      >
+                        <CardContent className="p-6">
+                          <div
+                            className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4 transition-transform duration-300 group-hover:scale-110"
+                            style={{ backgroundColor: tool.color }}
+                          >
+                            <IconComponent className="h-8 w-8 text-white" />
+                          </div>
+                          <h3 className="text-lg font-bold mb-2 text-white">{tool.name}</h3>
+                          <p className="text-sm text-gray-400">{tool.description}</p>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                </div>
+              </CollapsibleContent>
+            </Collapsible>
+          </div>
+
+          {/* Features Section */}
+          <div className="mt-32 grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+            <div className="text-center p-6 rounded-2xl bg-[#0d2a2a]/30 backdrop-blur-sm border border-[#00d4ff]/10">
+              <div className="w-16 h-16 rounded-full bg-[#00d4ff]/10 flex items-center justify-center mx-auto mb-4">
+                <Zap className="h-8 w-8 text-[#00d4ff]" />
+              </div>
+              <h3 className="text-xl font-bold mb-2 text-white">Lightning Fast</h3>
+              <p className="text-gray-400">Convert files in seconds with our powerful cloud processing</p>
+            </div>
+            <div className="text-center p-6 rounded-2xl bg-[#0d2a2a]/30 backdrop-blur-sm border border-[#00d4ff]/10">
+              <div className="w-16 h-16 rounded-full bg-[#00d4ff]/10 flex items-center justify-center mx-auto mb-4">
+                <Upload className="h-8 w-8 text-[#00d4ff]" />
+              </div>
+              <h3 className="text-xl font-bold mb-2 text-white">Secure & Private</h3>
+              <p className="text-gray-400">Your files are automatically deleted after conversion</p>
+            </div>
+            <div className="text-center p-6 rounded-2xl bg-[#0d2a2a]/30 backdrop-blur-sm border border-[#00d4ff]/10">
+              <div className="w-16 h-16 rounded-full bg-[#00d4ff]/10 flex items-center justify-center mx-auto mb-4">
+                <FileText className="h-8 w-8 text-[#00d4ff]" />
+              </div>
+              <h3 className="text-xl font-bold mb-2 text-white">All Formats</h3>
+              <p className="text-gray-400">Support for PDF, Word, Excel, Images and more</p>
             </div>
           </div>
-        </DialogContent>
-      </Dialog>
+        </main>
+
+        <Footer />
+      </div>
     </>
   );
 };
