@@ -1,4 +1,5 @@
 import { Database, FileSpreadsheet, Smile, FileText, Code2, Hash, FileCode, Table, FileImage } from "lucide-react";
+import convertxLogo from "@/assets/convertx-logo.png";
 
 export interface Tool {
   id: string;
@@ -7,6 +8,7 @@ export interface Tool {
   icon: any;
   iconColor: string;
   path: string;
+  customLogo?: string;
 }
 
 export const tools: Tool[] = [
@@ -32,7 +34,8 @@ export const tools: Tool[] = [
     description: "27 free PDF tools for managing, editing, and converting PDF files directly in your browser.",
     icon: FileText,
     iconColor: "hsl(280, 75%, 60%)",
-    path: "/converter"
+    path: "/converter",
+    customLogo: convertxLogo
   },
   {
     id: "sql-query-generator",

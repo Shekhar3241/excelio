@@ -14,12 +14,22 @@ export function ToolCard({ tool }: ToolCardProps) {
     <Link to={tool.path}>
       <Card className="h-full transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 border-border/50 bg-card cursor-pointer group rounded-3xl overflow-hidden backdrop-blur-sm hover:border-primary/30">
         <CardHeader className="space-y-4 p-6">
-          <div 
-            className="w-16 h-16 rounded-2xl flex items-center justify-center transition-all duration-300 group-hover:scale-110 group-hover:shadow-lg"
-            style={{ backgroundColor: tool.iconColor }}
-          >
-            <IconComponent className="h-8 w-8 text-white" />
-          </div>
+          {tool.customLogo ? (
+            <div className="w-16 h-16 flex items-center justify-center transition-all duration-300 group-hover:scale-110">
+              <img 
+                src={tool.customLogo} 
+                alt={tool.name} 
+                className="w-full h-full object-contain"
+              />
+            </div>
+          ) : (
+            <div 
+              className="w-16 h-16 rounded-2xl flex items-center justify-center transition-all duration-300 group-hover:scale-110 group-hover:shadow-lg"
+              style={{ backgroundColor: tool.iconColor }}
+            >
+              <IconComponent className="h-8 w-8 text-white" />
+            </div>
+          )}
           <CardTitle className="text-xl font-bold transition-colors group-hover:text-primary">
             {tool.name}
           </CardTitle>
