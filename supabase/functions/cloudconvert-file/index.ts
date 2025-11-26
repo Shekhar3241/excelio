@@ -121,9 +121,10 @@ serve(async (req) => {
           throw new Error('Export task not found');
         }
 
+        // If export task isn't finished yet, continue polling
         if (exportTask.status !== 'finished') {
-          console.error('Export task status:', exportTask.status);
-          throw new Error(`Export task not completed: ${exportTask.status}`);
+          console.log('Export task not ready, continuing to poll...');
+          continue;
         }
 
         const downloadUrl = exportTask.result?.files?.[0]?.url;
