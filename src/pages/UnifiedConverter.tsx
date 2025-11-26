@@ -9,6 +9,7 @@ import { Upload, FileText, Table, Image, Code, FileSpreadsheet, Zap, ChevronDown
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import convertxLogo from "@/assets/convertx-logo.png";
 
 interface ConversionTool {
   id: string;
@@ -201,6 +202,15 @@ const UnifiedConverter = () => {
         <main className="flex-1 container mx-auto px-4 py-16">
           {/* Hero Section */}
           <div className="text-center mb-16 max-w-4xl mx-auto">
+            {/* Logo */}
+            <div className="flex justify-center mb-8">
+              <img 
+                src={convertxLogo} 
+                alt="ConvertX" 
+                className="h-24 w-auto animate-fade-in"
+              />
+            </div>
+            
             {/* Lightning Badge */}
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-[#00d4ff]/30 bg-[#00d4ff]/5 mb-8 animate-pulse">
               <Zap className="h-4 w-4 text-[#00d4ff]" />
