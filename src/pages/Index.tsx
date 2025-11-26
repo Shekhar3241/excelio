@@ -231,7 +231,7 @@ const Index = () => {
               <img 
                 src={convertxLogo} 
                 alt="ConvertX" 
-                className="h-16 sm:h-20 w-auto animate-scale-in"
+                className="h-32 sm:h-40 md:h-48 w-auto animate-scale-in"
               />
             </div>
             <p className="text-sm text-primary font-bold mb-2 uppercase tracking-wider">// AI-POWERED TOOLS //</p>
