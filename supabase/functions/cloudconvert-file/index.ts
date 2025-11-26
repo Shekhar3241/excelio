@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { encode as base64Encode } from "https://deno.land/std@0.168.0/encoding/base64.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -138,7 +139,8 @@ serve(async (req) => {
         }
 
         const arrayBuffer = await fileResponse.arrayBuffer();
-        const base64Content = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
+        // Use Deno's built-in base64 encoding to handle large files efficiently
+        const base64Content = base64Encode(arrayBuffer);
 
         console.log('Conversion completed successfully');
 
