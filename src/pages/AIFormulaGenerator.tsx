@@ -26,6 +26,7 @@ const AIFormulaGenerator = () => {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
+  const [initialPrompt, setInitialPrompt] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -126,12 +127,13 @@ const AIFormulaGenerator = () => {
 
     const userMessage: Message = {
       role: "user",
-      content: input || "Analyzing uploaded files...",
+      content: input || initialPrompt || "Analyzing uploaded files...",
     };
 
     const newMessages = [...messages, userMessage];
     setMessages(newMessages);
     setInput("");
+    setInitialPrompt("");
     setIsLoading(true);
 
     try {
@@ -257,6 +259,19 @@ const AIFormulaGenerator = () => {
                   Analyse Your Data
                 </h1>
                 
+                <div className="mb-6">
+                  <Textarea
+                    value={initialPrompt}
+                    onChange={(e) => setInitialPrompt(e.target.value)}
+                    placeholder="What would you like to know? (e.g., 'Find sales trends', 'Analyze customer data', 'Calculate averages')"
+                    className="resize-none rounded-2xl min-h-[100px] text-sm sm:text-base"
+                    rows={3}
+                  />
+                  <p className="text-xs text-muted-foreground mt-2 text-center">
+                    Describe what you want to analyze, then upload your data files below
+                  </p>
+                </div>
+                
                 <div className="flex gap-2 sm:gap-4 items-center justify-center">
                   <input
                     ref={fileInputRef}
@@ -280,11 +295,11 @@ const AIFormulaGenerator = () => {
                     size="lg"
                     className="rounded-full p-4 sm:p-5 md:p-6 hover:scale-105 transition-transform"
                     onClick={() => {
-                      if (uploadedFiles.length > 0) {
+                      if (uploadedFiles.length > 0 || initialPrompt.trim()) {
                         handleSend();
                       }
                     }}
-                    disabled={uploadedFiles.length === 0}
+                    disabled={uploadedFiles.length === 0 && !initialPrompt.trim()}
                   >
                     <ArrowUp className="h-5 w-5 sm:h-6 sm:w-6" />
                   </Button>
