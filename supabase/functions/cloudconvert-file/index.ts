@@ -112,12 +112,24 @@ serve(async (req) => {
           (task: any) => task.operation === 'export/url' && task.status === 'finished'
         ) as any;
 
-        if (!exportTask || !exportTask.result?.files?.[0]?.url) {
-          throw new Error('No download URL found in completed job');
+        if (!exportTask) {
+          console.error('No export task found in completed job');
+          throw new Error('No export task found in completed job');
         }
 
-        const downloadUrl = exportTask.result.files[0].url;
-        const outputFileName = exportTask.result.files[0].filename;
+        if (!exportTask.result || !exportTask.result.files || !Array.isArray(exportTask.result.files) || exportTask.result.files.length === 0) {
+          console.error('Export task structure:', JSON.stringify(exportTask, null, 2));
+          throw new Error('No files found in export task result');
+        }
+
+        const fileInfo = exportTask.result.files[0];
+        if (!fileInfo || !fileInfo.url) {
+          console.error('File info:', JSON.stringify(fileInfo, null, 2));
+          throw new Error('No download URL found in file info');
+        }
+
+        const downloadUrl = fileInfo.url;
+        const outputFileName = fileInfo.filename;
 
         // Download the converted file
         const fileResponse = await fetch(downloadUrl);
