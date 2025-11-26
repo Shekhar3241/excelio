@@ -17,12 +17,30 @@ const UnifiedConverter = () => {
   const [convertedFile, setConvertedFile] = useState<{ content: string; fileName: string; mimeType: string } | null>(null);
 
   const conversionOptions = [
-    { value: "pdf", label: "Convert to PDF", from: ["docx", "xlsx", "pptx", "jpg", "png", "html", "txt"] },
-    { value: "word", label: "Convert to Word (DOCX)", from: ["pdf", "txt", "html"] },
-    { value: "excel", label: "Convert to Excel (XLSX)", from: ["pdf", "csv"] },
-    { value: "powerpoint", label: "Convert to PowerPoint (PPTX)", from: ["pdf"] },
-    { value: "jpg", label: "Convert to JPG", from: ["pdf", "png", "webp"] },
-    { value: "text", label: "Convert to Text", from: ["pdf", "docx"] },
+    // PDF conversions
+    { value: "pdf", label: "Convert to PDF", from: ["docx", "doc", "xlsx", "xls", "pptx", "ppt", "jpg", "jpeg", "png", "gif", "bmp", "html", "htm", "txt"] },
+    
+    // Word conversions
+    { value: "word", label: "Convert to Word (DOCX)", from: ["pdf", "txt", "html", "htm", "xlsx", "xls", "pptx", "ppt", "jpg", "jpeg", "png"] },
+    
+    // Excel conversions
+    { value: "excel", label: "Convert to Excel (XLSX)", from: ["pdf", "csv", "docx", "doc", "html", "htm", "pptx", "ppt"] },
+    
+    // PowerPoint conversions
+    { value: "powerpoint", label: "Convert to PowerPoint (PPTX)", from: ["pdf", "docx", "doc", "xlsx", "xls"] },
+    
+    // Image conversions
+    { value: "jpg", label: "Convert to JPG", from: ["pdf", "png", "gif", "bmp", "webp", "docx", "pptx"] },
+    { value: "png", label: "Convert to PNG", from: ["pdf", "jpg", "jpeg", "gif", "bmp", "webp"] },
+    
+    // Text conversions
+    { value: "text", label: "Convert to Text (TXT)", from: ["pdf", "docx", "doc", "html", "htm", "xlsx", "xls"] },
+    
+    // HTML conversions
+    { value: "html", label: "Convert to HTML", from: ["pdf", "docx", "doc", "txt", "xlsx", "xls"] },
+    
+    // Other formats
+    { value: "markdown", label: "Convert to Markdown", from: ["pdf", "docx", "doc", "html", "htm", "txt"] },
   ];
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -160,7 +178,7 @@ const UnifiedConverter = () => {
                   onChange={handleFileSelect}
                   className="hidden"
                   id="file-upload"
-                  accept=".pdf,.docx,.xlsx,.pptx,.jpg,.jpeg,.png,.txt,.html,.csv"
+                  accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.jpg,.jpeg,.png,.gif,.bmp,.webp,.txt,.html,.htm,.csv,.md"
                 />
                 <label htmlFor="file-upload" className="cursor-pointer">
                   <Upload className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
@@ -168,7 +186,7 @@ const UnifiedConverter = () => {
                     {selectedFile ? selectedFile.name : "Click to upload file"}
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    Supports: PDF, Word, Excel, PowerPoint, Images, Text, HTML
+                    Supports: PDF, Word, Excel, PowerPoint, Images (JPG, PNG, GIF, BMP), Text, HTML, CSV, Markdown
                   </p>
                 </label>
               </div>
