@@ -1,5 +1,5 @@
 import { Database, FileSpreadsheet, Smile, FileText, Code2, Hash, FileCode, Table, FileImage } from "lucide-react";
-import convertxLogo from "@/assets/convertx-logo.png";
+import convertxLogo from "@/assets/convertx-logo-new.png";
 
 export interface Tool {
   id: string;

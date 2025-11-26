@@ -9,7 +9,7 @@ import { Upload, FileText, Table, Image, Code, FileSpreadsheet, Zap, ChevronDown
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import convertxLogo from "@/assets/convertx-logo.png";
+import convertxLogo from "@/assets/convertx-logo-new.png";
 
 interface ConversionTool {
   id: string;

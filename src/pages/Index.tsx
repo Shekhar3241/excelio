@@ -11,7 +11,7 @@ import { Sparkles, Instagram, Youtube, Loader2, Copy, Check, Zap } from "lucide-
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import convertxLogo from "@/assets/convertx-logo.png";
+import convertxLogo from "@/assets/convertx-logo-new.png";
 
 const Index = () => {
   const [searchQuery, setSearchQuery] = useState("");
