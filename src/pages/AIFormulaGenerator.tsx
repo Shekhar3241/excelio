@@ -47,28 +47,183 @@ const AIFormulaGenerator = () => {
       const doc = new jsPDF();
       const pageWidth = doc.internal.pageSize.getWidth();
       const pageHeight = doc.internal.pageSize.getHeight();
-      const margin = 15;
+      const margin = 20;
       const maxWidth = pageWidth - (margin * 2);
+      let yPosition = margin;
       
-      // Title
-      doc.setFontSize(16);
-      doc.setFont("helvetica", "bold");
-      doc.text("Analysis Results", margin, margin);
-      
-      // Content
-      doc.setFontSize(11);
-      doc.setFont("helvetica", "normal");
-      const lines = doc.splitTextToSize(content, maxWidth);
-      let yPosition = margin + 10;
-      
-      lines.forEach((line: string) => {
-        if (yPosition > pageHeight - margin) {
+      // Helper function to check if we need a new page
+      const checkPageBreak = (requiredSpace: number = 10) => {
+        if (yPosition + requiredSpace > pageHeight - margin) {
           doc.addPage();
           yPosition = margin;
+          return true;
         }
-        doc.text(line, margin, yPosition);
-        yPosition += 7;
-      });
+        return false;
+      };
+      
+      // Helper function to process inline markdown (bold, italic, code)
+      const processInlineMarkdown = (text: string): string => {
+        // Remove markdown syntax for PDF (we'll use font styles instead)
+        return text
+          .replace(/\*\*\*(.+?)\*\*\*/g, '$1') // bold italic
+          .replace(/\*\*(.+?)\*\*/g, '$1') // bold
+          .replace(/\*(.+?)\*/g, '$1') // italic
+          .replace(/`(.+?)`/g, '$1') // code
+          .replace(/~~(.+?)~~/g, '$1'); // strikethrough
+      };
+      
+      // Title
+      doc.setFontSize(18);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(41, 128, 185);
+      doc.text("Analysis Results", margin, yPosition);
+      yPosition += 12;
+      
+      // Add a subtle line separator
+      doc.setDrawColor(200, 200, 200);
+      doc.line(margin, yPosition, pageWidth - margin, yPosition);
+      yPosition += 10;
+      
+      // Split content into lines
+      const contentLines = content.split('\n');
+      
+      for (let i = 0; i < contentLines.length; i++) {
+        const line = contentLines[i];
+        
+        // Skip empty lines but add minimal spacing
+        if (line.trim() === '') {
+          yPosition += 3;
+          continue;
+        }
+        
+        // Handle H1 headings (# )
+        if (line.startsWith('# ')) {
+          checkPageBreak(15);
+          yPosition += 5; // Extra space before heading
+          doc.setFontSize(16);
+          doc.setFont("helvetica", "bold");
+          doc.setTextColor(52, 73, 94);
+          const headingText = processInlineMarkdown(line.substring(2));
+          const splitLines = doc.splitTextToSize(headingText, maxWidth);
+          splitLines.forEach((splitLine: string) => {
+            doc.text(splitLine, margin, yPosition);
+            yPosition += 8;
+          });
+          yPosition += 3;
+          continue;
+        }
+        
+        // Handle H2 headings (## )
+        if (line.startsWith('## ')) {
+          checkPageBreak(12);
+          yPosition += 4;
+          doc.setFontSize(14);
+          doc.setFont("helvetica", "bold");
+          doc.setTextColor(52, 73, 94);
+          const headingText = processInlineMarkdown(line.substring(3));
+          const splitLines = doc.splitTextToSize(headingText, maxWidth);
+          splitLines.forEach((splitLine: string) => {
+            doc.text(splitLine, margin, yPosition);
+            yPosition += 7;
+          });
+          yPosition += 2;
+          continue;
+        }
+        
+        // Handle H3 headings (### )
+        if (line.startsWith('### ')) {
+          checkPageBreak(10);
+          yPosition += 3;
+          doc.setFontSize(12);
+          doc.setFont("helvetica", "bold");
+          doc.setTextColor(52, 73, 94);
+          const headingText = processInlineMarkdown(line.substring(4));
+          const splitLines = doc.splitTextToSize(headingText, maxWidth);
+          splitLines.forEach((splitLine: string) => {
+            doc.text(splitLine, margin, yPosition);
+            yPosition += 6;
+          });
+          yPosition += 2;
+          continue;
+        }
+        
+        // Handle unordered list items (- or * )
+        if (line.match(/^[\-\*]\s/)) {
+          checkPageBreak(8);
+          doc.setFontSize(11);
+          doc.setFont("helvetica", "normal");
+          doc.setTextColor(0, 0, 0);
+          const bulletText = processInlineMarkdown(line.substring(2));
+          const bulletX = margin + 5;
+          
+          // Draw bullet point
+          doc.circle(margin + 2, yPosition - 1.5, 0.8, 'F');
+          
+          const splitLines = doc.splitTextToSize(bulletText, maxWidth - 7);
+          splitLines.forEach((splitLine: string, idx: number) => {
+            if (idx > 0) checkPageBreak(6);
+            doc.text(splitLine, bulletX, yPosition);
+            yPosition += 6;
+          });
+          continue;
+        }
+        
+        // Handle numbered list items (1. 2. etc.)
+        if (line.match(/^\d+\.\s/)) {
+          checkPageBreak(8);
+          doc.setFontSize(11);
+          doc.setFont("helvetica", "normal");
+          doc.setTextColor(0, 0, 0);
+          const match = line.match(/^(\d+\.)\s(.+)$/);
+          if (match) {
+            const number = match[1];
+            const text = processInlineMarkdown(match[2]);
+            const numberWidth = doc.getTextWidth(number + ' ');
+            
+            doc.text(number, margin, yPosition);
+            const splitLines = doc.splitTextToSize(text, maxWidth - numberWidth);
+            splitLines.forEach((splitLine: string, idx: number) => {
+              if (idx > 0) checkPageBreak(6);
+              doc.text(splitLine, margin + numberWidth, yPosition);
+              yPosition += 6;
+            });
+          }
+          continue;
+        }
+        
+        // Handle bold text (check if line contains **)
+        const isBold = line.includes('**');
+        
+        // Regular paragraph text
+        checkPageBreak(8);
+        doc.setFontSize(11);
+        doc.setFont("helvetica", isBold ? "bold" : "normal");
+        doc.setTextColor(0, 0, 0);
+        
+        const cleanText = processInlineMarkdown(line);
+        const splitLines = doc.splitTextToSize(cleanText, maxWidth);
+        splitLines.forEach((splitLine: string) => {
+          checkPageBreak(6);
+          doc.text(splitLine, margin, yPosition);
+          yPosition += 6;
+        });
+        yPosition += 1; // Small spacing between paragraphs
+      }
+      
+      // Add footer with page numbers
+      const pageCount = doc.internal.pages.length - 1;
+      for (let i = 1; i <= pageCount; i++) {
+        doc.setPage(i);
+        doc.setFontSize(9);
+        doc.setFont("helvetica", "normal");
+        doc.setTextColor(128, 128, 128);
+        doc.text(
+          `Page ${i} of ${pageCount}`,
+          pageWidth / 2,
+          pageHeight - 10,
+          { align: 'center' }
+        );
+      }
       
       doc.save(`analysis-result-${index + 1}.pdf`);
       toast({
