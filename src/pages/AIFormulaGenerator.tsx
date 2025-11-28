@@ -65,11 +65,15 @@ const AIFormulaGenerator = () => {
       const processInlineMarkdown = (text: string): string => {
         // Remove markdown syntax for PDF (we'll use font styles instead)
         return text
+          .replace(/<br\s*\/?>/gi, ' ') // Remove <br> tags
           .replace(/\*\*\*(.+?)\*\*\*/g, '$1') // bold italic
           .replace(/\*\*(.+?)\*\*/g, '$1') // bold
           .replace(/\*(.+?)\*/g, '$1') // italic
           .replace(/`(.+?)`/g, '$1') // code
-          .replace(/~~(.+?)~~/g, '$1'); // strikethrough
+          .replace(/~~(.+?)~~/g, '$1') // strikethrough
+          .replace(/\[(.+?)\]\(.+?\)/g, '$1') // links [text](url) -> text
+          .replace(/_{2,}/g, '') // remove underscores
+          .trim();
       };
       
       // Title
@@ -89,6 +93,33 @@ const AIFormulaGenerator = () => {
       
       for (let i = 0; i < contentLines.length; i++) {
         const line = contentLines[i];
+        
+        // Skip table separator lines (|---|---|)
+        if (line.match(/^\|?[\s\-:|]+\|?$/)) {
+          continue;
+        }
+        
+        // Handle table rows (| cell | cell |)
+        if (line.includes('|') && line.trim().startsWith('|')) {
+          checkPageBreak(8);
+          doc.setFontSize(10);
+          doc.setFont("helvetica", "normal");
+          doc.setTextColor(0, 0, 0);
+          
+          // Split by | and clean up cells
+          const cells = line.split('|')
+            .map(cell => processInlineMarkdown(cell.trim()))
+            .filter(cell => cell.length > 0);
+          
+          const cellText = cells.join(' • ');
+          const splitLines = doc.splitTextToSize(cellText, maxWidth);
+          splitLines.forEach((splitLine: string) => {
+            checkPageBreak(6);
+            doc.text(splitLine, margin, yPosition);
+            yPosition += 6;
+          });
+          continue;
+        }
         
         // Skip empty lines but add minimal spacing
         if (line.trim() === '') {
