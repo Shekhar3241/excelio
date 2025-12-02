@@ -61,80 +61,152 @@ const AIFormulaGenerator = () => {
         return false;
       };
       
-      // Helper function to process inline markdown (bold, italic, code)
-      const processInlineMarkdown = (text: string): string => {
-        // Remove markdown syntax for PDF (we'll use font styles instead)
+      // Comprehensive markdown cleaning function
+      const cleanMarkdown = (text: string): string => {
         return text
-          .replace(/<br\s*\/?>/gi, ' ') // Remove <br> tags
-          .replace(/\*\*\*(.+?)\*\*\*/g, '$1') // bold italic
-          .replace(/\*\*(.+?)\*\*/g, '$1') // bold
-          .replace(/\*(.+?)\*/g, '$1') // italic
-          .replace(/`(.+?)`/g, '$1') // code
-          .replace(/~~(.+?)~~/g, '$1') // strikethrough
-          .replace(/\[(.+?)\]\(.+?\)/g, '$1') // links [text](url) -> text
-          .replace(/_{2,}/g, '') // remove underscores
+          // Remove HTML tags
+          .replace(/<br\s*\/?>/gi, ' ')
+          .replace(/<[^>]*>/g, '')
+          // Remove bold/italic markers
+          .replace(/\*\*\*(.+?)\*\*\*/g, '$1')
+          .replace(/\*\*(.+?)\*\*/g, '$1')
+          .replace(/\*(.+?)\*/g, '$1')
+          .replace(/_{3}(.+?)_{3}/g, '$1')
+          .replace(/__(.+?)__/g, '$1')
+          .replace(/_(.+?)_/g, '$1')
+          // Remove code blocks and inline code
+          .replace(/```[\s\S]*?```/g, '')
+          .replace(/`(.+?)`/g, '$1')
+          // Remove strikethrough
+          .replace(/~~(.+?)~~/g, '$1')
+          // Remove links but keep text
+          .replace(/\[(.+?)\]\(.+?\)/g, '$1')
+          // Remove images
+          .replace(/!\[.*?\]\(.*?\)/g, '')
+          // Clean up any remaining markdown artifacts
+          .replace(/\*+/g, '')
+          .replace(/_+/g, ' ')
+          .replace(/#+\s*/g, '')
+          // Clean up extra spaces
+          .replace(/\s+/g, ' ')
           .trim();
       };
+
+      // Function to extract clean text from table row
+      const parseTableRow = (line: string): string[] => {
+        return line
+          .split('|')
+          .map(cell => cleanMarkdown(cell))
+          .filter(cell => cell.length > 0);
+      };
       
-      // Title
-      doc.setFontSize(18);
+      // Document Title
+      doc.setFontSize(22);
       doc.setFont("helvetica", "bold");
-      doc.setTextColor(41, 128, 185);
-      doc.text("Analysis Results", margin, yPosition);
-      yPosition += 12;
-      
-      // Add a subtle line separator
-      doc.setDrawColor(200, 200, 200);
-      doc.line(margin, yPosition, pageWidth - margin, yPosition);
+      doc.setTextColor(30, 58, 138); // Dark blue
+      doc.text("Data Analysis Report", margin, yPosition);
       yPosition += 10;
+      
+      // Subtitle with date
+      doc.setFontSize(11);
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(100, 100, 100);
+      doc.text(`Generated on ${new Date().toLocaleDateString('en-US', { 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      })}`, margin, yPosition);
+      yPosition += 8;
+      
+      // Decorative line
+      doc.setDrawColor(30, 58, 138);
+      doc.setLineWidth(0.5);
+      doc.line(margin, yPosition, pageWidth - margin, yPosition);
+      yPosition += 15;
       
       // Split content into lines
       const contentLines = content.split('\n');
+      let inTable = false;
+      let tableHeaders: string[] = [];
       
       for (let i = 0; i < contentLines.length; i++) {
         const line = contentLines[i];
+        const trimmedLine = line.trim();
+        
+        // Skip empty lines with minimal spacing
+        if (trimmedLine === '') {
+          yPosition += 4;
+          continue;
+        }
         
         // Skip table separator lines (|---|---|)
-        if (line.match(/^\|?[\s\-:|]+\|?$/)) {
+        if (trimmedLine.match(/^\|?[\s\-:|]+\|?$/) || trimmedLine.match(/^[-:|]+$/)) {
           continue;
         }
         
-        // Handle table rows (| cell | cell |)
-        if (line.includes('|') && line.trim().startsWith('|')) {
-          checkPageBreak(8);
-          doc.setFontSize(10);
-          doc.setFont("helvetica", "normal");
-          doc.setTextColor(0, 0, 0);
-          
-          // Split by | and clean up cells
-          const cells = line.split('|')
-            .map(cell => processInlineMarkdown(cell.trim()))
-            .filter(cell => cell.length > 0);
-          
-          const cellText = cells.join(' • ');
-          const splitLines = doc.splitTextToSize(cellText, maxWidth);
-          splitLines.forEach((splitLine: string) => {
-            checkPageBreak(6);
-            doc.text(splitLine, margin, yPosition);
-            yPosition += 6;
-          });
+        // Handle table rows
+        if (trimmedLine.includes('|')) {
+          const cells = parseTableRow(trimmedLine);
+          if (cells.length > 0) {
+            checkPageBreak(10);
+            
+            // Check if this is a header row (first table row or after separator)
+            if (!inTable) {
+              inTable = true;
+              tableHeaders = cells;
+              doc.setFontSize(10);
+              doc.setFont("helvetica", "bold");
+              doc.setTextColor(30, 58, 138);
+            } else {
+              doc.setFontSize(10);
+              doc.setFont("helvetica", "normal");
+              doc.setTextColor(50, 50, 50);
+            }
+            
+            const cellText = '• ' + cells.join('  |  ');
+            const splitLines = doc.splitTextToSize(cellText, maxWidth);
+            splitLines.forEach((splitLine: string) => {
+              checkPageBreak(6);
+              doc.text(splitLine, margin, yPosition);
+              yPosition += 6;
+            });
+          }
           continue;
-        }
-        
-        // Skip empty lines but add minimal spacing
-        if (line.trim() === '') {
-          yPosition += 3;
-          continue;
+        } else {
+          inTable = false;
         }
         
         // Handle H1 headings (# )
-        if (line.startsWith('# ')) {
-          checkPageBreak(15);
-          yPosition += 5; // Extra space before heading
-          doc.setFontSize(16);
+        if (trimmedLine.startsWith('# ')) {
+          checkPageBreak(20);
+          yPosition += 8;
+          doc.setFontSize(18);
           doc.setFont("helvetica", "bold");
-          doc.setTextColor(52, 73, 94);
-          const headingText = processInlineMarkdown(line.substring(2));
+          doc.setTextColor(30, 58, 138);
+          const headingText = cleanMarkdown(trimmedLine.substring(2));
+          const splitLines = doc.splitTextToSize(headingText, maxWidth);
+          splitLines.forEach((splitLine: string) => {
+            doc.text(splitLine, margin, yPosition);
+            yPosition += 9;
+          });
+          // Add underline for H1
+          doc.setDrawColor(200, 200, 200);
+          doc.setLineWidth(0.3);
+          doc.line(margin, yPosition, margin + 60, yPosition);
+          yPosition += 6;
+          continue;
+        }
+        
+        // Handle H2 headings (## )
+        if (trimmedLine.startsWith('## ')) {
+          checkPageBreak(15);
+          yPosition += 6;
+          doc.setFontSize(14);
+          doc.setFont("helvetica", "bold");
+          doc.setTextColor(55, 65, 81);
+          const headingText = cleanMarkdown(trimmedLine.substring(3));
           const splitLines = doc.splitTextToSize(headingText, maxWidth);
           splitLines.forEach((splitLine: string) => {
             doc.text(splitLine, margin, yPosition);
@@ -144,14 +216,14 @@ const AIFormulaGenerator = () => {
           continue;
         }
         
-        // Handle H2 headings (## )
-        if (line.startsWith('## ')) {
+        // Handle H3 headings (### )
+        if (trimmedLine.startsWith('### ')) {
           checkPageBreak(12);
           yPosition += 4;
-          doc.setFontSize(14);
+          doc.setFontSize(12);
           doc.setFont("helvetica", "bold");
-          doc.setTextColor(52, 73, 94);
-          const headingText = processInlineMarkdown(line.substring(3));
+          doc.setTextColor(75, 85, 99);
+          const headingText = cleanMarkdown(trimmedLine.substring(4));
           const splitLines = doc.splitTextToSize(headingText, maxWidth);
           splitLines.forEach((splitLine: string) => {
             doc.text(splitLine, margin, yPosition);
@@ -161,57 +233,47 @@ const AIFormulaGenerator = () => {
           continue;
         }
         
-        // Handle H3 headings (### )
-        if (line.startsWith('### ')) {
-          checkPageBreak(10);
-          yPosition += 3;
-          doc.setFontSize(12);
-          doc.setFont("helvetica", "bold");
-          doc.setTextColor(52, 73, 94);
-          const headingText = processInlineMarkdown(line.substring(4));
-          const splitLines = doc.splitTextToSize(headingText, maxWidth);
-          splitLines.forEach((splitLine: string) => {
-            doc.text(splitLine, margin, yPosition);
-            yPosition += 6;
-          });
-          yPosition += 2;
-          continue;
-        }
-        
         // Handle unordered list items (- or * )
-        if (line.match(/^[\-\*]\s/)) {
-          checkPageBreak(8);
+        if (trimmedLine.match(/^[\-\*]\s/)) {
+          checkPageBreak(10);
           doc.setFontSize(11);
           doc.setFont("helvetica", "normal");
-          doc.setTextColor(0, 0, 0);
-          const bulletText = processInlineMarkdown(line.substring(2));
-          const bulletX = margin + 5;
+          doc.setTextColor(50, 50, 50);
+          const bulletText = cleanMarkdown(trimmedLine.substring(2));
+          const bulletX = margin + 6;
           
           // Draw bullet point
-          doc.circle(margin + 2, yPosition - 1.5, 0.8, 'F');
+          doc.setFillColor(30, 58, 138);
+          doc.circle(margin + 2, yPosition - 1.5, 1, 'F');
           
-          const splitLines = doc.splitTextToSize(bulletText, maxWidth - 7);
+          const splitLines = doc.splitTextToSize(bulletText, maxWidth - 8);
           splitLines.forEach((splitLine: string, idx: number) => {
             if (idx > 0) checkPageBreak(6);
             doc.text(splitLine, bulletX, yPosition);
             yPosition += 6;
           });
+          yPosition += 1;
           continue;
         }
         
         // Handle numbered list items (1. 2. etc.)
-        if (line.match(/^\d+\.\s/)) {
-          checkPageBreak(8);
+        if (trimmedLine.match(/^\d+\.\s/)) {
+          checkPageBreak(10);
           doc.setFontSize(11);
           doc.setFont("helvetica", "normal");
-          doc.setTextColor(0, 0, 0);
-          const match = line.match(/^(\d+\.)\s(.+)$/);
+          doc.setTextColor(50, 50, 50);
+          const match = trimmedLine.match(/^(\d+\.)\s(.+)$/);
           if (match) {
             const number = match[1];
-            const text = processInlineMarkdown(match[2]);
-            const numberWidth = doc.getTextWidth(number + ' ');
+            const text = cleanMarkdown(match[2]);
             
+            doc.setFont("helvetica", "bold");
+            doc.setTextColor(30, 58, 138);
             doc.text(number, margin, yPosition);
+            
+            doc.setFont("helvetica", "normal");
+            doc.setTextColor(50, 50, 50);
+            const numberWidth = doc.getTextWidth(number + ' ');
             const splitLines = doc.splitTextToSize(text, maxWidth - numberWidth);
             splitLines.forEach((splitLine: string, idx: number) => {
               if (idx > 0) checkPageBreak(6);
@@ -219,26 +281,26 @@ const AIFormulaGenerator = () => {
               yPosition += 6;
             });
           }
+          yPosition += 1;
           continue;
         }
         
-        // Handle bold text (check if line contains **)
-        const isBold = line.includes('**');
-        
         // Regular paragraph text
-        checkPageBreak(8);
+        checkPageBreak(10);
         doc.setFontSize(11);
-        doc.setFont("helvetica", isBold ? "bold" : "normal");
-        doc.setTextColor(0, 0, 0);
+        doc.setFont("helvetica", "normal");
+        doc.setTextColor(50, 50, 50);
         
-        const cleanText = processInlineMarkdown(line);
-        const splitLines = doc.splitTextToSize(cleanText, maxWidth);
-        splitLines.forEach((splitLine: string) => {
-          checkPageBreak(6);
-          doc.text(splitLine, margin, yPosition);
-          yPosition += 6;
-        });
-        yPosition += 1; // Small spacing between paragraphs
+        const cleanText = cleanMarkdown(trimmedLine);
+        if (cleanText) {
+          const splitLines = doc.splitTextToSize(cleanText, maxWidth);
+          splitLines.forEach((splitLine: string) => {
+            checkPageBreak(6);
+            doc.text(splitLine, margin, yPosition);
+            yPosition += 6;
+          });
+          yPosition += 2;
+        }
       }
       
       // Add footer with page numbers
@@ -247,19 +309,23 @@ const AIFormulaGenerator = () => {
         doc.setPage(i);
         doc.setFontSize(9);
         doc.setFont("helvetica", "normal");
-        doc.setTextColor(128, 128, 128);
+        doc.setTextColor(150, 150, 150);
         doc.text(
           `Page ${i} of ${pageCount}`,
           pageWidth / 2,
           pageHeight - 10,
           { align: 'center' }
         );
+        // Add footer line
+        doc.setDrawColor(200, 200, 200);
+        doc.setLineWidth(0.2);
+        doc.line(margin, pageHeight - 15, pageWidth - margin, pageHeight - 15);
       }
       
-      doc.save(`analysis-result-${index + 1}.pdf`);
+      doc.save(`data-analysis-report-${index + 1}.pdf`);
       toast({
         title: "Exported to PDF",
-        description: "Analysis has been saved as PDF",
+        description: "Your analysis report has been saved",
       });
     } catch (error) {
       toast({
