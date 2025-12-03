@@ -28,6 +28,7 @@ import PremiumBudgetDownload from "./pages/PremiumBudgetDownload";
 import SentimentAnalysis from "./pages/SentimentAnalysis";
 import SQLGenerator from "./pages/SQLGenerator";
 import UnifiedConverter from "./pages/UnifiedConverter";
+import HabitTracker from "./pages/HabitTracker";
 
 const queryClient = new QueryClient();
 
@@ -60,6 +61,9 @@ const App = () => (
             <Route path="/vba-generator" element={<VBAGenerator />} />
             <Route path="/premium-budget" element={<PremiumBudgetDownload />} />
             <Route path="/admin/resource-setup" element={<AdminResourceSetup />} />
+            
+            {/* Habit Tracker */}
+            <Route path="/habit-tracker" element={<HabitTracker />} />
             
             {/* Unified AI Converter */}
             <Route path="/converter" element={<UnifiedConverter />} />
