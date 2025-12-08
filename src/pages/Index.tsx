@@ -7,19 +7,13 @@ import { categories, formulas } from "@/data/formulas";
 import { tools } from "@/data/tools";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Sparkles, Instagram, Youtube, Loader2, Copy, Check, Zap } from "lucide-react";
+import { Instagram, Youtube, Upload, ArrowRight, Database, Sparkles } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
-import convertxLogo from "@/assets/convertx-logo-new.png";
+import { useNavigate } from "react-router-dom";
 
 const Index = () => {
   const [searchQuery, setSearchQuery] = useState("");
-  const [aiQuery, setAiQuery] = useState("");
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [generatedFormulas, setGeneratedFormulas] = useState<string[]>([]);
-  const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
-  const { toast } = useToast();
+  const navigate = useNavigate();
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
@@ -36,160 +30,77 @@ const Index = () => {
       )
     : [];
 
-  const handleGenerateAI = async () => {
-    if (!aiQuery.trim()) {
-      toast({
-        title: "Please enter a description",
-        description: "Describe what you want to calculate in Excel",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setIsGenerating(true);
-    try {
-      const { data, error } = await supabase.functions.invoke('ai-search', {
-        body: { query: aiQuery }
-      });
-
-      if (error) throw error;
-
-      if (data.formulas && data.formulas.length > 0) {
-        setGeneratedFormulas(data.formulas);
-        toast({
-          title: "Formulas generated!",
-          description: `Generated ${data.formulas.length} formula${data.formulas.length > 1 ? 's' : ''}`,
-        });
-      } else {
-        toast({
-          title: "No formulas generated",
-          description: "Try rephrasing your request",
-          variant: "destructive",
-        });
-      }
-    } catch (error) {
-      console.error('Error generating formulas:', error);
-      toast({
-        title: "Error generating formulas",
-        description: "Please try again later",
-        variant: "destructive",
-      });
-    } finally {
-      setIsGenerating(false);
-    }
-  };
-
-  const copyFormula = async (formula: string, index: number) => {
-    try {
-      await navigator.clipboard.writeText(formula);
-      setCopiedIndex(index);
-      toast({
-        title: "Formula copied!",
-        description: "Formula has been copied to clipboard",
-      });
-      setTimeout(() => setCopiedIndex(null), 2000);
-    } catch (err) {
-      toast({
-        title: "Failed to copy",
-        description: "Please try again",
-        variant: "destructive",
-      });
-    }
-  };
-
   return (
     <div className="min-h-screen bg-background">
       <Header />
       
-      {/* Hero Section */}
+      {/* Hero Section with AI Data Analyzer CTA */}
       <section className="py-12 px-4 md:py-20 bg-[hsl(var(--hero-bg))]">
         <div className="container mx-auto max-w-4xl px-2 sm:px-4">
           <div className="text-center mb-6 md:mb-8">
             <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold mb-4 md:mb-6 text-foreground animate-fade-in px-2">
-              Excel AI: Generate Formulas, Data Analysis, Visualizations & More
+              Excel AI: Data Analysis, Visualizations & More
             </h1>
             <p className="text-base sm:text-lg md:text-xl text-muted-foreground mb-6 md:mb-8 px-4 sm:px-6 animate-fade-in font-normal" style={{ animationDelay: '100ms' }}>
-              Your comprehensive guide to Excel formulas. Search, browse, and master the most essential functions.
+              Upload your files and let AI analyze your data. Get instant insights, charts, and actionable recommendations.
             </p>
           </div>
 
-          {/* Premium AI Formula Generator */}
-          <Card className="mb-6 md:mb-8 animate-fade-in border-2 border-primary/20 bg-gradient-to-br from-card to-primary/5 shadow-xl" style={{ animationDelay: '150ms' }}>
-            <CardHeader className="pb-3 md:pb-6 space-y-2">
-              <div className="flex items-center gap-2">
-                <div className="p-2 rounded-lg bg-primary/10">
-                  <Sparkles className="h-6 w-6 text-primary animate-pulse" />
+          {/* AI Data Analyzer CTA Card */}
+          <Card className="mb-6 md:mb-8 animate-fade-in border-2 border-primary/20 bg-gradient-to-br from-card to-primary/5 shadow-xl overflow-hidden" style={{ animationDelay: '150ms' }}>
+            <CardHeader className="pb-4 md:pb-6 space-y-3">
+              <div className="flex items-center gap-3">
+                <div className="p-3 rounded-xl bg-gradient-to-br from-primary/20 to-accent/20">
+                  <Database className="h-8 w-8 text-primary" />
                 </div>
                 <div>
-                  <CardTitle className="text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-                    AI Formula Generator
+                  <CardTitle className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+                    AI Data Analysis Chat
                   </CardTitle>
-                  <CardDescription className="text-sm">
-                    Powered by Advanced AI • Instant Results
+                  <CardDescription className="text-sm md:text-base">
+                    Powered by Advanced AI • Instant Insights
                   </CardDescription>
                 </div>
               </div>
-              <p className="text-base text-foreground/80 font-medium">Transform natural language into powerful Excel formulas with our premium AI engine</p>
+              <p className="text-base md:text-lg text-foreground/80 font-medium">
+                Upload Excel, CSV, PDF, or any document and chat with AI to analyze your data
+              </p>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex flex-col sm:flex-row gap-2">
-                <input
-                  type="text"
-                  placeholder="e.g., Calculate sum of sales for products..."
-                  value={aiQuery}
-                  onChange={(e) => setAiQuery(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleGenerateAI()}
-                  className="flex-1 px-4 py-3.5 rounded-lg border-2 border-input bg-background text-base focus:border-primary focus:ring-4 focus:ring-primary/20 transition-all duration-200 font-medium"
-                  disabled={isGenerating}
-                />
-                <Button
-                  onClick={handleGenerateAI}
-                  disabled={isGenerating}
-                  size="lg"
-                  className="gap-2 w-full sm:w-auto font-bold bg-gradient-to-r from-primary to-accent hover:opacity-90 text-white shadow-lg hover:shadow-xl transition-all duration-300 px-8"
-                >
-                  {isGenerating ? (
-                    <>
-                      <Loader2 className="h-5 w-5 animate-spin" />
-                      <span>Generating...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Zap className="h-5 w-5" />
-                      <span>Generate AI Formula</span>
-                    </>
-                  )}
-                </Button>
+            <CardContent className="space-y-4 pt-0">
+              {/* Features List */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Sparkles className="h-4 w-4 text-primary" />
+                  <span>Ask questions about your data</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Sparkles className="h-4 w-4 text-primary" />
+                  <span>Generate charts & visualizations</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Sparkles className="h-4 w-4 text-primary" />
+                  <span>Get statistical insights</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Sparkles className="h-4 w-4 text-primary" />
+                  <span>Export results as PDF</span>
+                </div>
               </div>
 
-              {generatedFormulas.length > 0 && (
-                <div className="space-y-3 mt-4 p-4 bg-muted/50 rounded-lg border border-border">
-                  <div className="flex items-center gap-2">
-                    <Check className="h-5 w-5 text-primary" />
-                    <h3 className="font-bold text-base">Generated Formulas:</h3>
-                  </div>
-                  {generatedFormulas.map((formula, index) => (
-                    <div
-                      key={index}
-                      className="flex items-start sm:items-center gap-2 bg-background p-3 rounded-lg group border-2 border-border hover:border-primary/50 transition-all duration-200 shadow-sm"
-                    >
-                      <code className="text-sm flex-1 font-mono break-all font-semibold text-primary">{formula}</code>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => copyFormula(formula, index)}
-                        className="shrink-0 hover:bg-primary/10"
-                      >
-                        {copiedIndex === index ? (
-                          <Check className="h-4 w-4 text-primary" />
-                        ) : (
-                          <Copy className="h-4 w-4" />
-                        )}
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-              )}
+              {/* CTA Button */}
+              <Button
+                onClick={() => navigate('/ai-generator')}
+                size="lg"
+                className="w-full gap-3 font-bold bg-gradient-to-r from-primary to-accent hover:opacity-90 text-white shadow-lg hover:shadow-xl transition-all duration-300 py-6 text-lg"
+              >
+                <Upload className="h-5 w-5" />
+                <span>Start Analyzing Your Data</span>
+                <ArrowRight className="h-5 w-5" />
+              </Button>
+
+              <p className="text-center text-sm text-muted-foreground">
+                Free to use • No signup required • Supports Excel, CSV, PDF, and more
+              </p>
             </CardContent>
           </Card>
 
