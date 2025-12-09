@@ -123,7 +123,7 @@ const DataChat = () => {
         );
         if (firstLine) return cleanMarkdown(firstLine).substring(0, 60);
         
-        return "Analysis Report";
+        return "Data Insights Report";
       };
       
       const reportTitle = extractTitle(content);
