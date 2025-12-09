@@ -170,9 +170,9 @@ const DataChat = () => {
         
         const numCols = Math.max(...data.map(row => row.length));
         const colWidth = (maxWidth - 4) / numCols;
-        const cellPadding = 4;
-        const rowHeight = 10;
-        const headerRowHeight = 12;
+        const cellPadding = 6;
+        const rowHeight = 12;
+        const headerRowHeight = 14;
         
         let currentY = startY;
         
@@ -184,6 +184,17 @@ const DataChat = () => {
           oddRowBg: [255, 255, 255] as [number, number, number],    // White
           borderColor: [203, 213, 225] as [number, number, number], // Slate 300
           cellText: [51, 65, 85] as [number, number, number],       // Slate 700
+        };
+        
+        // Detect if column contains numbers for right alignment
+        const isNumericColumn = (colIdx: number): boolean => {
+          for (let i = 1; i < data.length; i++) {
+            const cell = data[i]?.[colIdx]?.trim() || '';
+            if (cell && !cell.match(/^[\d,.$%€£¥+-]+$/)) {
+              return false;
+            }
+          }
+          return true;
         };
         
         data.forEach((row, rowIdx) => {
@@ -228,13 +239,28 @@ const DataChat = () => {
             
             // Truncate text if too long
             const maxTextWidth = colWidth - (cellPadding * 2);
-            let displayText = cell;
+            let displayText = cell.trim();
             while (doc.getTextWidth(displayText) > maxTextWidth && displayText.length > 3) {
               displayText = displayText.slice(0, -4) + '...';
             }
             
+            const textWidth = doc.getTextWidth(displayText);
             const textY = currentY + (currentRowHeight / 2) + 3;
-            doc.text(displayText, cellX + cellPadding, textY);
+            
+            // Text alignment: center for headers, right for numbers, left for text
+            let textX: number;
+            if (isHeader) {
+              // Center align headers
+              textX = cellX + (colWidth / 2) - (textWidth / 2);
+            } else if (isNumericColumn(colIdx)) {
+              // Right align numeric columns
+              textX = cellX + colWidth - cellPadding - textWidth;
+            } else {
+              // Left align text columns
+              textX = cellX + cellPadding;
+            }
+            
+            doc.text(displayText, textX, textY);
           });
           
           // Draw right border of last cell
@@ -248,7 +274,7 @@ const DataChat = () => {
           currentY += currentRowHeight;
         });
         
-        return currentY + 8; // Add spacing after table
+        return currentY + 10; // Add spacing after table
       };
       
       for (let i = 0; i < contentLines.length; i++) {
