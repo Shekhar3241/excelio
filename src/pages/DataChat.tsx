@@ -1,15 +1,14 @@
 import { useState, useRef, useEffect } from "react";
 import { Helmet } from "react-helmet";
-import { Header } from "@/components/Header";
-import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Loader2, Paperclip, ArrowUp, FileDown } from "lucide-react";
+import { Loader2, Paperclip, ArrowUp, FileDown, Plus, Sparkles, Menu, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import jsPDF from 'jspdf';
 import * as XLSX from 'xlsx';
 import * as pdfjsLib from 'pdfjs-dist';
 import ReactMarkdown from 'react-markdown';
+import { Link } from "react-router-dom";
 // @ts-ignore - Vite will inline this as a URL string
 import pdfjsWorker from 'pdfjs-dist/legacy/build/pdf.worker.min?url';
 
@@ -21,18 +20,19 @@ interface Message {
   content: string;
 }
 
-const AIFormulaGenerator = () => {
+const DataChat = () => {
   const { toast } = useToast();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
   const [initialPrompt, setInitialPrompt] = useState("");
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const scrollToBottom = () => {
-    // Only scroll if user is near the bottom (within 100px)
     const container = messagesEndRef.current?.parentElement;
     if (container) {
       const isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 100;
@@ -41,6 +41,14 @@ const AIFormulaGenerator = () => {
       }
     }
   };
+
+  // Auto-resize textarea
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+      textareaRef.current.style.height = Math.min(textareaRef.current.scrollHeight, 200) + 'px';
+    }
+  }, [input]);
 
   const exportToPDF = (content: string, index: number) => {
     try {
@@ -51,7 +59,6 @@ const AIFormulaGenerator = () => {
       const maxWidth = pageWidth - (margin * 2);
       let yPosition = margin;
       
-      // Helper function to check if we need a new page
       const checkPageBreak = (requiredSpace: number = 10) => {
         if (yPosition + requiredSpace > pageHeight - margin) {
           doc.addPage();
@@ -61,38 +68,28 @@ const AIFormulaGenerator = () => {
         return false;
       };
       
-      // Comprehensive markdown cleaning function
       const cleanMarkdown = (text: string): string => {
         return text
-          // Remove HTML tags
           .replace(/<br\s*\/?>/gi, ' ')
           .replace(/<[^>]*>/g, '')
-          // Remove bold/italic markers
           .replace(/\*\*\*(.+?)\*\*\*/g, '$1')
           .replace(/\*\*(.+?)\*\*/g, '$1')
           .replace(/\*(.+?)\*/g, '$1')
           .replace(/_{3}(.+?)_{3}/g, '$1')
           .replace(/__(.+?)__/g, '$1')
           .replace(/_(.+?)_/g, '$1')
-          // Remove code blocks and inline code
           .replace(/```[\s\S]*?```/g, '')
           .replace(/`(.+?)`/g, '$1')
-          // Remove strikethrough
           .replace(/~~(.+?)~~/g, '$1')
-          // Remove links but keep text
           .replace(/\[(.+?)\]\(.+?\)/g, '$1')
-          // Remove images
           .replace(/!\[.*?\]\(.*?\)/g, '')
-          // Clean up any remaining markdown artifacts
           .replace(/\*+/g, '')
           .replace(/_+/g, ' ')
           .replace(/#+\s*/g, '')
-          // Clean up extra spaces
           .replace(/\s+/g, ' ')
           .trim();
       };
 
-      // Function to extract clean text from table row
       const parseTableRow = (line: string): string[] => {
         return line
           .split('|')
@@ -100,14 +97,12 @@ const AIFormulaGenerator = () => {
           .filter(cell => cell.length > 0);
       };
       
-      // Document Title
       doc.setFontSize(22);
       doc.setFont("helvetica", "bold");
-      doc.setTextColor(30, 58, 138); // Dark blue
+      doc.setTextColor(30, 58, 138);
       doc.text("Data Analysis Report", margin, yPosition);
       yPosition += 10;
       
-      // Subtitle with date
       doc.setFontSize(11);
       doc.setFont("helvetica", "normal");
       doc.setTextColor(100, 100, 100);
@@ -120,42 +115,34 @@ const AIFormulaGenerator = () => {
       })}`, margin, yPosition);
       yPosition += 8;
       
-      // Decorative line
       doc.setDrawColor(30, 58, 138);
       doc.setLineWidth(0.5);
       doc.line(margin, yPosition, pageWidth - margin, yPosition);
       yPosition += 15;
       
-      // Split content into lines
       const contentLines = content.split('\n');
       let inTable = false;
-      let tableHeaders: string[] = [];
       
       for (let i = 0; i < contentLines.length; i++) {
         const line = contentLines[i];
         const trimmedLine = line.trim();
         
-        // Skip empty lines with minimal spacing
         if (trimmedLine === '') {
           yPosition += 4;
           continue;
         }
         
-        // Skip table separator lines (|---|---|)
         if (trimmedLine.match(/^\|?[\s\-:|]+\|?$/) || trimmedLine.match(/^[-:|]+$/)) {
           continue;
         }
         
-        // Handle table rows
         if (trimmedLine.includes('|')) {
           const cells = parseTableRow(trimmedLine);
           if (cells.length > 0) {
             checkPageBreak(10);
             
-            // Check if this is a header row (first table row or after separator)
             if (!inTable) {
               inTable = true;
-              tableHeaders = cells;
               doc.setFontSize(10);
               doc.setFont("helvetica", "bold");
               doc.setTextColor(30, 58, 138);
@@ -178,7 +165,6 @@ const AIFormulaGenerator = () => {
           inTable = false;
         }
         
-        // Handle H1 headings (# )
         if (trimmedLine.startsWith('# ')) {
           checkPageBreak(20);
           yPosition += 8;
@@ -191,7 +177,6 @@ const AIFormulaGenerator = () => {
             doc.text(splitLine, margin, yPosition);
             yPosition += 9;
           });
-          // Add underline for H1
           doc.setDrawColor(200, 200, 200);
           doc.setLineWidth(0.3);
           doc.line(margin, yPosition, margin + 60, yPosition);
@@ -199,7 +184,6 @@ const AIFormulaGenerator = () => {
           continue;
         }
         
-        // Handle H2 headings (## )
         if (trimmedLine.startsWith('## ')) {
           checkPageBreak(15);
           yPosition += 6;
@@ -216,7 +200,6 @@ const AIFormulaGenerator = () => {
           continue;
         }
         
-        // Handle H3 headings (### )
         if (trimmedLine.startsWith('### ')) {
           checkPageBreak(12);
           yPosition += 4;
@@ -233,7 +216,6 @@ const AIFormulaGenerator = () => {
           continue;
         }
         
-        // Handle unordered list items (- or * )
         if (trimmedLine.match(/^[\-\*]\s/)) {
           checkPageBreak(10);
           doc.setFontSize(11);
@@ -242,7 +224,6 @@ const AIFormulaGenerator = () => {
           const bulletText = cleanMarkdown(trimmedLine.substring(2));
           const bulletX = margin + 6;
           
-          // Draw bullet point
           doc.setFillColor(30, 58, 138);
           doc.circle(margin + 2, yPosition - 1.5, 1, 'F');
           
@@ -256,7 +237,6 @@ const AIFormulaGenerator = () => {
           continue;
         }
         
-        // Handle numbered list items (1. 2. etc.)
         if (trimmedLine.match(/^\d+\.\s/)) {
           checkPageBreak(10);
           doc.setFontSize(11);
@@ -285,7 +265,6 @@ const AIFormulaGenerator = () => {
           continue;
         }
         
-        // Regular paragraph text
         checkPageBreak(10);
         doc.setFontSize(11);
         doc.setFont("helvetica", "normal");
@@ -303,7 +282,6 @@ const AIFormulaGenerator = () => {
         }
       }
       
-      // Add footer with page numbers
       const pageCount = doc.internal.pages.length - 1;
       for (let i = 1; i <= pageCount; i++) {
         doc.setPage(i);
@@ -316,7 +294,6 @@ const AIFormulaGenerator = () => {
           pageHeight - 10,
           { align: 'center' }
         );
-        // Add footer line
         doc.setDrawColor(200, 200, 200);
         doc.setLineWidth(0.2);
         doc.line(margin, pageHeight - 15, pageWidth - margin, pageHeight - 15);
@@ -340,10 +317,8 @@ const AIFormulaGenerator = () => {
     try {
       const { Document, Packer, Paragraph, TextRun, HeadingLevel } = await import('docx');
       
-      // Split content into lines and create paragraphs
       const lines = content.split('\n');
       const paragraphs = lines.map(line => {
-        // Check if line is a heading
         if (line.startsWith('# ')) {
           return new Paragraph({
             text: line.substring(2),
@@ -362,7 +337,6 @@ const AIFormulaGenerator = () => {
         } else if (line.trim() === '') {
           return new Paragraph({ text: '' });
         } else {
-          // Regular paragraph
           return new Paragraph({
             children: [new TextRun({ text: line })],
           });
@@ -485,7 +459,7 @@ const AIFormulaGenerator = () => {
   };
 
   const handleSend = async () => {
-    if (!input.trim() && uploadedFiles.length === 0) return;
+    if (!input.trim() && uploadedFiles.length === 0 && !initialPrompt.trim()) return;
 
     const userMessage: Message = {
       role: "user",
@@ -577,7 +551,6 @@ const AIFormulaGenerator = () => {
                     }
                     return updated;
                   });
-                  // Removed auto-scroll during streaming to prevent jumping
                 }
               } catch (e) {
                 // Skip invalid JSON
@@ -587,7 +560,6 @@ const AIFormulaGenerator = () => {
         }
       }
 
-      // Scroll only at the end of response
       setTimeout(scrollToBottom, 100);
     } catch (error) {
       toast({
@@ -600,177 +572,141 @@ const AIFormulaGenerator = () => {
     }
   };
 
+  const startNewChat = () => {
+    setMessages([]);
+    setInput("");
+    setInitialPrompt("");
+    setUploadedFiles([]);
+  };
+
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-b from-background to-muted/20">
+    <div className="h-screen flex bg-background overflow-hidden">
       <Helmet>
-        <title>AI Excel Assistant - Analyze Your Data</title>
+        <title>Data.chat - AI-Powered Data Analysis</title>
         <meta
           name="description"
-          content="Upload Excel, PDF, and other files to get AI-powered insights and analysis."
+          content="Chat with your data using AI. Upload Excel, PDF, and other files to get instant insights and analysis."
         />
       </Helmet>
 
-      <Header />
+      {/* Mobile sidebar overlay */}
+      {sidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
 
-      <main className="flex-1 container mx-auto px-2 sm:px-4 py-4 sm:py-8 md:py-12 flex items-center justify-center">
-        <div className="w-full max-w-4xl">
+      {/* Sidebar */}
+      <aside className={`
+        fixed lg:relative inset-y-0 left-0 z-50
+        w-64 bg-secondary/50 border-r border-border
+        flex flex-col
+        transform transition-transform duration-300 ease-in-out
+        ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+      `}>
+        <div className="p-3">
+          <Button 
+            onClick={startNewChat}
+            variant="outline" 
+            className="w-full justify-start gap-3 rounded-xl h-11 border-border/50 hover:bg-muted"
+          >
+            <Plus className="h-4 w-4" />
+            New chat
+          </Button>
+        </div>
+        
+        <div className="flex-1 overflow-y-auto px-3 py-2">
+          <p className="text-xs text-muted-foreground px-3 py-2">Previous chats will appear here</p>
+        </div>
+        
+        <div className="p-3 border-t border-border">
+          <Link 
+            to="/"
+            className="flex items-center gap-2 px-3 py-2 text-sm text-muted-foreground hover:text-foreground transition-colors rounded-lg hover:bg-muted"
+          >
+            ← Back to Home
+          </Link>
+        </div>
+      </aside>
+
+      {/* Main content */}
+      <main className="flex-1 flex flex-col min-w-0">
+        {/* Header */}
+        <header className="h-14 border-b border-border flex items-center justify-between px-4 shrink-0">
+          <div className="flex items-center gap-3">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="lg:hidden h-9 w-9"
+              onClick={() => setSidebarOpen(!sidebarOpen)}
+            >
+              {sidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            </Button>
+            <div className="flex items-center gap-2">
+              <Sparkles className="h-5 w-5 text-accent" />
+              <h1 className="font-semibold text-lg">Data.chat</h1>
+            </div>
+          </div>
+        </header>
+
+        {/* Chat area */}
+        <div className="flex-1 overflow-y-auto">
           {messages.length === 0 ? (
-            <div className="animate-fade-in">
-              <div className="bg-card rounded-2xl sm:rounded-3xl shadow-2xl p-6 sm:p-8 md:p-12 border border-border/50">
-                <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-center text-foreground mb-6 sm:mb-8 md:mb-12 animate-scale-in">
-                  Data.chat
-                </h1>
-                
-                <div className="mb-6">
-                  <Textarea
-                    value={initialPrompt}
-                    onChange={(e) => setInitialPrompt(e.target.value)}
-                    placeholder="What would you like to know? (e.g., 'Find sales trends', 'Analyze customer data', 'Calculate averages')"
-                    className="resize-none rounded-2xl min-h-[100px] text-sm sm:text-base"
-                    rows={3}
-                  />
-                  <p className="text-xs text-muted-foreground mt-2 text-center">
-                    Describe what you want to analyze, then upload your data files below
+            /* Welcome screen */
+            <div className="h-full flex flex-col items-center justify-center px-4 py-8">
+              <div className="max-w-2xl w-full space-y-8 animate-fade-in">
+                <div className="text-center space-y-3">
+                  <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-accent/20 to-accent/5 mb-4">
+                    <Sparkles className="h-8 w-8 text-accent" />
+                  </div>
+                  <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">
+                    How can I help you today?
+                  </h2>
+                  <p className="text-muted-foreground text-lg max-w-md mx-auto">
+                    Upload your data files and ask questions to get instant AI-powered insights.
                   </p>
                 </div>
-                
-                <div className="flex gap-2 sm:gap-4 items-center justify-center">
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    multiple
-                    accept=".pdf,.xlsx,.xls,.doc,.docx,.txt,.csv,.json,image/*"
-                    onChange={handleFileUpload}
-                    className="hidden"
-                  />
-                  <Button
-                    variant="outline"
-                    size="lg"
-                    onClick={() => fileInputRef.current?.click()}
-                    className="rounded-full px-4 sm:px-6 md:px-8 py-4 sm:py-5 md:py-6 text-sm sm:text-base md:text-lg border-2 hover:scale-105 transition-transform"
-                  >
-                    <Paperclip className="h-4 w-4 sm:h-5 sm:w-5 mr-2 sm:mr-3" />
-                    Add data
-                  </Button>
-                  
-                  <Button
-                    size="lg"
-                    className="rounded-full p-4 sm:p-5 md:p-6 hover:scale-105 transition-transform"
-                    onClick={() => {
-                      if (uploadedFiles.length > 0 || initialPrompt.trim()) {
-                        handleSend();
-                      }
-                    }}
-                    disabled={uploadedFiles.length === 0 && !initialPrompt.trim()}
-                  >
-                    <ArrowUp className="h-5 w-5 sm:h-6 sm:w-6" />
-                  </Button>
-                </div>
 
-                {uploadedFiles.length > 0 && (
-                  <div className="mt-6 p-4 bg-muted/50 rounded-2xl">
-                    <p className="text-sm text-muted-foreground mb-3 font-medium">
-                      {uploadedFiles.length} file{uploadedFiles.length > 1 ? 's' : ''} ready
-                    </p>
-                    <div className="flex flex-wrap gap-2">
+                {/* Input area for welcome screen */}
+                <div className="space-y-4">
+                  <div className="relative">
+                    <Textarea
+                      ref={textareaRef}
+                      value={initialPrompt}
+                      onChange={(e) => setInitialPrompt(e.target.value)}
+                      placeholder="What would you like to analyze?"
+                      className="min-h-[120px] resize-none rounded-2xl border-border/50 bg-card pr-12 text-base focus:ring-2 focus:ring-accent/20"
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" && !e.shiftKey && (initialPrompt.trim() || uploadedFiles.length > 0)) {
+                          e.preventDefault();
+                          handleSend();
+                        }
+                      }}
+                    />
+                  </div>
+
+                  {uploadedFiles.length > 0 && (
+                    <div className="flex flex-wrap gap-2 px-1">
                       {uploadedFiles.map((file, index) => (
                         <div
                           key={index}
-                          className="text-sm px-3 py-1 bg-background rounded-full border border-border"
+                          className="flex items-center gap-2 text-sm px-3 py-1.5 bg-muted rounded-full border border-border/50"
                         >
-                          {file.name}
+                          <Paperclip className="h-3.5 w-3.5 text-muted-foreground" />
+                          <span className="max-w-[150px] truncate">{file.name}</span>
+                          <button
+                            onClick={() => setUploadedFiles(prev => prev.filter((_, i) => i !== index))}
+                            className="text-muted-foreground hover:text-foreground"
+                          >
+                            <X className="h-3.5 w-3.5" />
+                          </button>
                         </div>
                       ))}
                     </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          ) : (
-            <div className="space-y-4 sm:space-y-6">
-              <div className="bg-card rounded-2xl sm:rounded-3xl shadow-2xl border border-border/50 overflow-hidden">
-                <div className="max-h-[65vh] sm:max-h-[60vh] overflow-y-auto p-4 sm:p-6 md:p-8 space-y-4 sm:space-y-6">
-                  {messages.map((message, index) => (
-                    <div
-                      key={index}
-                      className={`flex ${message.role === "user" ? "justify-end" : "justify-start"} animate-fade-in`}
-                    >
-                      <div className="flex flex-col gap-2 max-w-[90%] sm:max-w-[85%]">
-                        <div
-                          className={`rounded-2xl sm:rounded-3xl px-4 sm:px-5 md:px-6 py-3 sm:py-4 ${
-                            message.role === "user"
-                              ? "bg-primary text-primary-foreground"
-                              : "bg-muted text-foreground"
-                          }`}
-                        >
-                          {message.role === "assistant" ? (
-                            <div className="prose prose-sm sm:prose dark:prose-invert max-w-none">
-                              <ReactMarkdown
-                                components={{
-                                  p: ({children}) => <p className="mb-2 leading-relaxed text-sm sm:text-base">{children}</p>,
-                                  ul: ({children}) => <ul className="list-disc pl-4 mb-2 space-y-1">{children}</ul>,
-                                  ol: ({children}) => <ol className="list-decimal pl-4 mb-2 space-y-1">{children}</ol>,
-                                  li: ({children}) => <li className="text-sm sm:text-base">{children}</li>,
-                                  code: ({children}) => <code className="bg-background/50 px-1.5 py-0.5 rounded text-xs sm:text-sm">{children}</code>,
-                                  pre: ({children}) => <pre className="bg-background/50 p-2 sm:p-3 rounded-lg overflow-x-auto text-xs sm:text-sm my-2">{children}</pre>,
-                                  h1: ({children}) => <h1 className="text-lg sm:text-xl font-bold mb-2">{children}</h1>,
-                                  h2: ({children}) => <h2 className="text-base sm:text-lg font-bold mb-2">{children}</h2>,
-                                  h3: ({children}) => <h3 className="text-sm sm:text-base font-bold mb-1">{children}</h3>,
-                                  strong: ({children}) => <strong className="font-semibold">{children}</strong>,
-                                }}
-                              >
-                                {message.content}
-                              </ReactMarkdown>
-                            </div>
-                          ) : (
-                            <p className="whitespace-pre-wrap break-words leading-relaxed text-sm sm:text-base">
-                              {message.content}
-                            </p>
-                          )}
-                        </div>
-                        {message.role === "assistant" && (
-                          <div className="flex gap-2">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => exportToPDF(message.content, index)}
-                              className="text-xs"
-                            >
-                              <FileDown className="h-3 w-3 mr-1" />
-                              PDF
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => exportToWord(message.content, index)}
-                              className="text-xs"
-                            >
-                              <FileDown className="h-3 w-3 mr-1" />
-                              Word
-                            </Button>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-
-                  {isLoading && (
-                    <div className="flex justify-start animate-fade-in">
-                      <div className="bg-muted rounded-2xl sm:rounded-3xl px-4 sm:px-6 py-3 sm:py-4">
-                        <div className="flex gap-1.5">
-                          <span className="w-2 h-2 sm:w-2.5 sm:h-2.5 bg-foreground/40 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
-                          <span className="w-2 h-2 sm:w-2.5 sm:h-2.5 bg-foreground/40 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
-                          <span className="w-2 h-2 sm:w-2.5 sm:h-2.5 bg-foreground/40 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
-                        </div>
-                      </div>
-                    </div>
                   )}
 
-                  <div ref={messagesEndRef} />
-                </div>
-
-                <div className="p-3 sm:p-4 md:p-6 border-t border-border/50 bg-background/50">
-                  <div className="flex gap-2 sm:gap-3 items-end">
+                  <div className="flex items-center justify-between">
                     <input
                       ref={fileInputRef}
                       type="file"
@@ -780,60 +716,209 @@ const AIFormulaGenerator = () => {
                       className="hidden"
                     />
                     <Button
-                      variant="outline"
-                      size="icon"
+                      variant="ghost"
+                      size="sm"
                       onClick={() => fileInputRef.current?.click()}
-                      disabled={isLoading}
-                      className="rounded-full shrink-0 h-9 w-9 sm:h-10 sm:w-10"
+                      className="gap-2 text-muted-foreground hover:text-foreground"
                     >
-                      <Paperclip className="h-4 w-4 sm:h-5 sm:w-5" />
+                      <Paperclip className="h-4 w-4" />
+                      Attach files
                     </Button>
                     
-                    <div className="flex-1 relative">
-                      <Textarea
-                        value={input}
-                        onChange={(e) => setInput(e.target.value)}
-                        onKeyPress={(e) => {
-                          if (e.key === "Enter" && !e.shiftKey) {
-                            e.preventDefault();
-                            handleSend();
-                          }
-                        }}
-                        placeholder="Ask about your data..."
-                        disabled={isLoading}
-                        className="resize-none rounded-2xl sm:rounded-3xl min-h-[50px] sm:min-h-[60px] pr-12 sm:pr-14 text-sm sm:text-base"
-                        rows={2}
-                      />
-                      {uploadedFiles.length > 0 && (
-                        <div className="absolute bottom-2 left-3 text-xs text-muted-foreground">
-                          {uploadedFiles.length} file{uploadedFiles.length > 1 ? 's' : ''}
-                        </div>
-                      )}
-                    </div>
-
                     <Button
                       onClick={handleSend}
-                      disabled={isLoading || (!input.trim() && uploadedFiles.length === 0)}
-                      size="icon"
-                      className="rounded-full shrink-0 h-9 w-9 sm:h-10 sm:w-10"
+                      disabled={!initialPrompt.trim() && uploadedFiles.length === 0}
+                      className="rounded-full px-6 gap-2"
                     >
-                      {isLoading ? (
-                        <Loader2 className="h-4 w-4 sm:h-5 sm:w-5 animate-spin" />
-                      ) : (
-                        <ArrowUp className="h-4 w-4 sm:h-5 sm:w-5" />
-                      )}
+                      <ArrowUp className="h-4 w-4" />
+                      Send
                     </Button>
                   </div>
                 </div>
+
+                {/* Suggestions */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-4">
+                  {[
+                    "Analyze sales trends in my data",
+                    "Calculate summary statistics",
+                    "Find patterns and insights",
+                    "Compare data across columns"
+                  ].map((suggestion, i) => (
+                    <button
+                      key={i}
+                      onClick={() => setInitialPrompt(suggestion)}
+                      className="text-left p-4 rounded-xl border border-border/50 bg-card/50 hover:bg-card hover:border-border transition-colors text-sm text-muted-foreground hover:text-foreground"
+                    >
+                      {suggestion}
+                    </button>
+                  ))}
+                </div>
               </div>
+            </div>
+          ) : (
+            /* Messages */
+            <div className="max-w-3xl mx-auto px-4 py-6 space-y-6">
+              {messages.map((message, index) => (
+                <div
+                  key={index}
+                  className={`flex gap-4 animate-fade-in ${message.role === "user" ? "justify-end" : ""}`}
+                >
+                  {message.role === "assistant" && (
+                    <div className="shrink-0 w-8 h-8 rounded-lg bg-gradient-to-br from-accent/20 to-accent/5 flex items-center justify-center">
+                      <Sparkles className="h-4 w-4 text-accent" />
+                    </div>
+                  )}
+                  <div className={`flex flex-col gap-2 ${message.role === "user" ? "items-end" : "items-start"} max-w-[85%]`}>
+                    <div
+                      className={`rounded-2xl px-4 py-3 ${
+                        message.role === "user"
+                          ? "bg-primary text-primary-foreground"
+                          : "bg-muted"
+                      }`}
+                    >
+                      {message.role === "assistant" ? (
+                        <div className="prose prose-sm dark:prose-invert max-w-none">
+                          <ReactMarkdown
+                            components={{
+                              p: ({children}) => <p className="mb-3 last:mb-0 leading-relaxed">{children}</p>,
+                              ul: ({children}) => <ul className="list-disc pl-4 mb-3 space-y-1">{children}</ul>,
+                              ol: ({children}) => <ol className="list-decimal pl-4 mb-3 space-y-1">{children}</ol>,
+                              li: ({children}) => <li>{children}</li>,
+                              code: ({children}) => <code className="bg-background/50 px-1.5 py-0.5 rounded text-sm font-mono">{children}</code>,
+                              pre: ({children}) => <pre className="bg-background/50 p-4 rounded-xl overflow-x-auto text-sm my-3">{children}</pre>,
+                              h1: ({children}) => <h1 className="text-xl font-bold mb-3 mt-4 first:mt-0">{children}</h1>,
+                              h2: ({children}) => <h2 className="text-lg font-bold mb-2 mt-3 first:mt-0">{children}</h2>,
+                              h3: ({children}) => <h3 className="text-base font-bold mb-2 mt-3 first:mt-0">{children}</h3>,
+                              strong: ({children}) => <strong className="font-semibold">{children}</strong>,
+                            }}
+                          >
+                            {message.content}
+                          </ReactMarkdown>
+                        </div>
+                      ) : (
+                        <p className="whitespace-pre-wrap break-words leading-relaxed">
+                          {message.content}
+                        </p>
+                      )}
+                    </div>
+                    {message.role === "assistant" && (
+                      <div className="flex gap-1">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => exportToPDF(message.content, index)}
+                          className="h-8 px-2 text-xs text-muted-foreground hover:text-foreground"
+                        >
+                          <FileDown className="h-3.5 w-3.5 mr-1" />
+                          PDF
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => exportToWord(message.content, index)}
+                          className="h-8 px-2 text-xs text-muted-foreground hover:text-foreground"
+                        >
+                          <FileDown className="h-3.5 w-3.5 mr-1" />
+                          Word
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+
+              {isLoading && (
+                <div className="flex gap-4 animate-fade-in">
+                  <div className="shrink-0 w-8 h-8 rounded-lg bg-gradient-to-br from-accent/20 to-accent/5 flex items-center justify-center">
+                    <Sparkles className="h-4 w-4 text-accent" />
+                  </div>
+                  <div className="bg-muted rounded-2xl px-4 py-3">
+                    <div className="flex gap-1.5">
+                      <span className="w-2 h-2 bg-foreground/30 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
+                      <span className="w-2 h-2 bg-foreground/30 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
+                      <span className="w-2 h-2 bg-foreground/30 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <div ref={messagesEndRef} />
             </div>
           )}
         </div>
-      </main>
 
-      <Footer />
+        {/* Input area (shown when in conversation) */}
+        {messages.length > 0 && (
+          <div className="border-t border-border bg-background p-4 shrink-0">
+            <div className="max-w-3xl mx-auto">
+              <div className="relative flex items-end gap-2 bg-muted rounded-2xl border border-border/50 p-2">
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  multiple
+                  accept=".pdf,.xlsx,.xls,.doc,.docx,.txt,.csv,.json,image/*"
+                  onChange={handleFileUpload}
+                  className="hidden"
+                />
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={isLoading}
+                  className="shrink-0 h-9 w-9 rounded-xl"
+                >
+                  <Paperclip className="h-5 w-5" />
+                </Button>
+                
+                <div className="flex-1 relative">
+                  <Textarea
+                    ref={textareaRef}
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && !e.shiftKey) {
+                        e.preventDefault();
+                        handleSend();
+                      }
+                    }}
+                    placeholder="Message Data.chat..."
+                    disabled={isLoading}
+                    className="min-h-[44px] max-h-[200px] resize-none bg-transparent border-0 focus-visible:ring-0 py-3 px-2"
+                    rows={1}
+                  />
+                  {uploadedFiles.length > 0 && (
+                    <div className="absolute -top-10 left-0 flex gap-1">
+                      {uploadedFiles.map((file, index) => (
+                        <span key={index} className="text-xs px-2 py-1 bg-background rounded-full border border-border">
+                          {file.name.length > 15 ? file.name.slice(0, 15) + '...' : file.name}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <Button
+                  onClick={handleSend}
+                  disabled={isLoading || (!input.trim() && uploadedFiles.length === 0)}
+                  size="icon"
+                  className="shrink-0 h-9 w-9 rounded-xl"
+                >
+                  {isLoading ? (
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                  ) : (
+                    <ArrowUp className="h-5 w-5" />
+                  )}
+                </Button>
+              </div>
+              <p className="text-xs text-center text-muted-foreground mt-2">
+                Data.chat can make mistakes. Consider checking important information.
+              </p>
+            </div>
+          </div>
+        )}
+      </main>
     </div>
   );
 };
 
-export default AIFormulaGenerator;
+export default DataChat;

@@ -89,7 +89,7 @@ const Index = () => {
 
               {/* CTA Button */}
               <Button
-                onClick={() => navigate('/ai-generator')}
+                onClick={() => navigate('/datachat')}
                 size="lg"
                 className="w-full gap-3 font-bold bg-gradient-to-r from-primary to-accent hover:opacity-90 text-white shadow-lg hover:shadow-xl transition-all duration-300 py-6 text-lg"
               >
