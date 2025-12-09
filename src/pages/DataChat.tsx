@@ -96,15 +96,17 @@ const DataChat = () => {
           .replace(/\*+/g, '')
           .replace(/_+/g, ' ')
           .replace(/#+\s*/g, '')
-          .replace(/\s+/g, ' ')
+          .replace(/\s{2,}/g, ' ')
           .trim();
       };
 
       const parseTableRow = (line: string): string[] => {
-        return line
+        // Remove leading/trailing pipes and split
+        const cleanLine = line.replace(/^\||\|$/g, '');
+        return cleanLine
           .split('|')
-          .map(cell => cleanMarkdown(cell))
-          .filter(cell => cell.length > 0);
+          .map(cell => cleanMarkdown(cell).trim())
+          .filter((_, idx, arr) => idx < arr.length); // Keep all cells
       };
       
       // Extract title from content - use first heading or generate from content
@@ -239,13 +241,14 @@ const DataChat = () => {
             
             // Truncate text if too long
             const maxTextWidth = colWidth - (cellPadding * 2);
-            let displayText = cell.trim();
+            let displayText = cell.trim().replace(/\s+/g, ' ');
             while (doc.getTextWidth(displayText) > maxTextWidth && displayText.length > 3) {
               displayText = displayText.slice(0, -4) + '...';
             }
             
             const textWidth = doc.getTextWidth(displayText);
-            const textY = currentY + (currentRowHeight / 2) + 3;
+            // Proper vertical centering
+            const textY = currentY + (currentRowHeight / 2) + 2.5;
             
             // Text alignment: center for headers, right for numbers, left for text
             let textX: number;
@@ -256,7 +259,7 @@ const DataChat = () => {
               // Right align numeric columns
               textX = cellX + colWidth - cellPadding - textWidth;
             } else {
-              // Left align text columns
+              // Left align text columns with consistent padding
               textX = cellX + cellPadding;
             }
             
