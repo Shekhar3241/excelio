@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { Helmet } from "react-helmet";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Loader2, Paperclip, ArrowUp, FileDown, Plus, Sparkles, Menu, X } from "lucide-react";
+import { Loader2, Paperclip, ArrowUp, FileDown, Plus, Sparkles, Menu, X, FileText, Search, ListChecks, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import jsPDF from 'jspdf';
 import * as XLSX from 'xlsx';
@@ -20,14 +20,22 @@ interface Message {
   content: string;
 }
 
+interface DocumentFile {
+  name: string;
+  type: string;
+  content: string;
+}
+
 const DataChat = () => {
   const { toast } = useToast();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
+  const [sessionDocuments, setSessionDocuments] = useState<DocumentFile[]>([]);
   const [initialPrompt, setInitialPrompt] = useState("");
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [documentContext, setDocumentContext] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -61,12 +69,12 @@ const DataChat = () => {
       
       // Premium color palette
       const colors = {
-        primary: [15, 23, 42] as [number, number, number],      // Slate 900
-        secondary: [51, 65, 85] as [number, number, number],    // Slate 700
-        accent: [59, 130, 246] as [number, number, number],     // Blue 500
-        muted: [100, 116, 139] as [number, number, number],     // Slate 500
-        light: [148, 163, 184] as [number, number, number],     // Slate 400
-        border: [226, 232, 240] as [number, number, number],    // Slate 200
+        primary: [15, 23, 42] as [number, number, number],
+        secondary: [51, 65, 85] as [number, number, number],
+        accent: [59, 130, 246] as [number, number, number],
+        muted: [100, 116, 139] as [number, number, number],
+        light: [148, 163, 184] as [number, number, number],
+        border: [226, 232, 240] as [number, number, number],
       };
       
       const checkPageBreak = (requiredSpace: number = 10) => {
@@ -101,25 +109,20 @@ const DataChat = () => {
       };
 
       const parseTableRow = (line: string): string[] => {
-        // Remove leading/trailing pipes and split
         const cleanLine = line.replace(/^\||\|$/g, '');
         return cleanLine
           .split('|')
           .map(cell => cleanMarkdown(cell).trim())
-          .filter((_, idx, arr) => idx < arr.length); // Keep all cells
+          .filter((_, idx, arr) => idx < arr.length);
       };
       
-      // Extract title from content - use first heading or generate from content
       const extractTitle = (text: string): string => {
-        // Try to find first H1 heading
         const h1Match = text.match(/^#\s+(.+)$/m);
         if (h1Match) return cleanMarkdown(h1Match[1]).substring(0, 60);
         
-        // Try to find first H2 heading
         const h2Match = text.match(/^##\s+(.+)$/m);
         if (h2Match) return cleanMarkdown(h2Match[1]).substring(0, 60);
         
-        // Use first meaningful line
         const firstLine = text.split('\n').find(line => 
           line.trim().length > 10 && !line.startsWith('|') && !line.match(/^[-:|]+$/)
         );
@@ -130,22 +133,18 @@ const DataChat = () => {
       
       const reportTitle = extractTitle(content);
       
-      // Premium Header with gradient effect simulation
       doc.setFillColor(15, 23, 42);
       doc.rect(0, 0, pageWidth, 45, 'F');
       
-      // Accent line
       doc.setFillColor(59, 130, 246);
       doc.rect(0, 45, pageWidth, 2, 'F');
       
-      // Dynamic title on dark header
       doc.setFontSize(22);
       doc.setFont("helvetica", "bold");
       doc.setTextColor(255, 255, 255);
       const titleLines = doc.splitTextToSize(reportTitle, maxWidth - 20);
       doc.text(titleLines[0], margin, 28);
       
-      // Subtitle
       doc.setFontSize(10);
       doc.setFont("helvetica", "normal");
       doc.setTextColor(148, 163, 184);
@@ -166,7 +165,6 @@ const DataChat = () => {
       let tableData: string[][] = [];
       let tableStartY = yPosition;
       
-      // Function to render a complete table with professional styling
       const renderTable = (data: string[][], startY: number) => {
         if (data.length === 0) return startY;
         
@@ -178,17 +176,15 @@ const DataChat = () => {
         
         let currentY = startY;
         
-        // Table colors
         const tableColors = {
-          headerBg: [15, 23, 42] as [number, number, number],       // Dark header
-          headerText: [255, 255, 255] as [number, number, number],  // White text
-          evenRowBg: [248, 250, 252] as [number, number, number],   // Light gray
-          oddRowBg: [255, 255, 255] as [number, number, number],    // White
-          borderColor: [203, 213, 225] as [number, number, number], // Slate 300
-          cellText: [51, 65, 85] as [number, number, number],       // Slate 700
+          headerBg: [15, 23, 42] as [number, number, number],
+          headerText: [255, 255, 255] as [number, number, number],
+          evenRowBg: [248, 250, 252] as [number, number, number],
+          oddRowBg: [255, 255, 255] as [number, number, number],
+          borderColor: [203, 213, 225] as [number, number, number],
+          cellText: [51, 65, 85] as [number, number, number],
         };
         
-        // Detect if column contains numbers for right alignment
         const isNumericColumn = (colIdx: number): boolean => {
           for (let i = 1; i < data.length; i++) {
             const cell = data[i]?.[colIdx]?.trim() || '';
@@ -203,13 +199,11 @@ const DataChat = () => {
           const isHeader = rowIdx === 0;
           const currentRowHeight = isHeader ? headerRowHeight : rowHeight;
           
-          // Check page break before drawing row
           if (currentY + currentRowHeight > pageHeight - 35) {
             doc.addPage();
             currentY = margin + 5;
           }
           
-          // Draw row background
           if (isHeader) {
             doc.setFillColor(...tableColors.headerBg);
           } else if (rowIdx % 2 === 0) {
@@ -219,16 +213,13 @@ const DataChat = () => {
           }
           doc.rect(margin, currentY, maxWidth, currentRowHeight, 'F');
           
-          // Draw cell borders and text
           row.forEach((cell, colIdx) => {
             const cellX = margin + (colIdx * colWidth);
             
-            // Draw vertical lines
             doc.setDrawColor(...tableColors.borderColor);
             doc.setLineWidth(0.3);
             doc.line(cellX, currentY, cellX, currentY + currentRowHeight);
             
-            // Draw cell text
             if (isHeader) {
               doc.setFont("helvetica", "bold");
               doc.setTextColor(...tableColors.headerText);
@@ -239,7 +230,6 @@ const DataChat = () => {
               doc.setFontSize(9);
             }
             
-            // Truncate text if too long
             const maxTextWidth = colWidth - (cellPadding * 2);
             let displayText = cell.trim().replace(/\s+/g, ' ');
             while (doc.getTextWidth(displayText) > maxTextWidth && displayText.length > 3) {
@@ -247,37 +237,29 @@ const DataChat = () => {
             }
             
             const textWidth = doc.getTextWidth(displayText);
-            // Proper vertical centering
             const textY = currentY + (currentRowHeight / 2) + 2.5;
             
-            // Text alignment: center for headers, right for numbers, left for text
             let textX: number;
             if (isHeader) {
-              // Center align headers
               textX = cellX + (colWidth / 2) - (textWidth / 2);
             } else if (isNumericColumn(colIdx)) {
-              // Right align numeric columns
               textX = cellX + colWidth - cellPadding - textWidth;
             } else {
-              // Left align text columns with consistent padding
               textX = cellX + cellPadding;
             }
             
             doc.text(displayText, textX, textY);
           });
           
-          // Draw right border of last cell
           const lastCellX = margin + maxWidth;
           doc.line(lastCellX, currentY, lastCellX, currentY + currentRowHeight);
-          
-          // Draw horizontal lines (top and bottom of row)
           doc.line(margin, currentY, margin + maxWidth, currentY);
           doc.line(margin, currentY + currentRowHeight, margin + maxWidth, currentY + currentRowHeight);
           
           currentY += currentRowHeight;
         });
         
-        return currentY + 10; // Add spacing after table
+        return currentY + 10;
       };
       
       for (let i = 0; i < contentLines.length; i++) {
@@ -285,7 +267,6 @@ const DataChat = () => {
         const trimmedLine = line.trim();
         
         if (trimmedLine === '') {
-          // If we were in a table, render it now
           if (inTable && tableData.length > 0) {
             yPosition = renderTable(tableData, tableStartY);
             tableData = [];
@@ -296,7 +277,6 @@ const DataChat = () => {
           continue;
         }
         
-        // Skip separator rows but keep table context
         if (trimmedLine.match(/^\|?[\s\-:|]+\|?$/) || trimmedLine.match(/^[-:|]+$/)) {
           continue;
         }
@@ -315,7 +295,6 @@ const DataChat = () => {
           }
           continue;
         } else {
-          // If we were in a table, render it now
           if (inTable && tableData.length > 0) {
             yPosition = renderTable(tableData, tableStartY);
             tableData = [];
@@ -324,12 +303,10 @@ const DataChat = () => {
           inTable = false;
         }
         
-        // H1 Headers - Premium style
         if (trimmedLine.startsWith('# ')) {
           checkPageBreak(25);
           yPosition += 12;
           
-          // Accent bar before heading
           doc.setFillColor(...colors.accent);
           doc.rect(margin, yPosition - 6, 4, 18, 'F');
           
@@ -346,7 +323,6 @@ const DataChat = () => {
           continue;
         }
         
-        // H2 Headers
         if (trimmedLine.startsWith('## ')) {
           checkPageBreak(18);
           yPosition += 10;
@@ -360,7 +336,6 @@ const DataChat = () => {
             yPosition += 9;
           });
           
-          // Subtle underline
           doc.setDrawColor(...colors.border);
           doc.setLineWidth(0.5);
           doc.line(margin, yPosition + 2, margin + 50, yPosition + 2);
@@ -368,7 +343,6 @@ const DataChat = () => {
           continue;
         }
         
-        // H3 Headers
         if (trimmedLine.startsWith('### ')) {
           checkPageBreak(15);
           yPosition += 6;
@@ -385,7 +359,6 @@ const DataChat = () => {
           continue;
         }
         
-        // Bullet points - Premium style
         if (trimmedLine.match(/^[\-\*]\s/)) {
           checkPageBreak(12);
           doc.setFontSize(11);
@@ -394,7 +367,6 @@ const DataChat = () => {
           const bulletText = cleanMarkdown(trimmedLine.substring(2));
           const bulletX = margin + 10;
           
-          // Modern bullet point
           doc.setFillColor(...colors.accent);
           doc.circle(margin + 4, yPosition - 1.5, 1.5, 'F');
           
@@ -408,7 +380,6 @@ const DataChat = () => {
           continue;
         }
         
-        // Numbered lists
         if (trimmedLine.match(/^\d+\.\s/)) {
           checkPageBreak(12);
           doc.setFontSize(11);
@@ -417,12 +388,10 @@ const DataChat = () => {
             const number = match[1];
             const text = cleanMarkdown(match[2]);
             
-            // Number in accent color
             doc.setFont("helvetica", "bold");
             doc.setTextColor(...colors.accent);
             doc.text(number, margin, yPosition);
             
-            // Text in secondary color
             doc.setFont("helvetica", "normal");
             doc.setTextColor(...colors.secondary);
             const numberWidth = doc.getTextWidth(number + '  ');
@@ -437,7 +406,6 @@ const DataChat = () => {
           continue;
         }
         
-        // Regular paragraphs
         checkPageBreak(12);
         doc.setFontSize(11);
         doc.setFont("helvetica", "normal");
@@ -455,26 +423,21 @@ const DataChat = () => {
         }
       }
       
-      // Render any remaining table at end of content
       if (inTable && tableData.length > 0) {
         yPosition = renderTable(tableData, tableStartY);
       }
       
-      // Add footer with watermark and page numbers to all pages
       const pageCount = doc.internal.pages.length - 1;
       for (let i = 1; i <= pageCount; i++) {
         doc.setPage(i);
         
-        // Footer background
         doc.setFillColor(248, 250, 252);
         doc.rect(0, pageHeight - 22, pageWidth, 22, 'F');
         
-        // Footer top line
         doc.setDrawColor(...colors.border);
         doc.setLineWidth(0.3);
         doc.line(0, pageHeight - 22, pageWidth, pageHeight - 22);
         
-        // Watermark - centered
         doc.setFontSize(9);
         doc.setFont("helvetica", "normal");
         doc.setTextColor(...colors.muted);
@@ -485,7 +448,6 @@ const DataChat = () => {
           { align: 'center' }
         );
         
-        // Page number - right aligned
         doc.setFontSize(8);
         doc.setTextColor(...colors.light);
         doc.text(
@@ -622,7 +584,7 @@ const DataChat = () => {
           const pdf = await pdfjsLib.getDocument(typedArray).promise;
           let fullText = `PDF File: ${file.name}\n\n`;
           
-          for (let i = 1; i <= Math.min(pdf.numPages, 10); i++) {
+          for (let i = 1; i <= Math.min(pdf.numPages, 50); i++) {
             const page = await pdf.getPage(i);
             const textContent = await page.getTextContent();
             const pageText = textContent.items.map((item: any) => item.str).join(' ');
@@ -653,14 +615,67 @@ const DataChat = () => {
       }
       setUploadedFiles((prev) => [...prev, file]);
     }
+    
+    // Reset input to allow same file selection
+    if (e.target) {
+      e.target.value = '';
+    }
   };
 
-  const handleSend = async () => {
-    if (!input.trim() && uploadedFiles.length === 0 && !initialPrompt.trim()) return;
+  const processFiles = async (files: File[]): Promise<string> => {
+    let fileContext = "";
+    const newDocs: DocumentFile[] = [];
+    
+    for (const file of files) {
+      try {
+        let content = "";
+        if (file.name.endsWith('.xlsx') || file.name.endsWith('.xls')) {
+          content = await parseExcelFile(file);
+        } else if (file.type === 'application/pdf' || file.name.endsWith('.pdf')) {
+          content = await parsePdfFile(file);
+        } else if (file.name.endsWith('.docx') || file.name.endsWith('.doc')) {
+          content = await parseWordFile(file);
+        } else if (file.type.startsWith('text/') || file.name.endsWith('.txt') || file.name.endsWith('.csv') || file.name.endsWith('.json')) {
+          content = await file.text();
+          content = `File: ${file.name}\n${content.substring(0, 50000)}`;
+        } else if (file.type.startsWith('image/')) {
+          content = `[File: ${file.name} - Image file uploaded for visual analysis]`;
+        } else {
+          content = `[File: ${file.name} - Binary file, type: ${file.type}]`;
+        }
+        
+        fileContext += `\n\n${content}`;
+        newDocs.push({
+          name: file.name,
+          type: file.type || 'unknown',
+          content: content.substring(0, 1000) + '...'
+        });
+      } catch (e) {
+        console.error('Error parsing file:', e);
+        fileContext += `\n\n[File: ${file.name} - Error parsing file]`;
+      }
+    }
+    
+    setSessionDocuments(prev => [...prev, ...newDocs]);
+    return fileContext;
+  };
+
+  const handleSend = async (action?: string) => {
+    const messageContent = input || initialPrompt;
+    if (!messageContent.trim() && uploadedFiles.length === 0 && !action) return;
+
+    let userMessageText = messageContent;
+    if (action === "summarize") {
+      userMessageText = "Please provide a comprehensive summary of the uploaded document(s).";
+    } else if (action === "extract") {
+      userMessageText = "Please extract and organize the key information from the uploaded document(s).";
+    } else if (!messageContent.trim() && uploadedFiles.length > 0) {
+      userMessageText = `I've uploaded ${uploadedFiles.length} file(s): ${uploadedFiles.map(f => f.name).join(', ')}. What would you like to know about them?`;
+    }
 
     const userMessage: Message = {
       role: "user",
-      content: input || initialPrompt || "Analyzing uploaded files...",
+      content: userMessageText,
     };
 
     const newMessages = [...messages, userMessage];
@@ -670,35 +685,15 @@ const DataChat = () => {
     setIsLoading(true);
 
     try {
-      let fileContext = "";
+      let newFileContext = "";
       
       if (uploadedFiles.length > 0) {
-        for (const file of uploadedFiles) {
-          try {
-            if (file.name.endsWith('.xlsx') || file.name.endsWith('.xls')) {
-              const excelData = await parseExcelFile(file);
-              fileContext += `\n\n${excelData}`;
-            } else if (file.type === 'application/pdf' || file.name.endsWith('.pdf')) {
-              const pdfText = await parsePdfFile(file);
-              fileContext += `\n\n${pdfText}`;
-            } else if (file.name.endsWith('.docx') || file.name.endsWith('.doc')) {
-              const wordText = await parseWordFile(file);
-              fileContext += `\n\n${wordText}`;
-            } else if (file.type.startsWith('text/') || file.name.endsWith('.txt') || file.name.endsWith('.csv') || file.name.endsWith('.json')) {
-              const text = await file.text();
-              fileContext += `\n\nFile: ${file.name}\n${text.substring(0, 10000)}`;
-            } else if (file.type.startsWith('image/')) {
-              fileContext += `\n\n[File: ${file.name} - Image file uploaded for visual analysis]`;
-            } else {
-              fileContext += `\n\n[File: ${file.name} - Binary file, type: ${file.type}]`;
-            }
-          } catch (e) {
-            console.error('Error parsing file:', e);
-            fileContext += `\n\n[File: ${file.name} - Error parsing file]`;
-          }
-        }
+        newFileContext = await processFiles(uploadedFiles);
+        setDocumentContext(prev => prev + newFileContext);
         setUploadedFiles([]);
       }
+
+      const fullContext = documentContext + newFileContext;
 
       const response = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/analyze-data`,
@@ -710,7 +705,8 @@ const DataChat = () => {
           },
           body: JSON.stringify({
             messages: newMessages,
-            fileContext,
+            fileContext: fullContext,
+            action: action,
           }),
         }
       );
@@ -774,15 +770,25 @@ const DataChat = () => {
     setInput("");
     setInitialPrompt("");
     setUploadedFiles([]);
+    setSessionDocuments([]);
+    setDocumentContext("");
+  };
+
+  const removeDocument = (index: number) => {
+    setSessionDocuments(prev => prev.filter((_, i) => i !== index));
+    toast({
+      title: "Document removed",
+      description: "The document has been removed from this session",
+    });
   };
 
   return (
     <div className="h-screen flex bg-background overflow-hidden">
       <Helmet>
-        <title>Data.chat - AI-Powered Data Analysis</title>
+        <title>Data.chat - AI-Powered Document Analysis</title>
         <meta
           name="description"
-          content="Chat with your data using AI. Upload Excel, PDF, and other files to get instant insights and analysis."
+          content="Chat with your documents using AI. Upload PDFs, Excel, Word files and get instant answers, summaries, and insights."
         />
       </Helmet>
 
@@ -797,7 +803,7 @@ const DataChat = () => {
       {/* Sidebar */}
       <aside className={`
         fixed lg:relative inset-y-0 left-0 z-50
-        w-64 bg-secondary/50 border-r border-border
+        w-72 bg-secondary/50 border-r border-border
         flex flex-col
         transform transition-transform duration-300 ease-in-out
         ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
@@ -812,6 +818,32 @@ const DataChat = () => {
             New chat
           </Button>
         </div>
+        
+        {/* Documents in session */}
+        {sessionDocuments.length > 0 && (
+          <div className="px-3 py-2 border-t border-border">
+            <p className="text-xs font-medium text-muted-foreground px-3 py-2 uppercase tracking-wider">
+              Documents ({sessionDocuments.length})
+            </p>
+            <div className="space-y-1 max-h-[200px] overflow-y-auto">
+              {sessionDocuments.map((doc, index) => (
+                <div 
+                  key={index}
+                  className="flex items-center gap-2 px-3 py-2 rounded-lg bg-muted/50 group"
+                >
+                  <FileText className="h-4 w-4 text-accent shrink-0" />
+                  <span className="text-sm truncate flex-1">{doc.name}</span>
+                  <button
+                    onClick={() => removeDocument(index)}
+                    className="opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    <Trash2 className="h-3.5 w-3.5 text-muted-foreground hover:text-destructive" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
         
         <div className="flex-1 overflow-y-auto px-3 py-2">
           <p className="text-xs text-muted-foreground px-3 py-2">Previous chats will appear here</p>
@@ -845,6 +877,12 @@ const DataChat = () => {
               <h1 className="font-semibold text-lg">Data.chat</h1>
             </div>
           </div>
+          {sessionDocuments.length > 0 && (
+            <div className="hidden sm:flex items-center gap-2 text-sm text-muted-foreground">
+              <FileText className="h-4 w-4" />
+              {sessionDocuments.length} document{sessionDocuments.length !== 1 ? 's' : ''} loaded
+            </div>
+          )}
         </header>
 
         {/* Chat area */}
@@ -858,12 +896,80 @@ const DataChat = () => {
                     <Sparkles className="h-8 w-8 text-accent" />
                   </div>
                   <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">
-                    How can I help you today?
+                    Chat with your documents
                   </h2>
                   <p className="text-muted-foreground text-lg max-w-md mx-auto">
-                    Upload your data files and ask questions to get instant AI-powered insights.
+                    Upload PDFs, Excel, or Word files and ask questions to get instant AI-powered insights.
                   </p>
                 </div>
+
+                {/* File upload area */}
+                <div 
+                  className="border-2 border-dashed border-border/50 rounded-2xl p-8 text-center hover:border-accent/50 transition-colors cursor-pointer bg-muted/20"
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    multiple
+                    accept=".pdf,.xlsx,.xls,.doc,.docx,.txt,.csv,.json,image/*"
+                    onChange={handleFileUpload}
+                    className="hidden"
+                  />
+                  <Paperclip className="h-10 w-10 mx-auto mb-4 text-muted-foreground" />
+                  <p className="font-medium mb-1">Drop files here or click to upload</p>
+                  <p className="text-sm text-muted-foreground">
+                    Supports PDF, Excel, Word, CSV, TXT, JSON (Max 20MB each)
+                  </p>
+                </div>
+
+                {/* Uploaded files preview */}
+                {uploadedFiles.length > 0 && (
+                  <div className="space-y-3">
+                    <div className="flex flex-wrap gap-2">
+                      {uploadedFiles.map((file, index) => (
+                        <div
+                          key={index}
+                          className="flex items-center gap-2 text-sm px-3 py-2 bg-muted rounded-xl border border-border/50"
+                        >
+                          <FileText className="h-4 w-4 text-accent" />
+                          <span className="max-w-[200px] truncate">{file.name}</span>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setUploadedFiles(prev => prev.filter((_, i) => i !== index));
+                            }}
+                            className="text-muted-foreground hover:text-foreground ml-1"
+                          >
+                            <X className="h-4 w-4" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Quick action buttons */}
+                    <div className="flex flex-wrap gap-2 justify-center">
+                      <Button
+                        onClick={() => handleSend("summarize")}
+                        disabled={isLoading}
+                        variant="outline"
+                        className="gap-2 rounded-xl"
+                      >
+                        <ListChecks className="h-4 w-4" />
+                        Summarize
+                      </Button>
+                      <Button
+                        onClick={() => handleSend("extract")}
+                        disabled={isLoading}
+                        variant="outline"
+                        className="gap-2 rounded-xl"
+                      >
+                        <Search className="h-4 w-4" />
+                        Extract Info
+                      </Button>
+                    </div>
+                  </div>
+                )}
 
                 {/* Input area for welcome screen */}
                 <div className="space-y-4">
@@ -872,8 +978,8 @@ const DataChat = () => {
                       ref={textareaRef}
                       value={initialPrompt}
                       onChange={(e) => setInitialPrompt(e.target.value)}
-                      placeholder="What would you like to analyze?"
-                      className="min-h-[120px] resize-none rounded-2xl border-border/50 bg-card pr-12 text-base focus:ring-2 focus:ring-accent/20"
+                      placeholder="Ask a question about your documents..."
+                      className="min-h-[100px] resize-none rounded-2xl border-border/50 bg-card pr-12 text-base focus:ring-2 focus:ring-accent/20"
                       onKeyDown={(e) => {
                         if (e.key === "Enter" && !e.shiftKey && (initialPrompt.trim() || uploadedFiles.length > 0)) {
                           e.preventDefault();
@@ -883,35 +989,7 @@ const DataChat = () => {
                     />
                   </div>
 
-                  {uploadedFiles.length > 0 && (
-                    <div className="flex flex-wrap gap-2 px-1">
-                      {uploadedFiles.map((file, index) => (
-                        <div
-                          key={index}
-                          className="flex items-center gap-2 text-sm px-3 py-1.5 bg-muted rounded-full border border-border/50"
-                        >
-                          <Paperclip className="h-3.5 w-3.5 text-muted-foreground" />
-                          <span className="max-w-[150px] truncate">{file.name}</span>
-                          <button
-                            onClick={() => setUploadedFiles(prev => prev.filter((_, i) => i !== index))}
-                            className="text-muted-foreground hover:text-foreground"
-                          >
-                            <X className="h-3.5 w-3.5" />
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-
                   <div className="flex items-center justify-between">
-                    <input
-                      ref={fileInputRef}
-                      type="file"
-                      multiple
-                      accept=".pdf,.xlsx,.xls,.doc,.docx,.txt,.csv,.json,image/*"
-                      onChange={handleFileUpload}
-                      className="hidden"
-                    />
                     <Button
                       variant="ghost"
                       size="sm"
@@ -919,35 +997,40 @@ const DataChat = () => {
                       className="gap-2 text-muted-foreground hover:text-foreground"
                     >
                       <Paperclip className="h-4 w-4" />
-                      Attach files
+                      Add more files
                     </Button>
                     
                     <Button
-                      onClick={handleSend}
-                      disabled={!initialPrompt.trim() && uploadedFiles.length === 0}
+                      onClick={() => handleSend()}
+                      disabled={(!initialPrompt.trim() && uploadedFiles.length === 0) || isLoading}
                       className="rounded-full px-6 gap-2"
                     >
-                      <ArrowUp className="h-4 w-4" />
-                      Send
+                      {isLoading ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <ArrowUp className="h-4 w-4" />
+                      )}
+                      {isLoading ? "Analyzing..." : "Send"}
                     </Button>
                   </div>
                 </div>
 
-                {/* Suggestions */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-4">
+                {/* Feature highlights */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-4">
                   {[
-                    "Analyze sales trends in my data",
-                    "Calculate summary statistics",
-                    "Find patterns and insights",
-                    "Compare data across columns"
-                  ].map((suggestion, i) => (
-                    <button
+                    { icon: "💬", title: "Q&A", desc: "Ask questions" },
+                    { icon: "📋", title: "Summarize", desc: "Get summaries" },
+                    { icon: "🔍", title: "Extract", desc: "Find key info" },
+                    { icon: "📚", title: "Multi-file", desc: "Analyze many docs" },
+                  ].map((feature, i) => (
+                    <div
                       key={i}
-                      onClick={() => setInitialPrompt(suggestion)}
-                      className="text-left p-4 rounded-xl border border-border/50 bg-card/50 hover:bg-card hover:border-border transition-colors text-sm text-muted-foreground hover:text-foreground"
+                      className="text-center p-3 rounded-xl border border-border/50 bg-card/50"
                     >
-                      {suggestion}
-                    </button>
+                      <span className="text-2xl">{feature.icon}</span>
+                      <p className="font-medium text-sm mt-1">{feature.title}</p>
+                      <p className="text-xs text-muted-foreground">{feature.desc}</p>
+                    </div>
                   ))}
                 </div>
               </div>
@@ -1058,6 +1141,44 @@ const DataChat = () => {
         {messages.length > 0 && (
           <div className="border-t border-border bg-background p-4 shrink-0">
             <div className="max-w-3xl mx-auto">
+              {/* Quick actions when documents are loaded */}
+              {sessionDocuments.length > 0 && (
+                <div className="flex gap-2 mb-3 overflow-x-auto pb-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setInput("Please summarize the key points from all documents.");
+                    }}
+                    className="shrink-0 text-xs gap-1.5 rounded-full"
+                  >
+                    <ListChecks className="h-3.5 w-3.5" />
+                    Summarize all
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setInput("What are the main findings or conclusions?");
+                    }}
+                    className="shrink-0 text-xs gap-1.5 rounded-full"
+                  >
+                    <Search className="h-3.5 w-3.5" />
+                    Key findings
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setInput("Compare and contrast the information across all uploaded documents.");
+                    }}
+                    className="shrink-0 text-xs gap-1.5 rounded-full"
+                  >
+                    📊 Compare docs
+                  </Button>
+                </div>
+              )}
+              
               <div className="relative flex items-end gap-2 bg-muted rounded-2xl border border-border/50 p-2">
                 <input
                   ref={fileInputRef}
@@ -1088,7 +1209,7 @@ const DataChat = () => {
                         handleSend();
                       }
                     }}
-                    placeholder="Message Data.chat..."
+                    placeholder="Ask about your documents..."
                     disabled={isLoading}
                     className="min-h-[44px] max-h-[200px] resize-none bg-transparent border-0 focus-visible:ring-0 py-3 px-2"
                     rows={1}
@@ -1096,8 +1217,12 @@ const DataChat = () => {
                   {uploadedFiles.length > 0 && (
                     <div className="absolute -top-10 left-0 flex gap-1">
                       {uploadedFiles.map((file, index) => (
-                        <span key={index} className="text-xs px-2 py-1 bg-background rounded-full border border-border">
+                        <span key={index} className="text-xs px-2 py-1 bg-background rounded-full border border-border flex items-center gap-1">
+                          <FileText className="h-3 w-3" />
                           {file.name.length > 15 ? file.name.slice(0, 15) + '...' : file.name}
+                          <button onClick={() => setUploadedFiles(prev => prev.filter((_, i) => i !== index))}>
+                            <X className="h-3 w-3" />
+                          </button>
                         </span>
                       ))}
                     </div>
@@ -1105,7 +1230,7 @@ const DataChat = () => {
                 </div>
 
                 <Button
-                  onClick={handleSend}
+                  onClick={() => handleSend()}
                   disabled={isLoading || (!input.trim() && uploadedFiles.length === 0)}
                   size="icon"
                   className="shrink-0 h-9 w-9 rounded-xl"
