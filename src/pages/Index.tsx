@@ -55,7 +55,7 @@ const Index = () => {
                 </div>
                 <div>
                   <CardTitle className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-                    AI Data Analysis Chat
+                    Data.chat
                   </CardTitle>
                   <CardDescription className="text-sm md:text-base">
                     Powered by Advanced AI • Instant Insights

@@ -618,7 +618,7 @@ const AIFormulaGenerator = () => {
             <div className="animate-fade-in">
               <div className="bg-card rounded-2xl sm:rounded-3xl shadow-2xl p-6 sm:p-8 md:p-12 border border-border/50">
                 <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-center text-foreground mb-6 sm:mb-8 md:mb-12 animate-scale-in">
-                  Analyse Your Data
+                  Data.chat
                 </h1>
                 
                 <div className="mb-6">
