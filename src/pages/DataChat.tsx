@@ -55,14 +55,24 @@ const DataChat = () => {
       const doc = new jsPDF();
       const pageWidth = doc.internal.pageSize.getWidth();
       const pageHeight = doc.internal.pageSize.getHeight();
-      const margin = 20;
+      const margin = 25;
       const maxWidth = pageWidth - (margin * 2);
-      let yPosition = margin;
+      let yPosition = margin + 10;
+      
+      // Premium color palette
+      const colors = {
+        primary: [15, 23, 42] as [number, number, number],      // Slate 900
+        secondary: [51, 65, 85] as [number, number, number],    // Slate 700
+        accent: [59, 130, 246] as [number, number, number],     // Blue 500
+        muted: [100, 116, 139] as [number, number, number],     // Slate 500
+        light: [148, 163, 184] as [number, number, number],     // Slate 400
+        border: [226, 232, 240] as [number, number, number],    // Slate 200
+      };
       
       const checkPageBreak = (requiredSpace: number = 10) => {
-        if (yPosition + requiredSpace > pageHeight - margin) {
+        if (yPosition + requiredSpace > pageHeight - 35) {
           doc.addPage();
-          yPosition = margin;
+          yPosition = margin + 5;
           return true;
         }
         return false;
@@ -97,28 +107,34 @@ const DataChat = () => {
           .filter(cell => cell.length > 0);
       };
       
-      doc.setFontSize(22);
-      doc.setFont("helvetica", "bold");
-      doc.setTextColor(30, 58, 138);
-      doc.text("Data Analysis Report", margin, yPosition);
-      yPosition += 10;
+      // Premium Header with gradient effect simulation
+      doc.setFillColor(15, 23, 42);
+      doc.rect(0, 0, pageWidth, 45, 'F');
       
-      doc.setFontSize(11);
+      // Accent line
+      doc.setFillColor(59, 130, 246);
+      doc.rect(0, 45, pageWidth, 2, 'F');
+      
+      // Title on dark header
+      doc.setFontSize(26);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(255, 255, 255);
+      doc.text("Data Analysis Report", margin, 28);
+      
+      // Subtitle
+      doc.setFontSize(10);
       doc.setFont("helvetica", "normal");
-      doc.setTextColor(100, 100, 100);
+      doc.setTextColor(148, 163, 184);
       doc.text(`Generated on ${new Date().toLocaleDateString('en-US', { 
+        weekday: 'long',
         year: 'numeric', 
         month: 'long', 
         day: 'numeric',
         hour: '2-digit',
         minute: '2-digit'
-      })}`, margin, yPosition);
-      yPosition += 8;
+      })}`, margin, 38);
       
-      doc.setDrawColor(30, 58, 138);
-      doc.setLineWidth(0.5);
-      doc.line(margin, yPosition, pageWidth - margin, yPosition);
-      yPosition += 15;
+      yPosition = 60;
       
       const contentLines = content.split('\n');
       let inTable = false;
@@ -128,7 +144,7 @@ const DataChat = () => {
         const trimmedLine = line.trim();
         
         if (trimmedLine === '') {
-          yPosition += 4;
+          yPosition += 5;
           continue;
         }
         
@@ -139,25 +155,25 @@ const DataChat = () => {
         if (trimmedLine.includes('|')) {
           const cells = parseTableRow(trimmedLine);
           if (cells.length > 0) {
-            checkPageBreak(10);
+            checkPageBreak(12);
             
             if (!inTable) {
               inTable = true;
               doc.setFontSize(10);
               doc.setFont("helvetica", "bold");
-              doc.setTextColor(30, 58, 138);
+              doc.setTextColor(...colors.accent);
             } else {
               doc.setFontSize(10);
               doc.setFont("helvetica", "normal");
-              doc.setTextColor(50, 50, 50);
+              doc.setTextColor(...colors.secondary);
             }
             
-            const cellText = '• ' + cells.join('  |  ');
+            const cellText = '  •  ' + cells.join('    |    ');
             const splitLines = doc.splitTextToSize(cellText, maxWidth);
             splitLines.forEach((splitLine: string) => {
-              checkPageBreak(6);
+              checkPageBreak(7);
               doc.text(splitLine, margin, yPosition);
-              yPosition += 6;
+              yPosition += 7;
             });
           }
           continue;
@@ -165,144 +181,177 @@ const DataChat = () => {
           inTable = false;
         }
         
+        // H1 Headers - Premium style
         if (trimmedLine.startsWith('# ')) {
-          checkPageBreak(20);
-          yPosition += 8;
-          doc.setFontSize(18);
+          checkPageBreak(25);
+          yPosition += 12;
+          
+          // Accent bar before heading
+          doc.setFillColor(...colors.accent);
+          doc.rect(margin, yPosition - 6, 4, 18, 'F');
+          
+          doc.setFontSize(20);
           doc.setFont("helvetica", "bold");
-          doc.setTextColor(30, 58, 138);
+          doc.setTextColor(...colors.primary);
           const headingText = cleanMarkdown(trimmedLine.substring(2));
+          const splitLines = doc.splitTextToSize(headingText, maxWidth - 10);
+          splitLines.forEach((splitLine: string) => {
+            doc.text(splitLine, margin + 10, yPosition);
+            yPosition += 10;
+          });
+          yPosition += 8;
+          continue;
+        }
+        
+        // H2 Headers
+        if (trimmedLine.startsWith('## ')) {
+          checkPageBreak(18);
+          yPosition += 10;
+          doc.setFontSize(16);
+          doc.setFont("helvetica", "bold");
+          doc.setTextColor(...colors.secondary);
+          const headingText = cleanMarkdown(trimmedLine.substring(3));
           const splitLines = doc.splitTextToSize(headingText, maxWidth);
           splitLines.forEach((splitLine: string) => {
             doc.text(splitLine, margin, yPosition);
             yPosition += 9;
           });
-          doc.setDrawColor(200, 200, 200);
-          doc.setLineWidth(0.3);
-          doc.line(margin, yPosition, margin + 60, yPosition);
-          yPosition += 6;
+          
+          // Subtle underline
+          doc.setDrawColor(...colors.border);
+          doc.setLineWidth(0.5);
+          doc.line(margin, yPosition + 2, margin + 50, yPosition + 2);
+          yPosition += 8;
           continue;
         }
         
-        if (trimmedLine.startsWith('## ')) {
+        // H3 Headers
+        if (trimmedLine.startsWith('### ')) {
           checkPageBreak(15);
           yPosition += 6;
-          doc.setFontSize(14);
+          doc.setFontSize(13);
           doc.setFont("helvetica", "bold");
-          doc.setTextColor(55, 65, 81);
-          const headingText = cleanMarkdown(trimmedLine.substring(3));
+          doc.setTextColor(...colors.muted);
+          const headingText = cleanMarkdown(trimmedLine.substring(4));
           const splitLines = doc.splitTextToSize(headingText, maxWidth);
           splitLines.forEach((splitLine: string) => {
             doc.text(splitLine, margin, yPosition);
             yPosition += 8;
           });
+          yPosition += 4;
+          continue;
+        }
+        
+        // Bullet points - Premium style
+        if (trimmedLine.match(/^[\-\*]\s/)) {
+          checkPageBreak(12);
+          doc.setFontSize(11);
+          doc.setFont("helvetica", "normal");
+          doc.setTextColor(...colors.secondary);
+          const bulletText = cleanMarkdown(trimmedLine.substring(2));
+          const bulletX = margin + 10;
+          
+          // Modern bullet point
+          doc.setFillColor(...colors.accent);
+          doc.circle(margin + 4, yPosition - 1.5, 1.5, 'F');
+          
+          const splitLines = doc.splitTextToSize(bulletText, maxWidth - 12);
+          splitLines.forEach((splitLine: string, idx: number) => {
+            if (idx > 0) checkPageBreak(7);
+            doc.text(splitLine, bulletX, yPosition);
+            yPosition += 7;
+          });
           yPosition += 3;
           continue;
         }
         
-        if (trimmedLine.startsWith('### ')) {
-          checkPageBreak(12);
-          yPosition += 4;
-          doc.setFontSize(12);
-          doc.setFont("helvetica", "bold");
-          doc.setTextColor(75, 85, 99);
-          const headingText = cleanMarkdown(trimmedLine.substring(4));
-          const splitLines = doc.splitTextToSize(headingText, maxWidth);
-          splitLines.forEach((splitLine: string) => {
-            doc.text(splitLine, margin, yPosition);
-            yPosition += 7;
-          });
-          yPosition += 2;
-          continue;
-        }
-        
-        if (trimmedLine.match(/^[\-\*]\s/)) {
-          checkPageBreak(10);
-          doc.setFontSize(11);
-          doc.setFont("helvetica", "normal");
-          doc.setTextColor(50, 50, 50);
-          const bulletText = cleanMarkdown(trimmedLine.substring(2));
-          const bulletX = margin + 6;
-          
-          doc.setFillColor(30, 58, 138);
-          doc.circle(margin + 2, yPosition - 1.5, 1, 'F');
-          
-          const splitLines = doc.splitTextToSize(bulletText, maxWidth - 8);
-          splitLines.forEach((splitLine: string, idx: number) => {
-            if (idx > 0) checkPageBreak(6);
-            doc.text(splitLine, bulletX, yPosition);
-            yPosition += 6;
-          });
-          yPosition += 1;
-          continue;
-        }
-        
+        // Numbered lists
         if (trimmedLine.match(/^\d+\.\s/)) {
-          checkPageBreak(10);
+          checkPageBreak(12);
           doc.setFontSize(11);
-          doc.setFont("helvetica", "normal");
-          doc.setTextColor(50, 50, 50);
           const match = trimmedLine.match(/^(\d+\.)\s(.+)$/);
           if (match) {
             const number = match[1];
             const text = cleanMarkdown(match[2]);
             
+            // Number in accent color
             doc.setFont("helvetica", "bold");
-            doc.setTextColor(30, 58, 138);
+            doc.setTextColor(...colors.accent);
             doc.text(number, margin, yPosition);
             
+            // Text in secondary color
             doc.setFont("helvetica", "normal");
-            doc.setTextColor(50, 50, 50);
-            const numberWidth = doc.getTextWidth(number + ' ');
+            doc.setTextColor(...colors.secondary);
+            const numberWidth = doc.getTextWidth(number + '  ');
             const splitLines = doc.splitTextToSize(text, maxWidth - numberWidth);
             splitLines.forEach((splitLine: string, idx: number) => {
-              if (idx > 0) checkPageBreak(6);
+              if (idx > 0) checkPageBreak(7);
               doc.text(splitLine, margin + numberWidth, yPosition);
-              yPosition += 6;
+              yPosition += 7;
             });
           }
-          yPosition += 1;
+          yPosition += 3;
           continue;
         }
         
-        checkPageBreak(10);
+        // Regular paragraphs
+        checkPageBreak(12);
         doc.setFontSize(11);
         doc.setFont("helvetica", "normal");
-        doc.setTextColor(50, 50, 50);
+        doc.setTextColor(...colors.secondary);
         
         const cleanText = cleanMarkdown(trimmedLine);
         if (cleanText) {
           const splitLines = doc.splitTextToSize(cleanText, maxWidth);
           splitLines.forEach((splitLine: string) => {
-            checkPageBreak(6);
+            checkPageBreak(7);
             doc.text(splitLine, margin, yPosition);
-            yPosition += 6;
+            yPosition += 7;
           });
-          yPosition += 2;
+          yPosition += 3;
         }
       }
       
+      // Add footer with watermark and page numbers to all pages
       const pageCount = doc.internal.pages.length - 1;
       for (let i = 1; i <= pageCount; i++) {
         doc.setPage(i);
+        
+        // Footer background
+        doc.setFillColor(248, 250, 252);
+        doc.rect(0, pageHeight - 22, pageWidth, 22, 'F');
+        
+        // Footer top line
+        doc.setDrawColor(...colors.border);
+        doc.setLineWidth(0.3);
+        doc.line(0, pageHeight - 22, pageWidth, pageHeight - 22);
+        
+        // Watermark - centered
         doc.setFontSize(9);
         doc.setFont("helvetica", "normal");
-        doc.setTextColor(150, 150, 150);
+        doc.setTextColor(...colors.muted);
         doc.text(
-          `Page ${i} of ${pageCount}`,
+          "Made with data.chat (Skillbi.in)",
           pageWidth / 2,
           pageHeight - 10,
           { align: 'center' }
         );
-        doc.setDrawColor(200, 200, 200);
-        doc.setLineWidth(0.2);
-        doc.line(margin, pageHeight - 15, pageWidth - margin, pageHeight - 15);
+        
+        // Page number - right aligned
+        doc.setFontSize(8);
+        doc.setTextColor(...colors.light);
+        doc.text(
+          `Page ${i} of ${pageCount}`,
+          pageWidth - margin,
+          pageHeight - 10,
+          { align: 'right' }
+        );
       }
       
       doc.save(`data-analysis-report-${index + 1}.pdf`);
       toast({
         title: "Exported to PDF",
-        description: "Your analysis report has been saved",
+        description: "Your premium analysis report has been saved",
       });
     } catch (error) {
       toast({
