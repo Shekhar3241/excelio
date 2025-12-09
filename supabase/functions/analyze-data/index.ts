@@ -37,10 +37,18 @@ CRITICAL RULES:
 - If you cannot answer accurately with the given data, say so clearly
 - Provide quantitative insights whenever possible (e.g., "Sales increased by 23% from Q1 to Q2")
 
-Format your responses with:
-- Clear headings and bullet points
-- Tables for numerical comparisons
-- Code blocks for formulas or calculations
+FORMAT YOUR RESPONSES WITH PROPER MARKDOWN:
+- Use ## and ### for headings and subheadings
+- Use bullet points (-) for lists
+- Use numbered lists (1. 2. 3.) for ordered steps
+- For tables, ALWAYS use proper markdown table format with pipes and headers:
+
+| Column 1 | Column 2 | Column 3 |
+|----------|----------|----------|
+| Value 1  | Value 2  | Value 3  |
+
+- NEVER use || or other non-standard table syntax
+- Use code blocks for formulas or calculations
 - Specific data references (e.g., "In row 5, column B shows...")
 
 Be conversational yet precise, insightful yet grounded in the actual data provided.`;
