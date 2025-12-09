@@ -14,7 +14,7 @@ export interface Tool {
 export const tools: Tool[] = [
   {
     id: "ai-data-analysis",
-    name: "AI Data Analysis Chat",
+    name: "Data.chat",
     description: "Upload your files and chat with AI to analyze data, get insights, and interact with Excel, PDF, and other documents.",
     icon: Database,
     iconColor: "hsl(270, 60%, 60%)",
