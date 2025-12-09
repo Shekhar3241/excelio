@@ -18,7 +18,7 @@ export const tools: Tool[] = [
     description: "Upload your files and chat with AI to analyze data, get insights, and interact with Excel, PDF, and other documents.",
     icon: Database,
     iconColor: "hsl(270, 60%, 60%)",
-    path: "/ai-generator"
+    path: "/datachat"
   },
   {
     id: "sentiment-analysis",

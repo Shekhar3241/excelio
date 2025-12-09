@@ -10,7 +10,7 @@ import Category from "./pages/Category";
 import FormulaDetail from "./pages/FormulaDetail";
 import Favorites from "./pages/Favorites";
 import Recent from "./pages/Recent";
-import AIFormulaGenerator from "./pages/AIFormulaGenerator";
+import DataChat from "./pages/DataChat";
 
 import Contact from "./pages/Contact";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
@@ -43,8 +43,9 @@ const App = () => (
             <Route path="/about" element={<About />} />
             <Route path="/blog" element={<Blog />} />
             <Route path="/blog/:blogId" element={<BlogPost />} />
-            <Route path="/ai-generator" element={<AIFormulaGenerator />} />
-            <Route path="/simulator" element={<AIFormulaGenerator />} />
+            <Route path="/datachat" element={<DataChat />} />
+            <Route path="/ai-generator" element={<DataChat />} />
+            <Route path="/simulator" element={<DataChat />} />
             <Route path="/sentiment-analysis" element={<SentimentAnalysis />} />
             <Route path="/sql-generator" element={<SQLGenerator />} />
             <Route path="/favorites" element={<Favorites />} />
