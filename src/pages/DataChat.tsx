@@ -107,6 +107,27 @@ const DataChat = () => {
           .filter(cell => cell.length > 0);
       };
       
+      // Extract title from content - use first heading or generate from content
+      const extractTitle = (text: string): string => {
+        // Try to find first H1 heading
+        const h1Match = text.match(/^#\s+(.+)$/m);
+        if (h1Match) return cleanMarkdown(h1Match[1]).substring(0, 60);
+        
+        // Try to find first H2 heading
+        const h2Match = text.match(/^##\s+(.+)$/m);
+        if (h2Match) return cleanMarkdown(h2Match[1]).substring(0, 60);
+        
+        // Use first meaningful line
+        const firstLine = text.split('\n').find(line => 
+          line.trim().length > 10 && !line.startsWith('|') && !line.match(/^[-:|]+$/)
+        );
+        if (firstLine) return cleanMarkdown(firstLine).substring(0, 60);
+        
+        return "Analysis Report";
+      };
+      
+      const reportTitle = extractTitle(content);
+      
       // Premium Header with gradient effect simulation
       doc.setFillColor(15, 23, 42);
       doc.rect(0, 0, pageWidth, 45, 'F');
@@ -115,11 +136,12 @@ const DataChat = () => {
       doc.setFillColor(59, 130, 246);
       doc.rect(0, 45, pageWidth, 2, 'F');
       
-      // Title on dark header
-      doc.setFontSize(26);
+      // Dynamic title on dark header
+      doc.setFontSize(22);
       doc.setFont("helvetica", "bold");
       doc.setTextColor(255, 255, 255);
-      doc.text("Data Analysis Report", margin, 28);
+      const titleLines = doc.splitTextToSize(reportTitle, maxWidth - 20);
+      doc.text(titleLines[0], margin, 28);
       
       // Subtitle
       doc.setFontSize(10);
