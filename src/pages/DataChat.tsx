@@ -160,16 +160,114 @@ const DataChat = () => {
       
       const contentLines = content.split('\n');
       let inTable = false;
+      let tableRowIndex = 0;
+      let tableData: string[][] = [];
+      let tableStartY = yPosition;
+      
+      // Function to render a complete table with professional styling
+      const renderTable = (data: string[][], startY: number) => {
+        if (data.length === 0) return startY;
+        
+        const numCols = Math.max(...data.map(row => row.length));
+        const colWidth = (maxWidth - 4) / numCols;
+        const cellPadding = 4;
+        const rowHeight = 10;
+        const headerRowHeight = 12;
+        
+        let currentY = startY;
+        
+        // Table colors
+        const tableColors = {
+          headerBg: [15, 23, 42] as [number, number, number],       // Dark header
+          headerText: [255, 255, 255] as [number, number, number],  // White text
+          evenRowBg: [248, 250, 252] as [number, number, number],   // Light gray
+          oddRowBg: [255, 255, 255] as [number, number, number],    // White
+          borderColor: [203, 213, 225] as [number, number, number], // Slate 300
+          cellText: [51, 65, 85] as [number, number, number],       // Slate 700
+        };
+        
+        data.forEach((row, rowIdx) => {
+          const isHeader = rowIdx === 0;
+          const currentRowHeight = isHeader ? headerRowHeight : rowHeight;
+          
+          // Check page break before drawing row
+          if (currentY + currentRowHeight > pageHeight - 35) {
+            doc.addPage();
+            currentY = margin + 5;
+          }
+          
+          // Draw row background
+          if (isHeader) {
+            doc.setFillColor(...tableColors.headerBg);
+          } else if (rowIdx % 2 === 0) {
+            doc.setFillColor(...tableColors.evenRowBg);
+          } else {
+            doc.setFillColor(...tableColors.oddRowBg);
+          }
+          doc.rect(margin, currentY, maxWidth, currentRowHeight, 'F');
+          
+          // Draw cell borders and text
+          row.forEach((cell, colIdx) => {
+            const cellX = margin + (colIdx * colWidth);
+            
+            // Draw vertical lines
+            doc.setDrawColor(...tableColors.borderColor);
+            doc.setLineWidth(0.3);
+            doc.line(cellX, currentY, cellX, currentY + currentRowHeight);
+            
+            // Draw cell text
+            if (isHeader) {
+              doc.setFont("helvetica", "bold");
+              doc.setTextColor(...tableColors.headerText);
+              doc.setFontSize(9);
+            } else {
+              doc.setFont("helvetica", "normal");
+              doc.setTextColor(...tableColors.cellText);
+              doc.setFontSize(9);
+            }
+            
+            // Truncate text if too long
+            const maxTextWidth = colWidth - (cellPadding * 2);
+            let displayText = cell;
+            while (doc.getTextWidth(displayText) > maxTextWidth && displayText.length > 3) {
+              displayText = displayText.slice(0, -4) + '...';
+            }
+            
+            const textY = currentY + (currentRowHeight / 2) + 3;
+            doc.text(displayText, cellX + cellPadding, textY);
+          });
+          
+          // Draw right border of last cell
+          const lastCellX = margin + maxWidth;
+          doc.line(lastCellX, currentY, lastCellX, currentY + currentRowHeight);
+          
+          // Draw horizontal lines (top and bottom of row)
+          doc.line(margin, currentY, margin + maxWidth, currentY);
+          doc.line(margin, currentY + currentRowHeight, margin + maxWidth, currentY + currentRowHeight);
+          
+          currentY += currentRowHeight;
+        });
+        
+        return currentY + 8; // Add spacing after table
+      };
       
       for (let i = 0; i < contentLines.length; i++) {
         const line = contentLines[i];
         const trimmedLine = line.trim();
         
         if (trimmedLine === '') {
+          // If we were in a table, render it now
+          if (inTable && tableData.length > 0) {
+            yPosition = renderTable(tableData, tableStartY);
+            tableData = [];
+            tableRowIndex = 0;
+            inTable = false;
+          }
           yPosition += 5;
           continue;
         }
         
+        // Skip separator rows but keep table context
         if (trimmedLine.match(/^\|?[\s\-:|]+\|?$/) || trimmedLine.match(/^[-:|]+$/)) {
           continue;
         }
@@ -177,29 +275,23 @@ const DataChat = () => {
         if (trimmedLine.includes('|')) {
           const cells = parseTableRow(trimmedLine);
           if (cells.length > 0) {
-            checkPageBreak(12);
-            
             if (!inTable) {
               inTable = true;
-              doc.setFontSize(10);
-              doc.setFont("helvetica", "bold");
-              doc.setTextColor(...colors.accent);
-            } else {
-              doc.setFontSize(10);
-              doc.setFont("helvetica", "normal");
-              doc.setTextColor(...colors.secondary);
+              tableStartY = yPosition;
+              tableData = [];
+              tableRowIndex = 0;
             }
-            
-            const cellText = '  •  ' + cells.join('    |    ');
-            const splitLines = doc.splitTextToSize(cellText, maxWidth);
-            splitLines.forEach((splitLine: string) => {
-              checkPageBreak(7);
-              doc.text(splitLine, margin, yPosition);
-              yPosition += 7;
-            });
+            tableData.push(cells);
+            tableRowIndex++;
           }
           continue;
         } else {
+          // If we were in a table, render it now
+          if (inTable && tableData.length > 0) {
+            yPosition = renderTable(tableData, tableStartY);
+            tableData = [];
+            tableRowIndex = 0;
+          }
           inTable = false;
         }
         
@@ -332,6 +424,11 @@ const DataChat = () => {
           });
           yPosition += 3;
         }
+      }
+      
+      // Render any remaining table at end of content
+      if (inTable && tableData.length > 0) {
+        yPosition = renderTable(tableData, tableStartY);
       }
       
       // Add footer with watermark and page numbers to all pages
