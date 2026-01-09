@@ -1072,14 +1072,14 @@ const DataChat = () => {
                               strong: ({children}) => <strong className="font-semibold">{children}</strong>,
                               table: ({children}) => (
                                 <div className="overflow-x-auto my-4 rounded-lg border border-border">
-                                  <table className="w-full text-sm border-collapse">{children}</table>
+                                  <table className="w-full text-sm border-collapse min-w-max">{children}</table>
                                 </div>
                               ),
                               thead: ({children}) => <thead className="bg-muted/50 border-b border-border">{children}</thead>,
                               tbody: ({children}) => <tbody className="divide-y divide-border">{children}</tbody>,
                               tr: ({children}) => <tr className="hover:bg-muted/30 transition-colors">{children}</tr>,
-                              th: ({children}) => <th className="px-4 py-2.5 text-left font-semibold text-foreground whitespace-nowrap">{children}</th>,
-                              td: ({children}) => <td className="px-4 py-2.5 text-muted-foreground">{children}</td>,
+                              th: ({children}) => <th className="px-4 py-3 text-left font-semibold text-foreground border-r border-border last:border-r-0 min-w-[100px]">{children}</th>,
+                              td: ({children}) => <td className="px-4 py-3 text-foreground border-r border-border last:border-r-0 min-w-[100px] break-words">{children}</td>,
                             }}
                           >
                             {message.content}
